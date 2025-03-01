@@ -23,7 +23,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import com.datn.viettech_md_12.R // Thay bằng package của bạn
+import com.datn.viettech_md_12.R
 
 @SuppressLint("AutoboxingStateCreation")
 @Composable
@@ -63,7 +63,7 @@ fun CustomHorizontalPager(logoTopics: List<Painter>) {
                 Image(
                     painter = logoTopics[page],
                     contentDescription = "demo",
-                    contentScale = ContentScale.Crop, // Cắt ảnh cho vừa khung mà không méo
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
             }

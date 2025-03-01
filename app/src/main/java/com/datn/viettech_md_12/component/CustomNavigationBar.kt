@@ -71,7 +71,7 @@ fun CustomNavigationBar(navController: NavController, selectedRoute: String) {
                 label = {
                     Text(
                         text = item.label,
-                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
                         fontWeight = if (item.route == "saved") FontWeight.Black else FontWeight.Bold
                     )
                 },

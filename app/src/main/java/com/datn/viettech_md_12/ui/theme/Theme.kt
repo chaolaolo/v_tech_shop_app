@@ -1,6 +1,5 @@
 package com.datn.viettech_md_12.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +52,7 @@ fun VietTech_MD_12Theme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography,
-        content = content
+        content = content,
+        shapes = shapes
     )
 }
