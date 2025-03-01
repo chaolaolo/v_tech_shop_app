@@ -9,10 +9,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -173,7 +171,7 @@ fun LoginUI() {
             ),
             backgroundColor = Color.White,
             textColor = Color.Black,
-            iconResId = R.drawable.google_logo
+            painterIconResId = R.drawable.google_logo
         )
         //accept privacy policy notice text
         Spacer(modifier = Modifier.height(10.dp))
