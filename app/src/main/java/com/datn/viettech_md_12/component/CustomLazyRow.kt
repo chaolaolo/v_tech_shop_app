@@ -3,7 +3,6 @@ package com.datn.viettech_md_12.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +27,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.Category
-import com.datn.viettech_md_12.screen.HomeScreen
 
 @Composable
 fun CustomLazyRow(
@@ -38,7 +36,7 @@ fun CustomLazyRow(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        items(categories) { category ->
+        items(categories.take(4)) { category ->
             CustomCategoryItem(
                 name = category.name,
                 painter = painterResource(category.image)
