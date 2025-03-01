@@ -10,38 +10,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import com.datn.viettech_md_12.navigation.NavigationGraph
+import com.datn.viettech_md_12.screen.HomeScreen
 import com.datn.viettech_md_12.ui.theme.VietTech_MD_12Theme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             VietTech_MD_12Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                NavigationGraph()
             }
         }
     }
 }
 
+@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    VietTech_MD_12Theme {
-        Greeting("Android")
-    }
+fun PreviewCustomBanner() {
+    NavigationGraph()
 }
