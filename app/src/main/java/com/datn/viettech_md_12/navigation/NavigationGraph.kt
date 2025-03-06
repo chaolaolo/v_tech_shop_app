@@ -13,8 +13,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.component.CustomNavigationBar
-import com.datn.viettech_md_12.screen.CategoriesScreen
-import com.datn.viettech_md_12.screen.HomeScreen
+import com.datn.viettech_md_12.screen.home.CategoriesScreen
+import com.datn.viettech_md_12.screen.home.HomeScreen
 import com.datn.viettech_md_12.screen.MyCartScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
@@ -43,11 +43,13 @@ fun NavigationGraph() {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            composable("home") { HomeScreen() }
-            composable("categories") { CategoriesScreen() }
+            composable("home") { HomeScreen(navController) }
+            composable("categories") { CategoriesScreen(navController) }
+            composable("categories") { CategoriesScreen(navController) }
             composable("my_cart") { MyCartScreen() }
             composable("wishlist") { WishlistScreen() }
             composable("profile") { ProfileScreen() }
+
         }
     }
 }

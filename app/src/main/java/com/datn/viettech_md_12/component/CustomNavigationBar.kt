@@ -2,7 +2,6 @@ package com.datn.viettech_md_12.component
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors

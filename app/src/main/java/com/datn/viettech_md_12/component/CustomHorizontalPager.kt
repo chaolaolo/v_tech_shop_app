@@ -35,7 +35,7 @@ fun CustomHorizontalPager(logoTopics: List<Painter>) {
 
     val autoAdvance = !pagerIsDragged && !pageIsPressed
 
-    if (autoAdvance) {
+    if (autoAdvance && logoTopics.isNotEmpty()) {
         LaunchedEffect(pagerState, pageInteractionSource) {
             while (true) {
                 delay(2000)
@@ -44,6 +44,7 @@ fun CustomHorizontalPager(logoTopics: List<Painter>) {
             }
         }
     }
+
 
     Box(
         modifier = Modifier

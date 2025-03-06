@@ -3,7 +3,9 @@ package com.datn.viettech_md_12.component
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,48 +15,41 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomTopAppBar(
-    title: String,
-    iconLogo: Int,
-    iconSearch: Int?,
-    iconProfile: Int,
-    navController: NavController
-
+fun CustomTopAppBar2(
+    title: String, icon1: Int, icon2: Int?, icon3: Int?, navController: NavController
 ) {
     SmallTopAppBar(
         title = {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight(),
-//                    .clickable { navController.navigate("home") },
-                contentAlignment = Alignment.CenterStart
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(painter = painterResource(iconLogo), contentDescription = "menu")
-                    Text(text = title, fontWeight = FontWeight.Bold)
-                }
+                Icon(
+                    painter = painterResource(icon1),
+                    contentDescription = "back",
+                    Modifier.clickable { navController.popBackStack() })
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(text = title, fontWeight = FontWeight.Bold)
             }
-        },
-        actions = {
+
+        }, actions = {
             IconButton(onClick = { }) {
-                iconSearch?.let { painterResource(it) }
+                icon2?.let { painterResource(it) }
                     ?.let { Icon(painter = it, contentDescription = "search") }
             }
             IconButton(onClick = {}) {
-                Icon(painter = painterResource(iconProfile), contentDescription = "more")
+                icon3?.let { painterResource(it) }
+                    ?.let { Icon(painter = it, contentDescription = "more") }
             }
-        },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
+        }, colors = TopAppBarDefaults.smallTopAppBarColors(
             containerColor = Color.Transparent,
-            titleContentColor = Color(0xFF309A5F),
-            navigationIconContentColor = Color(0xFF309A5F),
+            titleContentColor = Color(0xFF1C1B1B),
+            navigationIconContentColor = Color(0xFF1C1B1B),
             actionIconContentColor = Color(0xFF1C1B1B),
         )
     )
@@ -63,11 +58,8 @@ fun CustomTopAppBar(
 
 //@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 //@Composable
-//fun PreviewTopAppBar() {
+//fun PreviewTopAppBar2() {
 //    CustomTopAppBar(
-//        "Hehe",
-//        R.drawable.ic_home_page,
-//        R.drawable.ic_home_page,
-//        R.drawable.ic_home_page
+//        "Hehe", R.drawable.ic_home_page, R.drawable.ic_home_page, R.drawable.ic_home_page
 //    )
 //}
