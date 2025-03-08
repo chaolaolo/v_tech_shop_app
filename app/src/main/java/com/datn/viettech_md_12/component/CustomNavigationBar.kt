@@ -52,7 +52,7 @@ fun CustomNavigationBar(navController: NavController, selectedRoute: String) {
     )
 
     NavigationBar(
-        containerColor =if (!isDarkTheme) Color(0xFFFFFFFF) else Color(0xFF1C1B1B),
+        containerColor = if (!isDarkTheme) Color(0xFFFFFFFF) else Color(0xFF1C1B1B),
     ) {
         navigationItems.forEach { item ->
             NavigationBarItem(
@@ -71,7 +71,7 @@ fun CustomNavigationBar(navController: NavController, selectedRoute: String) {
                     Text(
                         text = item.label,
                         maxLines = 1,
-                        fontWeight = if (item.route == "saved") FontWeight.Black else FontWeight.Bold
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 selected = selectedRoute == item.route,

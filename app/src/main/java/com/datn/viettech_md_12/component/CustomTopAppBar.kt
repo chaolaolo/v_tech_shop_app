@@ -11,27 +11,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import com.datn.viettech_md_12.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTopAppBar(
     title: String,
     iconLogo: Int,
-    iconSearch: Int?,
-    iconProfile: Int,
-    navController: NavController
-
+    icon1: Int?,
+    icon2: Int,
+    navController: NavController,
+    actionTitle1: String,
+    actionTitle2: String
 ) {
     SmallTopAppBar(
         title = {
             Box(
                 modifier = Modifier
                     .fillMaxHeight(),
-//                    .clickable { navController.navigate("home") },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Row(
@@ -43,12 +40,20 @@ fun CustomTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = { }) {
-                iconSearch?.let { painterResource(it) }
+            IconButton(onClick = {
+                navController.navigate(actionTitle1)
+            }) {
+                icon1?.let { painterResource(it) }
                     ?.let { Icon(painter = it, contentDescription = "search") }
             }
-            IconButton(onClick = {}) {
-                Icon(painter = painterResource(iconProfile), contentDescription = "more")
+            IconButton(onClick = {
+                if (actionTitle2 == "back") {
+                    navController.popBackStack()
+                } else {
+                    navController.navigate(actionTitle2)
+                }
+            }) {
+                Icon(painter = painterResource(icon2), contentDescription = "more")
             }
         },
         colors = TopAppBarDefaults.smallTopAppBarColors(

@@ -1,11 +1,9 @@
-package com.datn.viettech_md_12.component
+package com.datn.viettech_md_12.component.item
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,22 +13,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.datn.viettech_md_12.R
 
 @Composable
-fun CustomItemCategories(image: Int, title: String) {
+fun CustomItemCategories(image: Int, title: String, onClick: () -> Unit) {
     Card(
         shape = MaterialTheme.shapes.large,
         modifier = Modifier
             .width(183.dp)
             .wrapContentHeight()
-            .clickable {},
+            .clickable { onClick() },
         colors = CardColors(
             containerColor = Color.White,
             contentColor = Color.White,
@@ -69,15 +65,15 @@ fun CustomItemCategories(image: Int, title: String) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
-@Composable
-fun CustomTopicItemPreview() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-
-        CustomItemCategories(image = R.drawable.banner3, "hehe")
-    }
-}
+//@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
+//@Composable
+//fun CustomTopicItemPreview() {
+//    Column(
+//        modifier = Modifier.fillMaxSize(),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//    ) {
+//
+//        CustomItemCategories(image = R.drawable.banner3, "hehe")
+//    }
+//}

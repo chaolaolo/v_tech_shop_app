@@ -6,54 +6,72 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.datn.viettech_md_12.MyApplication
 import com.datn.viettech_md_12.component.CustomNavigationBar
-import com.datn.viettech_md_12.screen.home.CategoriesScreen
-import com.datn.viettech_md_12.screen.home.HomeScreen
+import com.datn.viettech_md_12.screen.CategoriesScreen
+import com.datn.viettech_md_12.screen.HomeScreen
 import com.datn.viettech_md_12.screen.MyCartScreen
+import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
+import com.datn.viettech_md_12.screen.SearchScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
+import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NavigationGraph() {
     val navController = rememberNavController()
-
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
-    LaunchedEffect(currentBackStackEntry.value?.destination?.route) {
+    val productViewModel: ProductViewModel =
+        (LocalContext.current.applicationContext as MyApplication).productViewModel
+
+    val selectedRoute = when {
+        currentBackStackEntry.value?.destination?.route == "categories" -> "categories"
+        currentBackStackEntry.value?.destination?.route?.startsWith("category/") == true -> "categories"
+        else -> currentBackStackEntry.value?.destination?.route ?: "home"
     }
+
+    val hideBottomBar = currentBackStackEntry.value?.destination?.route == "search"
 
     Scaffold(
         bottomBar = {
-            CustomNavigationBar(
-                navController = navController,
-                selectedRoute = currentBackStackEntry.value?.destination?.route ?: "home",
-            )
+            if (!hideBottomBar) {
+                CustomNavigationBar(
+                    navController = navController,
+                    selectedRoute = selectedRoute
+                )
+            }
         }
     ) {
         NavHost(
             navController = navController,
             startDestination = "home",
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             composable("home") { HomeScreen(navController) }
-            composable("categories") { CategoriesScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
             composable("my_cart") { MyCartScreen() }
             composable("wishlist") { WishlistScreen() }
             composable("profile") { ProfileScreen() }
-
+            composable("search") { SearchScreen(navController) }
+            composable("category/{categoryName}") { backStackEntry ->
+                val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+                ProductListScreen(
+                    navController, categoryName,
+                    productViewModel = productViewModel
+                )
+            }
         }
     }
 }
-
 
 
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)

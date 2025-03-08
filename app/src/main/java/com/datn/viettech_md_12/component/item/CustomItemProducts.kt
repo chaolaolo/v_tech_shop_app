@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.component
+package com.datn.viettech_md_12.component.item
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,14 +17,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.datn.viettech_md_12.R
 
 @Composable
-fun CustomItemLatestProducts(image: Int, colorHexList: List<String>,title:String) {
+fun CustomItemProducts(image: Int, colorHexList: List<String>,title:String) {
     fun parseColor(hex: String): Color {
         return Color(android.graphics.Color.parseColor("#$hex"))
     }
@@ -129,9 +127,9 @@ fun CustomItemLatestProducts(image: Int, colorHexList: List<String>,title:String
                     .size(24.dp)
             ) {
                 Icon(
-                    painter = painterResource(if (isFavorite) R.drawable.ic_category1 else R.drawable.ic_category2),
+                    painter = painterResource(if (!isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_selected),
                     contentDescription = "Favorite",
-                    tint = if (isFavorite) Color.Red else Color.Gray
+                    tint = Color.Unspecified
                 )
             }
         }

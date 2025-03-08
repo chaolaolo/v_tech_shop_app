@@ -23,10 +23,8 @@ class CategoriesViewModel : ViewModel() {
 
     private fun loadCategories() {
         viewModelScope.launch {
-            // Giả lập việc tải dữ liệu (delay 2 giây)
             delay(2000)
 
-            // Cập nhật dữ liệu sau khi delay
             _categories.value = listOf(
                 Category("Electronics", R.drawable.ic_category1),
                 Category("Fashion", R.drawable.ic_category2),
@@ -42,7 +40,6 @@ class CategoriesViewModel : ViewModel() {
                 Category("Industrial8", R.drawable.ic_category4),
             )
 
-            // Set isLoading to false after data is loaded
             _isLoading.value = false
         }
     }

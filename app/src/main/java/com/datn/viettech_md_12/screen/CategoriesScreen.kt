@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen.home
+package com.datn.viettech_md_12.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.component.CustomItemCategories
+import com.datn.viettech_md_12.component.item.CustomItemCategories
 import com.datn.viettech_md_12.component.CustomTopAppBar2
 import com.datn.viettech_md_12.viewmodel.CategoriesViewModel
 
@@ -36,7 +35,6 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoriesViewMode
         },
         containerColor = Color.White
     ) { paddingValues ->
-        // Nếu đang tải, hiển thị CircularProgressIndicator
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -47,7 +45,6 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoriesViewMode
                 CircularProgressIndicator()
             }
         } else {
-            // Khi dữ liệu đã được tải, hiển thị danh sách categories
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -60,8 +57,12 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoriesViewMode
                 items(categories) { item ->
                     CustomItemCategories(
                         image = item.image,
-                        title = item.name
+                        title = item.name,
+                        onClick = {navController.navigate("category/${item.name}")}
                     )
+                }
+                item{
+                    Spacer(Modifier.height(80.dp))
                 }
             }
         }

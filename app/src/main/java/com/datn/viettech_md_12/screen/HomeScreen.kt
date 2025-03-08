@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen.home
+package com.datn.viettech_md_12.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,14 +17,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.*
+import com.datn.viettech_md_12.component.item.CustomItemProducts
 import com.datn.viettech_md_12.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel()) {
 
-    // Lắng nghe StateFlow từ ViewModel
     val banners by homeViewModel.banners.collectAsState()
     val categories by homeViewModel.categories.collectAsState()
     val latestProducts by homeViewModel.latestProducts.collectAsState()
@@ -32,14 +33,26 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
     Scaffold(
         topBar = {
             CustomTopAppBar(
-                title = "VietTech",
+                title = "ietTech",
                 iconLogo = R.drawable.ic_logo,
-                iconSearch = R.drawable.ic_search,
-                iconProfile = R.drawable.ic_category2,
-                navController = navController
+                icon1 = R.drawable.ic_search,
+                icon2 = R.drawable.rectangle_7,
+                navController = navController,
+                actionTitle1 = "search",
+                actionTitle2 = "profile",
             )
         },
-        containerColor = Color.White
+        containerColor = Color.White,
+        bottomBar = {
+            val currentRoute =
+                navController.currentBackStackEntryAsState().value?.destination?.route
+            if (currentRoute != "search") {
+                CustomNavigationBar(
+                    navController = navController,
+                    selectedRoute = currentRoute ?: "home"
+                )
+            }
+        }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -48,7 +61,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Banners
             item {
                 Spacer(Modifier.height(24.dp))
                 if (banners.isEmpty()) {
@@ -57,7 +69,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                     CustomHorizontalPager(banners.map { painterResource(it) })
                 }
             }
-            // Categories
             item {
                 Spacer(Modifier.height(24.dp))
                 Column(
@@ -97,7 +108,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 }
             }
 
-            // Latest Products
             item {
                 Spacer(Modifier.height(16.dp))
                 Row(
@@ -140,7 +150,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(latestProducts.take(4)) { item ->
-                                CustomItemLatestProducts(
+                                CustomItemProducts(
                                     image = item.image,
                                     colorHexList = item.color,
                                     title = item.name
