@@ -1,6 +1,5 @@
 package com.datn.viettech_md_12.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +35,6 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun VietTech_MD_12Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -52,7 +50,8 @@ fun VietTech_MD_12Theme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+        typography = AppTypography,
+        content = content,
+        shapes = shapes
     )
 }
