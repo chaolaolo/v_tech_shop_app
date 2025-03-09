@@ -13,6 +13,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,8 +33,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Outbox
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.PlaylistAddCheckCircle
 import androidx.compose.material.icons.filled.PriceCheck
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -48,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,6 +76,7 @@ class CheckoutShippingScreen : ComponentActivity() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun CheckoutUI() {
+    var selectedTab by remember { mutableStateOf("Shipping") }
 
     Scaffold(
         modifier = Modifier
@@ -97,24 +103,20 @@ fun CheckoutUI() {
         ) {
             //Checkout TopBar
             Spacer(Modifier.height(10.dp))
-            CheckoutTopBar()
-            //Checkout Shipping UI
-//            Spacer(Modifier.height(20.dp))
-//            CheckoutShippingUI()
-            //Checkout Payment UI
-//            Spacer(Modifier.height(20.dp))
-//            CheckoutPaymentUI()
-//            Checkout Review UI
-            Spacer(Modifier.height(20.dp))
-            CheckoutReviewUI()
+            CheckoutTopBar(selectedTab) {newTab -> selectedTab = newTab}
 
+            when (selectedTab) {
+                "Shipping" -> CheckoutShippingUI()
+                "Payment" -> CheckoutPaymentUI()
+                "Review" -> CheckoutReviewUI()
+            }
         }
     }
 }
 
 //CheckoutTopBar
 @Composable
-fun CheckoutTopBar() {
+fun CheckoutTopBar(selectedTab: String, onTabSelected: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,13 +127,21 @@ fun CheckoutTopBar() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            IconButton(
+                onClick = {onTabSelected("Shipping")},
+                Modifier
+                    .padding(0.dp)
+                    .size(30.dp),
+            ) {
             Icon(
-                Icons.Default.Outbox,
+                Icons.Default.LocalShipping,
                 modifier = Modifier
                     .size(30.dp),
                 contentDescription = "Outbox Icon",
+                tint = if (selectedTab == "Shipping") Color(0xFF21D4B4) else Color.Gray
             )
-            Text("Shipping")
+            }
+            Text("Shipping", color = if (selectedTab == "Shipping") Color(0xFF21D4B4) else Color.Gray)
         }
         Divider(
             Modifier
@@ -141,13 +151,22 @@ fun CheckoutTopBar() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                Icons.Default.Payment,
-                modifier = Modifier
+            IconButton(
+                onClick = {onTabSelected("Payment")},
+                Modifier
+                    .padding(0.dp)
                     .size(30.dp),
-                contentDescription = "Outbox Icon",
-            )
-            Text("Payment")
+
+            ) {
+                Icon(
+                    Icons.Default.Payments,
+                    modifier = Modifier
+                        .size(30.dp),
+                    contentDescription = "Outbox Icon",
+                    tint = if (selectedTab == "Payment") Color(0xFF21D4B4) else Color.Gray
+                )
+            }
+            Text("Payment", color = if (selectedTab == "Payment") Color(0xFF21D4B4) else Color.Gray)
         }
         Divider(
             Modifier
@@ -157,13 +176,21 @@ fun CheckoutTopBar() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                Icons.Default.PriceCheck,
-                modifier = Modifier
+            IconButton(
+                onClick = {onTabSelected("Review")},
+                Modifier
+                    .padding(0.dp)
                     .size(30.dp),
-                contentDescription = "Outbox Icon",
-            )
-            Text("Review")
+            ) {
+                Icon(
+                    Icons.Default.PlaylistAddCheckCircle,
+                    modifier = Modifier
+                        .size(30.dp),
+                    contentDescription = "Outbox Icon",
+                    tint = if (selectedTab == "Review") Color(0xFF21D4B4) else Color.Gray
+                )
+            }
+            Text("Review", color = if (selectedTab == "Review") Color(0xFF21D4B4) else Color.Gray)
         }
     }
 }
@@ -317,7 +344,7 @@ fun CheckoutPaymentUI() {
             .fillMaxHeight()
     ) {
         //chọn hình thức thanh toán
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(20.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,7 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,17 +86,25 @@ fun LoginUI() {
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         )
-        Row {
+        Row (
+            verticalAlignment = Alignment.CenterVertically
+        ){
             Text(
                 "Bạn chưa có tài khoản? ",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
-            Text(
-                "Đăng Ký",
-                fontSize = 16.sp,
-                color = Color(0xFF21D4B4),
-            )
+            TextButton(
+                modifier = Modifier,
+                onClick = {},
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text(
+                    "Đăng Ký",
+                    fontSize = 16.sp,
+                    color = Color(0xFF21D4B4),
+                )
+            }
         }
         Spacer(Modifier.height(20.dp))
         //Email TextField
@@ -142,14 +153,18 @@ fun LoginUI() {
         )
         //forgot password text
         Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Quên mật khẩu?",
-            fontSize = 16.sp,
-            color = Color(0xFF21D4B4),
-            modifier = Modifier
-                .fillMaxWidth(),
-            textAlign = TextAlign.End
-        )
+        TextButton(
+            modifier = Modifier.align(Alignment.End),
+            onClick = {},
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Text(
+                text = "Quên mật khẩu?",
+                fontSize = 16.sp,
+                color = Color(0xFF21D4B4),
+                modifier = Modifier
+            )
+        }
         //Login button
         Spacer(modifier = Modifier.height(20.dp))
         MyButton(

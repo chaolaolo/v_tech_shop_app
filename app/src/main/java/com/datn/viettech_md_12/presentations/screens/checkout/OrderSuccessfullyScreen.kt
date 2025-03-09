@@ -98,7 +98,7 @@ fun OrderSuccessfullyUI() {
                     Image(
                         modifier = Modifier
                             .size(200.dp),
-                        painter = painterResource(R.drawable.google_logo),
+                        painter = painterResource(R.drawable.order_successfully),
                         contentDescription = "contentDescription"
                     )
                 }

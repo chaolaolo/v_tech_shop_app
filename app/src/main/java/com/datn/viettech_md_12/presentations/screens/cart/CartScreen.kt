@@ -387,7 +387,7 @@ fun EmptyCart() {
             Image(
                 modifier = Modifier
                     .size(200.dp),
-                painter = painterResource(R.drawable.google_logo),
+                painter = painterResource(R.drawable.empty_cart),
                 contentDescription = "empty cart image"
             )
         }
