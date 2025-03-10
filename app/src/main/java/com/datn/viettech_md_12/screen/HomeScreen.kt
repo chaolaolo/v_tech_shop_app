@@ -43,16 +43,16 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             )
         },
         containerColor = Color.White,
-        bottomBar = {
-            val currentRoute =
-                navController.currentBackStackEntryAsState().value?.destination?.route
-            if (currentRoute != "search") {
-                CustomNavigationBar(
-                    navController = navController,
-                    selectedRoute = currentRoute ?: "home"
-                )
-            }
-        }
+//        bottomBar = {
+//            val currentRoute =
+//                navController.currentBackStackEntryAsState().value?.destination?.route
+//            if (currentRoute != "search") {
+//                CustomNavigationBar(
+//                    navController = navController,
+//                    selectedRoute = currentRoute ?: "home"
+//                )
+//            }
+//        }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
