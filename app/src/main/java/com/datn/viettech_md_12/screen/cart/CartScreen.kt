@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.screens.cart
+package com.datn.viettech_md_12.screen.cart
 
 import MyButton
 import android.annotation.SuppressLint
@@ -12,7 +12,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,7 +36,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ModalBottomSheet
@@ -60,17 +58,20 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavOptions
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.CartModel
-import com.datn.viettech_md_12.presentations.components.MyTextField
+import com.datn.viettech_md_12.component.MyTextField
 
 class CartScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CartUI()
+//            CartUI()
         }
     }
 }
@@ -78,7 +79,7 @@ class CartScreen : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CartUI() {
+fun CartUI(navController: NavController) {
     var cartItems = remember {
         mutableStateListOf(
             CartModel(
@@ -197,7 +198,10 @@ fun CartUI() {
 
             //
             val selectedCartItems = cartItems.filter { selectedItems.contains(it.id) }
-            OrderSummary(selectedCartItems)
+            OrderSummary(
+                navController = navController,
+                selectedItems = selectedCartItems
+            )
 
         }//end column
 
@@ -248,7 +252,7 @@ fun CartUI() {
 }// end cart UI
 
 @Composable
-fun OrderSummary(selectedItems: List<CartModel>) {
+fun OrderSummary(navController:NavController, selectedItems: List<CartModel>) {
     val subtotal = selectedItems.sumOf { it.price * it.quantity }
     Column(
         modifier = Modifier
@@ -272,7 +276,7 @@ fun OrderSummary(selectedItems: List<CartModel>) {
         Spacer(Modifier.height(5.dp))
         MyButton(
             text = "Thanh Toán(${selectedItems.size})",
-            onClick = { },
+            onClick = {navController.navigate("payment") },
             backgroundColor = Color.Black,
             textColor = Color.White,
         )
@@ -423,5 +427,8 @@ fun EmptyCart() {
 @Preview(showSystemUi = true)
 @Composable
 fun CartPreview() {
-    CartUI()
+    CartUI(
+        navController = rememberNavController()
+    )
 }
+

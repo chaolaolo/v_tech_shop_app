@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.screens.checkout
+package com.datn.viettech_md_12.screen.checkout
 
 import MyButton
 import android.annotation.SuppressLint
@@ -6,25 +6,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -32,13 +30,9 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Outbox
-import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PlaylistAddCheckCircle
-import androidx.compose.material.icons.filled.PriceCheck
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
@@ -52,22 +46,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.presentations.components.DistrictDropdown
-import com.datn.viettech_md_12.presentations.components.MyTextField
-import com.datn.viettech_md_12.presentations.components.ProvinceDropdown
+import com.datn.viettech_md_12.component.address_selection.DistrictDropdown
+import com.datn.viettech_md_12.component.MyTextField
+import com.datn.viettech_md_12.component.address_selection.ProvinceDropdown
 
 class CheckoutShippingScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CheckoutUI()
+//            CheckoutUI()
         }
     }
 }
@@ -75,7 +69,7 @@ class CheckoutShippingScreen : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CheckoutUI() {
+fun CheckoutUI(navController:NavController) {
     var selectedTab by remember { mutableStateOf("Shipping") }
 
     Scaffold(
@@ -108,7 +102,9 @@ fun CheckoutUI() {
             when (selectedTab) {
                 "Shipping" -> CheckoutShippingUI()
                 "Payment" -> CheckoutPaymentUI()
-                "Review" -> CheckoutReviewUI()
+                "Review" -> CheckoutReviewUI(
+                    navController = navController
+                )
             }
         }
     }
@@ -209,6 +205,7 @@ fun CheckoutShippingUI() {
             .padding(horizontal = 20.dp)
             .background(Color.White)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.height(10.dp))
         //Email Text Field
@@ -342,6 +339,7 @@ fun CheckoutPaymentUI() {
             .padding(horizontal = 20.dp)
             .background(Color.White)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
     ) {
         //chọn hình thức thanh toán
         Spacer(Modifier.height(20.dp))
@@ -502,12 +500,13 @@ fun CheckoutPaymentUI() {
 
 //CheckoutReviewUI
 @Composable
-fun CheckoutReviewUI() {
+fun CheckoutReviewUI(navController: NavController) {
     Column(
         modifier = Modifier
             .padding(horizontal = 20.dp)
             .background(Color.White)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.height(10.dp))
         Row(
@@ -520,10 +519,10 @@ fun CheckoutReviewUI() {
             Text(
                 "Items(2)",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
             )
             IconButton(
-                onClick = { },
+                onClick = {navController.navigate("review_items") },
                 modifier = Modifier.size(20.dp),
             ) {
                 Icon(
@@ -614,5 +613,5 @@ fun AddressField(label: String, value: String){
 @Preview(showSystemUi = true)
 @Composable
 fun CheckoutPreview() {
-    CheckoutUI()
+//    CheckoutUI()
 }

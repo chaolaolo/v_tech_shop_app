@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.screens.authentication
+package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
@@ -9,19 +9,21 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,26 +41,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.presentations.components.MyTextField
+import com.datn.viettech_md_12.component.MyTextField
+import com.google.accompanist.flowlayout.FlowRow
+import com.google.accompanist.flowlayout.MainAxisAlignment
 
-class RegisterScreen : ComponentActivity() {
+class LoginScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RegisterUI()
+            LoginUI()
         }
     }
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun RegisterUI() {
+fun LoginUI() {
     val context = LocalContext.current
-    var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -78,7 +80,7 @@ fun RegisterUI() {
         )
         Spacer(Modifier.height(20.dp))
         Text(
-            "Đăng Ký",
+            "Đăng Nhập",
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         )
@@ -86,7 +88,7 @@ fun RegisterUI() {
             verticalAlignment = Alignment.CenterVertically
         ){
             Text(
-                "Bạn đã có tài khoản? ",
+                "Bạn chưa có tài khoản? ",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
@@ -95,35 +97,14 @@ fun RegisterUI() {
                 onClick = {},
                 contentPadding = PaddingValues(0.dp)
             ) {
-            Text(
-                "Đăng Nhập",
-                fontSize = 16.sp,
-                color = Color(0xFF21D4B4),
-            )
-        }
+                Text(
+                    "Đăng Ký",
+                    fontSize = 16.sp,
+                    color = Color(0xFF21D4B4),
+                )
+            }
         }
         Spacer(Modifier.height(20.dp))
-        //Full Name TextField
-        Row {
-            Text(
-                text = "Họ tên",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = " *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Red
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        MyTextField(
-            hint = "Nhập họ tên",
-            value = fullName,
-            onValueChange = { fullName = it },
-            modifier = Modifier
-        )
         //Email TextField
         Row {
             Text(
@@ -168,33 +149,24 @@ fun RegisterUI() {
             modifier = Modifier,
             isPassword = true
         )
-        //confirm password TextField
+        //forgot password text
         Spacer(modifier = Modifier.height(10.dp))
-        Row {
+        TextButton(
+            modifier = Modifier.align(Alignment.End),
+            onClick = {},
+            contentPadding = PaddingValues(0.dp),
+        ) {
             Text(
-                text = "Xác nhận mật khẩu",
+                text = "Quên mật khẩu?",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = " *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Red
+                color = Color(0xFF21D4B4),
+                modifier = Modifier
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        MyTextField(
-            hint = "Xác nhận mật khẩu",
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            modifier = Modifier,
-            isPassword = true
-        )
         //Login button
         Spacer(modifier = Modifier.height(20.dp))
         MyButton(
-            text = "Đăng Ký",
+            text = "Đăng Nhập",
             onClick = {},
             modifier = Modifier,
             backgroundColor = Color.Black,
@@ -203,7 +175,7 @@ fun RegisterUI() {
         //login with google button
         Spacer(modifier = Modifier.height(10.dp))
         MyButton(
-            text = "Đăng ký với Google",
+            text = "Đăng nhập với Google",
             onClick = {},
             modifier = Modifier.border(
                 width = 1.dp,
@@ -216,11 +188,51 @@ fun RegisterUI() {
         )
         //accept privacy policy notice text
         Spacer(modifier = Modifier.height(10.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 16.dp)
+        ) {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+                mainAxisAlignment = MainAxisAlignment.Center,
+            ) {
+                Text(
+                    text = "Khi nhấn đăng nhập đồng nghĩa với việc bạn đồng ý với ",
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = "Chính sách bảo mật ",
+                    fontSize = 14.sp,
+                    color = Color(0xFF1F8BDA)
+                )
+                Text(
+                    text = "và ",
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = "Điều khoản & Điều kiện ",
+                    fontSize = 14.sp,
+                    color = Color(0xFF1F8BDA)
+                )
+                Text(
+                    text = "của chúng tôi.",
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+
+            }
+
+        }
     }
 }
 
 @Preview(showSystemUi = true)
 @Composable
-fun RegisterPreview() {
-    RegisterUI()
+fun GreetingPreview4() {
+    LoginUI()
 }

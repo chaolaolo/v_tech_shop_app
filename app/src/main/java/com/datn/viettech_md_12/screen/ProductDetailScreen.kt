@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.screens
+package com.datn.viettech_md_12.screen
 
 import MyButton
 import android.annotation.SuppressLint
@@ -29,8 +29,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material.Text
@@ -63,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datn.viettech_md_12.R
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class ProductDetailScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

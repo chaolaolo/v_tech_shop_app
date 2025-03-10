@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.screens.checkout
+package com.datn.viettech_md_12.screen.checkout
 
 import MyButton
 import android.annotation.SuppressLint

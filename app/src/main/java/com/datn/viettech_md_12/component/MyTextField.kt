@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.components
+package com.datn.viettech_md_12.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
