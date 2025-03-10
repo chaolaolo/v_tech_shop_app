@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.TextButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,19 +41,9 @@ import androidx.compose.ui.unit.sp
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 
-class RegisterScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            RegisterUI()
-        }
-    }
-}
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun RegisterUI() {
+fun RegisterScreen() {
     val context = LocalContext.current
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -222,5 +212,5 @@ fun RegisterUI() {
 @Preview(showSystemUi = true)
 @Composable
 fun RegisterPreview() {
-    RegisterUI()
+    RegisterScreen()
 }

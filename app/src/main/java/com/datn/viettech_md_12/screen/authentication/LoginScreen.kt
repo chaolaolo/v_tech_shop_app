@@ -45,19 +45,9 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 
-class LoginScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            LoginUI()
-        }
-    }
-}
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginUI() {
+fun LoginScreen() {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -234,5 +224,5 @@ fun LoginUI() {
 @Preview(showSystemUi = true)
 @Composable
 fun GreetingPreview4() {
-    LoginUI()
+    LoginScreen()
 }

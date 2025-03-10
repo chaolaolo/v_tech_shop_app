@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
@@ -19,17 +18,14 @@ import com.datn.viettech_md_12.MyApplication
 import com.datn.viettech_md_12.component.CustomNavigationBar
 import com.datn.viettech_md_12.screen.CategoriesScreen
 import com.datn.viettech_md_12.screen.HomeScreen
-import com.datn.viettech_md_12.screen.MyCartScreen
+import com.datn.viettech_md_12.screen.ProductDetailScreen
 import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.SearchScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
 import com.datn.viettech_md_12.screen.cart.CartScreen
-import com.datn.viettech_md_12.screen.cart.CartUI
-import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsUI
-import com.datn.viettech_md_12.screen.checkout.CheckoutShippingUI
-import com.datn.viettech_md_12.screen.checkout.CheckoutUI
-import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyUI
+import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
+import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -73,12 +69,16 @@ fun NavigationGraph() {
         ) {
             composable("home") { HomeScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
-            composable("my_cart") { CartUI(navController) }
+            composable("my_cart") { CartScreen(navController) }
             composable("wishlist") { WishlistScreen() }
             composable("profile") { ProfileScreen() }
             composable("search") { SearchScreen(navController) }
-            composable("payment") { CheckoutUI(navController) }
-            composable("review_items") { CheckoutReviewItemsUI() }
+            composable("payment") { CheckoutScreen(navController) }
+            composable("review_items") { CheckoutReviewItemsScreen(navController) }
+            composable("product_detail/{productId}") { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId") ?: ""
+                ProductDetailScreen(navController)
+            }
             composable("category/{categoryName}") { backStackEntry ->
                 val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
                 ProductListScreen(

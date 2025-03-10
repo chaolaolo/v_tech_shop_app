@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -183,4 +184,18 @@ fun DistrictDropdown(
             }
         }
     }
+}
+
+
+@Preview(showSystemUi = true)
+@Composable
+fun DistrictDropdownPreview() {
+    var selectedDistrict by remember { mutableStateOf("Hà Nội") }
+    var selectedProvince by remember { mutableStateOf("Hà Nội") }
+
+    DistrictDropdown(
+        selectedDistrict,
+        selectedProvince,
+        onDistrictSelected = {},
+    )
 }

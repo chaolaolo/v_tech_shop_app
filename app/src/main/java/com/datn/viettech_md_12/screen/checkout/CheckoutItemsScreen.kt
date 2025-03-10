@@ -23,17 +23,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -48,22 +49,15 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.data.model.CartModel
 
-class CheckoutItemsScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            CheckoutReviewItemsUI()
-        }
-    }
-}
-
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CheckoutReviewItemsUI() {
+fun CheckoutReviewItemsScreen(navController:NavController) {
     var checkoutItems = remember {
         mutableStateListOf(
             CartModel(
@@ -110,9 +104,15 @@ fun CheckoutReviewItemsUI() {
         topBar = {
             TopAppBar(
                 title = { Text(text = "Sản phẩm") },
-                backgroundColor = Color.White,
+                colors = TopAppBarColors(
+                    containerColor = Color.White,
+                    scrolledContainerColor = Color.Transparent,
+                    navigationIconContentColor = Color.Black,
+                    titleContentColor = Color.Black,
+                    actionIconContentColor = Color.Transparent
+                ),
                 navigationIcon = {
-                    IconButton(onClick = { /* nút back */ }) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
@@ -231,5 +231,5 @@ fun CheckoutItemTile(
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview2() {
-    CheckoutReviewItemsUI()
+    CheckoutReviewItemsScreen(rememberNavController())
 }

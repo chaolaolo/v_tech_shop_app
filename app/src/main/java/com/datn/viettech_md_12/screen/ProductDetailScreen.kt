@@ -25,14 +25,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
@@ -41,14 +43,17 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -59,22 +64,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 import kotlinx.coroutines.launch
 
-class ProductDetailScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            ProductDetailUI()
-        }
-    }
-}
-
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ProductDetailUI() {
+fun ProductDetailScreen(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     Box(modifier = Modifier.fillMaxSize()) {
@@ -87,11 +85,19 @@ fun ProductDetailUI() {
             topBar = {
                 TopAppBar(
                     title = { Text(text = "") },
-                    modifier = Modifier.padding(end = 16.dp).systemBarsPadding(),
-                    backgroundColor = Color.Transparent,
-                    elevation = 0.dp,
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                        .systemBarsPadding()
+                        .shadow(elevation = 0.dp),
+                    colors = TopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        navigationIconContentColor = Color.Black,
+                        titleContentColor = Color.Black,
+                        actionIconContentColor = Color.Transparent
+                    ),
                     navigationIcon = {
-                        IconButton(onClick = { /* nút back */ }) {
+                        IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                         }
                     },
@@ -158,7 +164,9 @@ fun ProductDetailUI() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = Color.White),
+                    .background(color = Color.White)
+                    .verticalScroll(rememberScrollState())
+                ,
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -320,41 +328,13 @@ fun ProductDetailUI() {
                 }
             }//end column
         }//end scaffold
-//            Box(
-//                modifier = Modifier.fillMaxSize(),
-//                contentAlignment = Alignment.TopCenter // Hiển thị snackbar ở trên cùng
-//            ) {
-//        SnackbarHost(snackbarHostState) { data ->
-//            Snackbar(
-//                action = {
-//                    TextButton(onClick = { /* Xử lý khi bấm View Cart */ }) {
-//                        Text("Xem giỏ hàng", color = Color.Cyan)
-//                    }
-//                },
-//                modifier = Modifier
-//                    .background(Color.Red)
-//                    .align(Alignment.TopCenter)
-//                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-//            ) {
-////                    Text(data.visuals.message)
-//                Row(verticalAlignment = Alignment.CenterVertically) {
-//                    Icon(
-//                        imageVector = Icons.Default.CheckCircle,
-//                        contentDescription = "Success",
-//                        tint = Color(0xFF00C4B4),
-//                        modifier = Modifier.size(24.dp)
-//                    )
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    Text("đã thêm vào giỏ hàng!")
-//                }
-////                    }
-//            }
-//        }
+
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(start = 16.dp, end = 16.dp).systemBarsPadding(),
+                .padding(start = 16.dp, end = 16.dp)
+                .systemBarsPadding(),
         ) { data ->
             // Custom Snackbar with white background and rounded corners
             Box(
@@ -391,7 +371,7 @@ fun ProductDetailUI() {
                         )
                     }
 
-                    TextButton(onClick = { data.performAction() }) {
+                    TextButton(onClick = { navController.navigate("my_cart") }) {
                         Text(
                             "Xem giỏ hàng",
                             color = Color(0xFF00C4B4),
@@ -491,5 +471,5 @@ fun ProductDetailUI() {
 @Preview(showSystemUi = true)
 @Composable
 fun ProductDetailPreview() {
-    ProductDetailUI()
+    ProductDetailScreen(rememberNavController())
 }
