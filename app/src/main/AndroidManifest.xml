@@ -17,37 +17,37 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".presentations.screens.checkout.CheckoutItemsScreen"
+            android:name=".screen.checkout.CheckoutItemsScreen"
             android:exported="false"
             android:label="@string/title_activity_checkout_items_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".presentations.screens.checkout.CheckoutShippingScreen"
+            android:name=".screen.checkout.CheckoutShippingScreen"
             android:exported="false"
             android:label="@string/title_activity_checkout_items_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".presentations.screens.cart.CartScreen"
+            android:name=".screen.cart.CartScreen"
             android:exported="false"
             android:label="@string/title_activity_checkout_shipping_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".presentations.screens.authentication.LoginScreen"
+            android:name=".screen.authentication.LoginScreen"
             android:exported="false"
             android:label="@string/title_activity_sign_in_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".presentations.screens.authentication.RegisterScreen"
+            android:name=".screen.authentication.RegisterScreen"
+            android:exported="false"
+            android:label="@string/title_activity_sign_up_screen"
+            android:theme="@style/Theme.VietTech_MD_12" />
+        <activity
+            android:name=".screen.authentication.EmailVertificationScreen"
             android:exported="false"
             android:label="@string/title_activity_sign_up_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
             android:name=".MainActivity"
-            android:exported="false"
-            android:label="@string/title_activity_cart_screen"
-            android:theme="@style/Theme.VietTech_MD_12" />
-        <activity
-            android:name=".presentations.screens.authentication.EmailVertificationScreen"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.VietTech_MD_12">

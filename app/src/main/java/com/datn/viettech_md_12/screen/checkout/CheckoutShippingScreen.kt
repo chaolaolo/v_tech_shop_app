@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.screens.checkout
+package com.datn.viettech_md_12.screen.checkout
 
 import MyButton
 import android.annotation.SuppressLint
@@ -6,39 +6,39 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Outbox
-import androidx.compose.material.icons.filled.Payment
-import androidx.compose.material.icons.filled.PriceCheck
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.PlaylistAddCheckCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,25 +52,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.presentations.components.DistrictDropdown
-import com.datn.viettech_md_12.presentations.components.MyTextField
-import com.datn.viettech_md_12.presentations.components.ProvinceDropdown
+import com.datn.viettech_md_12.component.address_selection.DistrictDropdown
+import com.datn.viettech_md_12.component.MyTextField
+import com.datn.viettech_md_12.component.address_selection.ProvinceDropdown
 
-class CheckoutShippingScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            CheckoutUI()
-        }
-    }
-}
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CheckoutUI() {
+fun CheckoutScreen(navController:NavController) {
+    var selectedTab by remember { mutableStateOf("Shipping") }
 
     Scaffold(
         modifier = Modifier
@@ -80,9 +73,15 @@ fun CheckoutUI() {
         topBar = {
             TopAppBar(
                 title = { Text(text = "Thanh Toán") },
-                backgroundColor = Color.White,
+                colors = TopAppBarColors(
+                    containerColor = Color.White,
+                    scrolledContainerColor = Color.Transparent,
+                    navigationIconContentColor = Color.Black,
+                    titleContentColor = Color.Black,
+                    actionIconContentColor = Color.Transparent
+                ),
                 navigationIcon = {
-                    IconButton(onClick = { /* nút back */ }) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
@@ -97,24 +96,22 @@ fun CheckoutUI() {
         ) {
             //Checkout TopBar
             Spacer(Modifier.height(10.dp))
-            CheckoutTopBar()
-            //Checkout Shipping UI
-//            Spacer(Modifier.height(20.dp))
-//            CheckoutShippingUI()
-            //Checkout Payment UI
-//            Spacer(Modifier.height(20.dp))
-//            CheckoutPaymentUI()
-//            Checkout Review UI
-            Spacer(Modifier.height(20.dp))
-            CheckoutReviewUI()
+            CheckoutTopBar(selectedTab) {newTab -> selectedTab = newTab}
 
+            when (selectedTab) {
+                "Shipping" -> CheckoutShippingUI()
+                "Payment" -> CheckoutPaymentUI()
+                "Review" -> CheckoutReviewUI(
+                    navController = navController
+                )
+            }
         }
     }
 }
 
 //CheckoutTopBar
 @Composable
-fun CheckoutTopBar() {
+fun CheckoutTopBar(selectedTab: String, onTabSelected: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,13 +122,21 @@ fun CheckoutTopBar() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            IconButton(
+                onClick = {onTabSelected("Shipping")},
+                Modifier
+                    .padding(0.dp)
+                    .size(30.dp),
+            ) {
             Icon(
-                Icons.Default.Outbox,
+                Icons.Default.LocalShipping,
                 modifier = Modifier
                     .size(30.dp),
                 contentDescription = "Outbox Icon",
+                tint = if (selectedTab == "Shipping") Color(0xFF21D4B4) else Color.Gray
             )
-            Text("Shipping")
+            }
+            Text("Shipping", color = if (selectedTab == "Shipping") Color(0xFF21D4B4) else Color.Gray)
         }
         Divider(
             Modifier
@@ -141,13 +146,22 @@ fun CheckoutTopBar() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                Icons.Default.Payment,
-                modifier = Modifier
+            IconButton(
+                onClick = {onTabSelected("Payment")},
+                Modifier
+                    .padding(0.dp)
                     .size(30.dp),
-                contentDescription = "Outbox Icon",
-            )
-            Text("Payment")
+
+            ) {
+                Icon(
+                    Icons.Default.Payments,
+                    modifier = Modifier
+                        .size(30.dp),
+                    contentDescription = "Outbox Icon",
+                    tint = if (selectedTab == "Payment") Color(0xFF21D4B4) else Color.Gray
+                )
+            }
+            Text("Payment", color = if (selectedTab == "Payment") Color(0xFF21D4B4) else Color.Gray)
         }
         Divider(
             Modifier
@@ -157,13 +171,21 @@ fun CheckoutTopBar() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                Icons.Default.PriceCheck,
-                modifier = Modifier
+            IconButton(
+                onClick = {onTabSelected("Review")},
+                Modifier
+                    .padding(0.dp)
                     .size(30.dp),
-                contentDescription = "Outbox Icon",
-            )
-            Text("Review")
+            ) {
+                Icon(
+                    Icons.Default.PlaylistAddCheckCircle,
+                    modifier = Modifier
+                        .size(30.dp),
+                    contentDescription = "Outbox Icon",
+                    tint = if (selectedTab == "Review") Color(0xFF21D4B4) else Color.Gray
+                )
+            }
+            Text("Review", color = if (selectedTab == "Review") Color(0xFF21D4B4) else Color.Gray)
         }
     }
 }
@@ -182,6 +204,7 @@ fun CheckoutShippingUI() {
             .padding(horizontal = 20.dp)
             .background(Color.White)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.height(10.dp))
         //Email Text Field
@@ -315,9 +338,10 @@ fun CheckoutPaymentUI() {
             .padding(horizontal = 20.dp)
             .background(Color.White)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
     ) {
         //chọn hình thức thanh toán
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(20.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -475,12 +499,13 @@ fun CheckoutPaymentUI() {
 
 //CheckoutReviewUI
 @Composable
-fun CheckoutReviewUI() {
+fun CheckoutReviewUI(navController: NavController) {
     Column(
         modifier = Modifier
             .padding(horizontal = 20.dp)
             .background(Color.White)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.height(10.dp))
         Row(
@@ -493,10 +518,10 @@ fun CheckoutReviewUI() {
             Text(
                 "Items(2)",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
             )
             IconButton(
-                onClick = { },
+                onClick = {navController.navigate("review_items") },
                 modifier = Modifier.size(20.dp),
             ) {
                 Icon(
@@ -587,5 +612,5 @@ fun AddressField(label: String, value: String){
 @Preview(showSystemUi = true)
 @Composable
 fun CheckoutPreview() {
-    CheckoutUI()
+    CheckoutScreen(rememberNavController())
 }

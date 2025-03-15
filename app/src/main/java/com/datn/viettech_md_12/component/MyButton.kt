@@ -1,5 +1,4 @@
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,7 +33,8 @@ fun MyButton(
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.Black,
     textColor: Color = Color.White,
-    iconResId: Int? = null,
+    painterIconResId: Int? = null,
+    vectorIcon: ImageVector? = null
 ) {
     Card(
         onClick = onClick,
@@ -56,12 +58,29 @@ fun MyButton(
 //                modifier = Modifier
             )
             Spacer(Modifier.width(10.dp))
-            iconResId?.let {
-                Image(
-                    modifier = Modifier.size(40.dp),
-                    painter = painterResource(id = it),
-                    contentDescription = "Google Button Icon"
-                )
+//            painterIconResId?.let {
+//                Image(
+//                    modifier = Modifier.size(40.dp),
+//                    painter = painterResource(id = it),
+//                    contentDescription = "Google Button Icon"
+//                )
+//            }
+            when {
+                painterIconResId != null -> {
+                    Image(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(id = painterIconResId),
+                        contentDescription = "Button Icon"
+                    )
+                }
+                vectorIcon != null -> {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = vectorIcon,
+                        contentDescription = "Button Icon",
+                        tint = textColor
+                    )
+                }
             }
         }
     }
@@ -76,6 +95,6 @@ fun PreviewButton() {
         modifier = Modifier,
         backgroundColor = Color.Black,
         textColor = Color.White,
-        iconResId = R.drawable.google_logo
+        painterIconResId = R.drawable.google_logo
     )
 }

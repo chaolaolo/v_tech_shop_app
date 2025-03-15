@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.presentations.screens.authentication
+package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
@@ -9,10 +9,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +23,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,28 +37,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.presentations.components.MyTextField
+import com.datn.viettech_md_12.component.MyTextField
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 
-class LoginScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            LoginUI()
-        }
-    }
-}
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginUI() {
+fun LoginScreen() {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -85,17 +74,25 @@ fun LoginUI() {
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         )
-        Row {
+        Row (
+            verticalAlignment = Alignment.CenterVertically
+        ){
             Text(
                 "Bạn chưa có tài khoản? ",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
-            Text(
-                "Đăng Ký",
-                fontSize = 16.sp,
-                color = Color(0xFF21D4B4),
-            )
+            TextButton(
+                modifier = Modifier,
+                onClick = {},
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text(
+                    "Đăng Ký",
+                    fontSize = 16.sp,
+                    color = Color(0xFF21D4B4),
+                )
+            }
         }
         Spacer(Modifier.height(20.dp))
         //Email TextField
@@ -144,14 +141,18 @@ fun LoginUI() {
         )
         //forgot password text
         Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Quên mật khẩu?",
-            fontSize = 16.sp,
-            color = Color(0xFF21D4B4),
-            modifier = Modifier
-                .fillMaxWidth(),
-            textAlign = TextAlign.End
-        )
+        TextButton(
+            modifier = Modifier.align(Alignment.End),
+            onClick = {},
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Text(
+                text = "Quên mật khẩu?",
+                fontSize = 16.sp,
+                color = Color(0xFF21D4B4),
+                modifier = Modifier
+            )
+        }
         //Login button
         Spacer(modifier = Modifier.height(20.dp))
         MyButton(
@@ -173,7 +174,7 @@ fun LoginUI() {
             ),
             backgroundColor = Color.White,
             textColor = Color.Black,
-            iconResId = R.drawable.google_logo
+            painterIconResId = R.drawable.google_logo
         )
         //accept privacy policy notice text
         Spacer(modifier = Modifier.height(10.dp))
@@ -223,5 +224,5 @@ fun LoginUI() {
 @Preview(showSystemUi = true)
 @Composable
 fun GreetingPreview4() {
-    LoginUI()
+    LoginScreen()
 }
