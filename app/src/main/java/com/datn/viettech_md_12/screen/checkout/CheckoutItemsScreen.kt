@@ -1,64 +1,42 @@
 package com.datn.viettech_md_12.screen.checkout
 
 import android.annotation.SuppressLint
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import coil.compose.rememberAsyncImagePainter
+import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
 import com.datn.viettech_md_12.data.model.CartModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CheckoutReviewItemsScreen(navController:NavController) {
-    var checkoutItems = remember {
+fun CheckoutReviewItemsScreen(navController: NavController) {
+    val checkoutItems = remember {
         mutableStateListOf(
             CartModel(
                 1,
@@ -154,79 +132,6 @@ fun CheckoutReviewItemsScreen(navController:NavController) {
     }
 }
 
-@Composable
-fun CheckoutItemTile(
-    item: CartModel,
-    onQuantityChange: (Int, Int) -> Unit,
-    onDelete: (Int) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            painter = rememberAsyncImagePainter(item.imageUrl),
-            contentDescription = null,
-            modifier = Modifier
-                .size(100.dp)
-                .background(Color.Transparent)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            androidx.compose.material.Text(item.name, fontWeight = FontWeight.W500)
-            Spacer(Modifier.height(4.dp))
-            androidx.compose.material.Text("VND ${item.price}", fontSize = 14.sp, fontWeight = FontWeight.W400)
-            androidx.compose.material.Text("VND ${item.originalPrice}", fontSize = 14.sp, color = Color.Gray, textDecoration = TextDecoration.LineThrough)
-            Spacer(Modifier.height(4.dp))
-            Row(
-                modifier = Modifier
-                    .border(
-                        width = 1.dp,
-                        brush = SolidColor(Color(0xFFF4F5FD)),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(horizontal = 6.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = { if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) },
-                    modifier = Modifier.size(20.dp)
-                ) {
-                    Icon(Icons.Default.Remove, contentDescription = "Decrease")
-                }
-                androidx.compose.material.Text("${item.quantity}", modifier = Modifier.padding(horizontal = 14.dp))
-                IconButton(
-                    onClick = { onQuantityChange(item.id, item.quantity + 1) },
-                    modifier = Modifier.size(20.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Increase")
-                }
-            }
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            IconButton(
-                onClick = { onDelete(item.id) }) {
-                Icon(
-                    Icons.Default.DeleteOutline,
-                    contentDescription = "Delete",
-                    tint = Color.Red,
-                    modifier = Modifier.size(30.dp),
-                )
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

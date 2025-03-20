@@ -2,10 +2,6 @@ package com.datn.viettech_md_12.screen.cart
 
 import MyButton
 import android.annotation.SuppressLint
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,23 +22,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -66,15 +61,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.component.MyTextField
+import com.datn.viettech_md_12.data.model.CartModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun CartScreen(navController: NavController) {
-    var cartItems = remember {
+    val cartItems = remember {
         mutableStateListOf(
             CartModel(
                 1,
@@ -112,7 +107,7 @@ fun CartScreen(navController: NavController) {
     }
     val selectedItems = remember { mutableStateListOf<Int>() }
     val isShowVoucherSheet = remember { mutableStateOf(false) }
-    var voucherCode = remember { mutableStateOf("") }
+    val voucherCode = remember { mutableStateOf("") }
 
     Scaffold(
         modifier = Modifier
@@ -186,7 +181,7 @@ fun CartScreen(navController: NavController) {
                         },
                         onDelete = { id ->
                             selectedItems.remove(id)
-                            cartItems.removeAll() { it.id == id }
+                            cartItems.removeAll { it.id == id }
                         },
                         navController
                     )
@@ -271,7 +266,7 @@ fun OrderSummary(navController:NavController, selectedItems: List<CartModel>) {
             Text("Phí vận chuyển", color = Color.Gray)
             Text("VND 0.00")
         }
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng thanh toán", fontSize = 20.sp, fontWeight = FontWeight.W500)
             Text("VND ${"%.2f".format(subtotal)}", fontSize = 20.sp, fontWeight = FontWeight.W500)

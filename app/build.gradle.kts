@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.accompanist.flowlayout)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.coil.kt.coil.compose)
-
+    implementation(libs.retrofit)
 
     implementation(libs.androidx.navigation.compose)
 }
