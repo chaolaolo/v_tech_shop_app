@@ -60,7 +60,9 @@ dependencies {
     implementation(libs.accompanist.flowlayout)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.coil.kt.coil.compose)
-    implementation(libs.retrofit)
 
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.retrofit)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.navigation.compose)
 }
