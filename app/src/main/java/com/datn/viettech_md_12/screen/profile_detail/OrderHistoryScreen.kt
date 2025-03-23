@@ -148,8 +148,8 @@ fun OrderHistoryScreen(navController: NavController) {
 @Composable
 fun OngoingOrdersScreen() {
     val orders = listOf(
-        OrderItem("Loop Silicone Strong Magnetic Watch", "$15.25", "$20.00", R.drawable.img_test_order),
-        OrderItem("M6 Smart Watch IP67 Waterproof", "$12.00", "$18.00", R.drawable.img_test_order)
+        OrderItem("Loop Silicone Strong Magnetic Watch", "VND15.25", "VND20.00", R.drawable.img_test_order),
+        OrderItem("M6 Smart Watch IP67 Waterproof", "VND12.00", "VND18.00", R.drawable.img_test_order)
     )
 
     if (orders.isEmpty()) {
