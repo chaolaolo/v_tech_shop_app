@@ -5,4 +5,15 @@
     <string name="title_activity_sign_in_screen">SignInScreen</string>
     <string name="title_activity_checkout_shipping_screen">CheckoutShippingScreen</string>
     <string name="title_activity_checkout_items_screen">CheckoutItemsScreen</string>
+    <string name="personal_information">Thông tin cá nhân</string>
+    <string name="shipping_address">Địa chỉ giao hàng</string>
+    <string name="payment_method">Phương thức thanh toán</string>
+    <string name="order_history">Lịch sử đặt hàng</string>
+    <string name="support_information">Hỗ trợ &amp; Thông tin</string>
+    <string name="privacy_policy">Chính sách bảo mật</string>
+    <string name="terms_conditions">Điều khoản &amp; Điều kiện</string>
+    <string name="faqs">FAQs</string>
+    <string name="account_mangager">Quản lý tài khoản</string>
+    <string name="change_password">Thay đổi mật khẩu</string>
+    <string name="dark_theme">Chủ đề tối</string>
 </resources>

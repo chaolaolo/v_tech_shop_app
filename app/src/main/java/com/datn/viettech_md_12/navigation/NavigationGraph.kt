@@ -71,7 +71,7 @@ fun NavigationGraph() {
             composable("categories") { CategoriesScreen(navController) }
             composable("my_cart") { CartScreen(navController) }
             composable("wishlist") { WishlistScreen() }
-            composable("profile") { ProfileScreen() }
+            composable("profile") { ProfileScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
