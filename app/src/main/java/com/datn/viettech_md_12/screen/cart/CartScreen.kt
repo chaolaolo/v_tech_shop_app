@@ -310,7 +310,7 @@ fun CartItemTile(
             painter = rememberAsyncImagePainter(item.imageUrl),
             contentDescription = null,
             modifier = Modifier
-                .size(100.dp)
+                .size(80.dp)
                 .background(Color.Transparent)
                 .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop

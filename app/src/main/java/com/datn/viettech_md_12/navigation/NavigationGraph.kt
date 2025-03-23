@@ -26,6 +26,8 @@ import com.datn.viettech_md_12.screen.WishlistScreen
 import com.datn.viettech_md_12.screen.cart.CartScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
+import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
+import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -72,6 +74,8 @@ fun NavigationGraph() {
             composable("my_cart") { CartScreen(navController) }
             composable("wishlist") { WishlistScreen() }
             composable("profile") { ProfileScreen(navController) }
+            composable("change_password_screen") { ChangePasswordScreen(navController) }
+            composable("order_history_screen") { OrderHistoryScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
