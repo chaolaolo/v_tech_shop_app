@@ -3,13 +3,10 @@ package com.datn.viettech_md_12.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -19,12 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.CustomTopAppBar2
-import com.datn.viettech_md_12.component.item.CustomItemCategories
-import com.datn.viettech_md_12.component.item.CustomItemProducts
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @Composable
@@ -68,13 +62,13 @@ fun ProductListScreen(
                     .padding(paddingValues)
                     .padding(horizontal = 16.dp)
             ) {
-                items(products) { item ->
-                    CustomItemProducts(
-                        image = item.image,
-                        colorHexList = item.color,
-                        title = item.name,
-                    )
-                }
+//                items(products) { item ->
+//                    CustomItemProducts(
+//                        image = item.image,
+//                        colorHexList = item.color,
+//                        title = item.name,
+//                    )
+//                }
             }
         }
     }

@@ -62,6 +62,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
@@ -70,7 +71,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ProductDetailScreen(navController: NavController, productId: Int, viewModel: ProductViewModel) {
+fun ProductDetailScreen(navController: NavController, productId: String, viewModel: ProductViewModel= viewModel()) {
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
     }
@@ -232,7 +233,7 @@ fun ProductDetailScreen(navController: NavController, productId: Int, viewModel:
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        product!!.name,
+                                        "${product?.productName}",
                                         maxLines = 2,
                                         fontSize = 18.sp,
                                         color = Color.Black,
@@ -244,13 +245,13 @@ fun ProductDetailScreen(navController: NavController, productId: Int, viewModel:
                                         horizontalAlignment = Alignment.End
                                     ) {
                                         Text(
-                                            "${product?.salePrice}",
+                                            "${product?.productPrice}",
                                             fontSize = 16.sp,
                                             color = Color.Black,
                                             fontWeight = FontWeight.Bold,
                                         )
                                         Text(
-                                            "${product?.salePrice}",
+                                            "${product?.productPrice}",
                                             fontSize = 16.sp,
                                             color = Color.Black,
                                             textDecoration = TextDecoration.LineThrough
@@ -277,8 +278,7 @@ fun ProductDetailScreen(navController: NavController, productId: Int, viewModel:
                                 // Description
                                 Spacer(Modifier.height(10.dp))
                                 Text(
-                                    //Todo: get description from product
-                                    text = "${product?.name}",
+                                    text = "${product?.productDescription}",
                                     fontSize = 14.sp,
                                     color = Color.Gray,
                                     modifier = Modifier.padding(top = 8.dp)
