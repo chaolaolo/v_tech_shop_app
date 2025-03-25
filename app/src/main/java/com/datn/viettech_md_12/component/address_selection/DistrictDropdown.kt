@@ -190,8 +190,8 @@ fun DistrictDropdown(
 @Preview(showSystemUi = true)
 @Composable
 fun DistrictDropdownPreview() {
-    var selectedDistrict by remember { mutableStateOf("Hà Nội") }
-    var selectedProvince by remember { mutableStateOf("Hà Nội") }
+    val selectedDistrict by remember { mutableStateOf("Hà Nội") }
+    val selectedProvince by remember { mutableStateOf("Hà Nội") }
 
     DistrictDropdown(
         selectedDistrict,

@@ -66,7 +66,7 @@ fun NavigationGraph() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "home",
+            startDestination = "product_detail/67cdd20838591fcf41a06e47",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -85,7 +85,7 @@ fun NavigationGraph() {
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
-                ProductDetailScreen(navController)
+                ProductDetailScreen(navController, "67cdd20838591fcf41a06e47")
             }
             composable("category/{categoryName}") { backStackEntry ->
                 val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
