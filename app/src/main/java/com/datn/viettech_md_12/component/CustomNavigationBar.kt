@@ -32,7 +32,7 @@ fun CustomNavigationBar(navController: NavController, selectedRoute: String) {
             "Categories"
         ),
         NavigationItem(
-            "my_cart",
+            "cart",
             R.drawable.ic_shopping_cart,
             R.drawable.ic_shopping_cart_selected,
             "My Cart"

@@ -45,7 +45,7 @@ fun NavigationGraph() {
 
 //    val hideBottomBar = currentBackStackEntry.value?.destination?.route == "search"
     val hideBottomBar = when (selectedRoute) {
-        "home", "categories", "my_cart", "wishlist", "profile" -> false
+        "home", "categories", "cart", "wishlist", "profile" -> false
         else -> true
     }
 
@@ -62,14 +62,15 @@ fun NavigationGraph() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "product_detail/67cdd20838591fcf41a06e47",
+//            startDestination = "product_detail/67cdd20838591fcf41a06e47",
+            startDestination = "home",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
             composable("home") { HomeScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
-            composable("my_cart") { CartScreen(navController) }
+            composable("cart") { CartScreen(navController) }
             composable("wishlist") { WishlistScreen() }
             composable("profile") { ProfileScreen() }
             composable("search") { SearchScreen(navController) }
