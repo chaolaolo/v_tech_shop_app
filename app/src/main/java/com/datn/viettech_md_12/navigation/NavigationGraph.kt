@@ -66,7 +66,7 @@ fun NavigationGraph() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "product_detail/67cdd20838591fcf41a06e47",
+            startDestination = "home",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

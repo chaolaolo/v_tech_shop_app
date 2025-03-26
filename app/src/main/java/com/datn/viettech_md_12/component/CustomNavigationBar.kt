@@ -23,31 +23,31 @@ fun CustomNavigationBar(navController: NavController, selectedRoute: String) {
             "home",
             R.drawable.ic_home_page,
             R.drawable.ic_home_page_selected,
-            "Home"
+            "Trang chủ"
         ),
         NavigationItem(
             "categories",
             R.drawable.ic_category,
             R.drawable.ic_category_selected,
-            "Categories"
+            "Thể loại"
         ),
         NavigationItem(
             "my_cart",
             R.drawable.ic_shopping_cart,
             R.drawable.ic_shopping_cart_selected,
-            "My Cart"
+            "Giỏ hàng"
         ),
         NavigationItem(
             "wishlist",
             R.drawable.ic_wishlist,
             R.drawable.ic_wishlist_selected,
-            "Wishlist"
+            "Yêu thích"
         ),
         NavigationItem(
             "profile",
             R.drawable.ic_profile,
             R.drawable.ic_profile_selected,
-            "Profile"
+            "Cá nhân"
         )
     )
 

@@ -121,3 +121,7 @@ data class ProductResponse(
     val success: Boolean,
     val product: ProductModel
 )
+data class ProductListResponse(
+    @SerializedName("products")
+    val products: List<ProductModel>, // Danh sach san pham
+)

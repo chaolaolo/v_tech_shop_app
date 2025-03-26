@@ -22,13 +22,15 @@ import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.*
 import com.datn.viettech_md_12.component.item.CustomItemProducts
 import com.datn.viettech_md_12.viewmodel.HomeViewModel
+import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel(),viewModel: ProductViewModel = viewModel()) {
 
     val banners by homeViewModel.banners.collectAsState()
     val categories by homeViewModel.categories.collectAsState()
     val latestProducts by homeViewModel.latestProducts.collectAsState()
+    val products by viewModel.products.collectAsState()
 
     Scaffold(
         topBar = {
@@ -81,7 +83,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Categories",
+                            text = "Thể loại",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1C1B1B),
@@ -89,7 +91,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                         )
 
                         Text(
-                            text = "SEE ALL",
+                            text = "Xem thêm",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = Color(0xFF21D4B4),
@@ -115,7 +117,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Latest Products",
+                        text = "Sản phẩm mới nhất",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1C1B1B),
@@ -124,7 +126,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                     )
 
                     Text(
-                        text = "SEE ALL",
+                        text = "Xem thêm",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF21D4B4),
@@ -149,12 +151,15 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(latestProducts.take(4)) { item ->
-                                CustomItemProducts(
-                                    image = item.image,
-                                    colorHexList = item.color,
-                                    title = item.name
-                                )
+//                            items(latestProducts.take(4)) { item ->
+//                                CustomItemProducts(
+//                                    image = item.image,
+//                                    colorHexList = item.color,
+//                                    title = item.name
+//                                )
+//                            }
+                            items(products) { product ->
+                                CustomItemProducts(product = product)
                             }
                         }
                     }
