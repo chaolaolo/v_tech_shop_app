@@ -45,10 +45,12 @@ import com.datn.viettech_md_12.component.MyTextField
 @Composable
 fun RegisterScreen() {
     val context = LocalContext.current
+    var username by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,27 +162,7 @@ fun RegisterScreen() {
         )
         //confirm password TextField
         Spacer(modifier = Modifier.height(10.dp))
-        Row {
-            Text(
-                text = "Xác nhận mật khẩu",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = " *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Red
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        MyTextField(
-            hint = "Xác nhận mật khẩu",
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            modifier = Modifier,
-            isPassword = true
-        )
+
         //Login button
         Spacer(modifier = Modifier.height(20.dp))
         MyButton(
@@ -192,20 +174,20 @@ fun RegisterScreen() {
         )
         //login with google button
         Spacer(modifier = Modifier.height(10.dp))
-        MyButton(
-            text = "Đăng ký với Google",
-            onClick = {},
-            modifier = Modifier.border(
-                width = 1.dp,
-                brush = SolidColor(Color(0xFFF4F5FD)),
-                shape = RoundedCornerShape(8.dp)
-            ),
-            backgroundColor = Color.White,
-            textColor = Color.Black,
-            painterIconResId = R.drawable.google_logo
-        )
-        //accept privacy policy notice text
-        Spacer(modifier = Modifier.height(10.dp))
+//        MyButton(
+//            text = "Đăng ký với Google",
+//            onClick = {},
+//            modifier = Modifier.border(
+//                width = 1.dp,
+//                brush = SolidColor(Color(0xFFF4F5FD)),
+//                shape = RoundedCornerShape(8.dp)
+//            ),
+//            backgroundColor = Color.White,
+//            textColor = Color.Black,
+//            painterIconResId = R.drawable.google_logo
+//        )
+//        //accept privacy policy notice text
+//        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 

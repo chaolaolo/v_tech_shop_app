@@ -36,6 +36,7 @@ fun CustomItemProducts(product: ProductModel) {
 //    var selectedColor by remember { mutableStateOf<String?>(null) }
 //    var colors by remember { mutableStateOf(colorHexList.map { it to parseColor(it) }) }
     var isFavorite by remember { mutableStateOf(false) }
+    val BASE_URL = "http://103.166.184.249:3056/"
 
     Card(
         shape = MaterialTheme.shapes.large,
@@ -61,7 +62,7 @@ fun CustomItemProducts(product: ProductModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
-                        model = "http://103.166.184.249:3056/${product.productThumbnail}",
+                        model = "$BASE_URL${product.productThumbnail}",
                         contentDescription = "ta_dcm",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
