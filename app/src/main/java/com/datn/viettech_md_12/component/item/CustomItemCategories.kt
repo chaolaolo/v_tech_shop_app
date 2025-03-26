@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.datn.viettech_md_12.R
 
 @Composable
-fun CustomItemCategories(image: Int, title: String, onClick: () -> Unit) {
+fun CustomItemCategories(image: Int?, title: String, onClick: () -> Unit) {
     Card(
         shape = MaterialTheme.shapes.large,
         modifier = Modifier
@@ -44,12 +44,14 @@ fun CustomItemCategories(image: Int, title: String, onClick: () -> Unit) {
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(image),
-                        contentDescription = "Profile image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    image?.let { painterResource(it) }?.let {
+                        Image(
+                            painter = it,
+                            contentDescription = "Profile image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
                 Text(
                     title,

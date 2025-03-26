@@ -21,14 +21,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.*
 import com.datn.viettech_md_12.component.item.CustomItemProducts
+import com.datn.viettech_md_12.viewmodel.CategoryViewModel
 import com.datn.viettech_md_12.viewmodel.HomeViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel(),viewModel: ProductViewModel = viewModel()) {
+fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel(),viewModel: ProductViewModel = viewModel(),categoryViewModel: CategoryViewModel = viewModel()) {
 
     val banners by homeViewModel.banners.collectAsState()
-    val categories by homeViewModel.categories.collectAsState()
+    val categories by categoryViewModel.categories.collectAsState()
     val latestProducts by homeViewModel.latestProducts.collectAsState()
     val products by viewModel.products.collectAsState()
 
@@ -102,7 +103,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                         )
                     }
                     Spacer(Modifier.height(8.dp))
-                    if (categories.isEmpty()) {
+                    if (categories.isEmpty()) { // 🔹 Dùng categories từ CategoryViewModel
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     } else {
                         CustomLazyRow(categories)

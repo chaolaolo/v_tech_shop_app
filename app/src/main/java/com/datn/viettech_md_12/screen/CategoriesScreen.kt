@@ -16,12 +16,17 @@ import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.item.CustomItemCategories
 import com.datn.viettech_md_12.component.CustomTopAppBar2
-import com.datn.viettech_md_12.viewmodel.CategoriesViewModel
+import com.datn.viettech_md_12.viewmodel.CategoryViewModel
 
 @Composable
-fun CategoriesScreen(navController: NavController, viewModel: CategoriesViewModel = viewModel()) {
+fun CategoriesScreen(navController: NavController, viewModel: CategoryViewModel = viewModel()) {
     val categories by viewModel.categories.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    // Gọi API khi màn hình xuất hiện
+    LaunchedEffect(Unit) {
+        viewModel.fetchCategories()
+    }
 
     Scaffold(
         topBar = {
@@ -56,15 +61,16 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoriesViewMode
             ) {
                 items(categories) { item ->
                     CustomItemCategories(
-                        image = item.image,
+                        image = null,  // Đảm bảo `image` có dữ liệu hợp lệ
                         title = item.name,
-                        onClick = {navController.navigate("category/${item.name}")}
+                        onClick = { navController.navigate("category/${item.name}") }
                     )
                 }
-                item{
+                item {
                     Spacer(Modifier.height(80.dp))
                 }
             }
         }
     }
 }
+

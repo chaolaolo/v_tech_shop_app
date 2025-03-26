@@ -27,10 +27,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.Category
+import com.datn.viettech_md_12.data.model.CategoryModel
 
 @Composable
 fun CustomLazyRow(
-    categories: List<Category>
+    categories: List<CategoryModel>
 ) {
 
     LazyRow(
@@ -39,7 +40,7 @@ fun CustomLazyRow(
         items(categories.take(4)) { category ->
             CustomCategoryItem(
                 name = category.name,
-                painter = painterResource(category.image)
+                painter = painterResource(R.drawable.ic_category1)
             )
         }
     }
@@ -102,6 +103,6 @@ fun PreviewCustomLazyRow() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CustomLazyRow(categories)
+//        CustomLazyRow(categories)
     }
 }
