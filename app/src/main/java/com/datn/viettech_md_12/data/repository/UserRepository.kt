@@ -7,4 +7,7 @@ class UserRepository (
     suspend fun signUp(request: RegisterRequest) : Response<RegisterResponse>{
         return apiService.signUp(request)
     }
+    suspend fun signIn(request: LoginRequest) : Response<LoginResponse>{
+        return apiService.signIn(request)
+    }
 }

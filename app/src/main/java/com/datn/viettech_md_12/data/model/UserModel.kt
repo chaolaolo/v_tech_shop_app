@@ -5,7 +5,11 @@ data class RegisterRequest(
     val email: String,
     val password: String
 )
-
+// Request login
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
 // Data class cho response đăng ký
 data class RegisterResponse(
     val code: Int,
@@ -34,4 +38,13 @@ data class Account(
 data class Tokens(
     val accessToken: String,
     val refreshToken: String
+)
+data class LoginResponse(
+    val result: LoginResult
+)
+data class LoginResult(
+    val code: Int,
+    val message: String,
+    val status: String,
+    val metadata: Metadata
 )
