@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.data.repository
 
 import com.datn.viettech_md_12.data.interfaces.ProductService
+import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductResponse
 import retrofit2.Response
@@ -14,4 +15,6 @@ class ProductRepository(
 
     suspend fun getAllProducts(): Response<ProductListResponse> = apiService.getAllProducts()
 
+    suspend fun getProductsByCategory(categoryId: String): Response<ProductByCateModelResponse> =
+        apiService.getProductsByCategory(categoryId)
 }

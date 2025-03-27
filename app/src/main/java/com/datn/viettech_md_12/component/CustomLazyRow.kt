@@ -1,11 +1,12 @@
 package com.datn.viettech_md_12.component
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,31 +17,33 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.data.model.Category
 import com.datn.viettech_md_12.data.model.CategoryModel
+import androidx.navigation.NavController
 
 @Composable
 fun CustomLazyRow(
-    categories: List<CategoryModel>
+    categories: List<CategoryModel>,
+    navController: NavController
 ) {
-
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        items(categories.take(4)) { category ->
+        items(categories.take(4), key = { it.id }) { category ->
             CustomCategoryItem(
                 name = category.name,
-                painter = painterResource(R.drawable.ic_category1)
+                imageUrl = category.thumbnail,
+                navController = navController,
+                id = category.id,
             )
         }
     }
@@ -48,61 +51,47 @@ fun CustomLazyRow(
 
 @Composable
 fun CustomCategoryItem(
-    name: String,
-    painter: Painter,
+    id: String,
+    name:String,
+    imageUrl: String,
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
-            .size(87.dp, 69.dp),
+            .size(87.dp, 69.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                onClick = { navController.navigate("category/$id") }
+            ),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(Color(0xFFFFFFFF)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
+        colors = CardDefaults.cardColors(Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+    )
+    {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painter,
-                contentDescription = "Category image",
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(8.dp, 8.dp, 8.dp, 0.dp)
-                    .height(33.dp)
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = name,
+                modifier = Modifier.size(50.dp),
+                contentScale = ContentScale.Crop,
+                error = painterResource(R.drawable.ic_launcher_foreground)
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = name,
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF1C1B1B),
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp)
-
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
-    }
-}
-
-
-@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
-@Composable
-fun PreviewCustomLazyRow() {
-    val categories: List<Category> = listOf(
-        Category("Electronics", R.drawable.ic_category1),
-        Category("Fashion", R.drawable.ic_category2),
-        Category("Furniture", R.drawable.ic_category3),
-        Category("Industrial", R.drawable.ic_category4),
-    )
-
-    Column(
-        Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-//        CustomLazyRow(categories)
     }
 }

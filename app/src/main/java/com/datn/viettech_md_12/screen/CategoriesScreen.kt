@@ -23,7 +23,6 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoryViewModel 
     val categories by viewModel.categories.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Gọi API khi màn hình xuất hiện
     LaunchedEffect(Unit) {
         viewModel.fetchCategories()
     }
@@ -61,9 +60,11 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoryViewModel 
             ) {
                 items(categories) { item ->
                     CustomItemCategories(
-                        image = null,  // Đảm bảo `image` có dữ liệu hợp lệ
+                        image = item.thumbnail,
                         title = item.name,
-                        onClick = { navController.navigate("category/${item.name}") }
+                        onClick = {
+                            navController.navigate("category/${item.id}")
+                        }
                     )
                 }
                 item {

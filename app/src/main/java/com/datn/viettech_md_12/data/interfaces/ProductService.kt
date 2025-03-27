@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.data.interfaces
 
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductResponse
 import retrofit2.Response
@@ -22,4 +23,7 @@ interface ProductService {
     suspend fun getAllProducts(): Response<ProductListResponse>
     @PUT
     suspend fun updateCart(cartModel: CartModel): CartModel
+
+    @GET("shop/products/category/{categoryId}")
+    suspend fun getProductsByCategory(@Path("categoryId") categoryId: String): Response<ProductByCateModelResponse>
 }
