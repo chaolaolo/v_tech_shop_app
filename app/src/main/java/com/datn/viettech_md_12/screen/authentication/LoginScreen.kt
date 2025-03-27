@@ -57,7 +57,7 @@ class LoginScreen : ComponentActivity() {
 @Composable
 fun LoginUser() {
     val context = LocalContext.current
-    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
@@ -106,7 +106,7 @@ fun LoginUser() {
         //Email TextField
         Row {
             Text(
-                text = "Email",
+                text = "Tên đăng nhập",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -119,9 +119,9 @@ fun LoginUser() {
         }
         Spacer(modifier = Modifier.height(4.dp))
         MyTextField(
-            hint = "Email",
-            value = email,
-            onValueChange = { email = it },
+            hint = "Tên đăng nhập",
+            value = username,
+            onValueChange = { username = it },
             modifier = Modifier
         )
         //password TextField
