@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -33,16 +34,14 @@ import androidx.navigation.NavController
 fun CheckoutReviewUI(navController: NavController) {
     Column(
         modifier = Modifier
-            .padding(horizontal = 20.dp)
+            .padding(20.dp)
             .background(Color.White)
             .fillMaxHeight()
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(Modifier.height(10.dp))
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 16.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -62,13 +61,13 @@ fun CheckoutReviewUI(navController: NavController) {
             }
         }
         HorizontalDivider(Modifier.height(1.dp), color = Color(0xFFF4F5FD))
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(4.dp))
         Text(
             "Địa chỉ giao hàng",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(4.dp))
 //        Address Field
         AddressField(label = "Họ tên", value = "Chao Lao Lo")
         AddressField(label = "Số điện thoại", value = "0111 222 333")
@@ -76,21 +75,21 @@ fun CheckoutReviewUI(navController: NavController) {
         AddressField(label = "Quận/Huyện", value = "Cau Giay")
         AddressField(label = "Địa chỉ chi tiết", value = "Địa chỉ XYZ")
         AddressField(label = "Mã bưu chính", value = "000000")
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(4.dp))
         HorizontalDivider(Modifier.height(1.dp), color = Color(0xFFF4F5FD))
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(4.dp))
         Text(
             "Thông tin thanh toán",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(4.dp))
         AddressField(label = "Tổng giá tiền", value = "VND 900")
         AddressField(label = "Phí vận chuyển", value = "VND 50")
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -110,7 +109,7 @@ fun CheckoutReviewUI(navController: NavController) {
         Spacer(Modifier.weight(1f))
         MyButton(
             text = "Đặt hàng",
-            onClick = { },
+            onClick = {navController.navigate("order_successfully")},
             modifier = Modifier,
             backgroundColor = Color.Black,
             textColor = Color.White,

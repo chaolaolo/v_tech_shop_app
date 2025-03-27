@@ -70,7 +70,7 @@ fun CheckoutScreen(navController: NavController) {
                 .fillMaxHeight()
         ) {
             //Checkout TopBar
-            Spacer(Modifier.height(10.dp))
+//            Spacer(Modifier.height(10.dp))
             CheckoutTopBar(selectedTab) { newTab -> selectedTab = newTab }
 
             when (selectedTab) {

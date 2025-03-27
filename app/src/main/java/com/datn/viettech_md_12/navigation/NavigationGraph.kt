@@ -26,6 +26,7 @@ import com.datn.viettech_md_12.screen.WishlistScreen
 import com.datn.viettech_md_12.screen.cart.CartScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
+import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -63,7 +64,7 @@ fun NavigationGraph() {
         NavHost(
             navController = navController,
 //            startDestination = "product_detail/67cdd20838591fcf41a06e47",
-            startDestination = "home",
+            startDestination = "cart",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -75,10 +76,11 @@ fun NavigationGraph() {
             composable("profile") { ProfileScreen() }
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
+            composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
-                ProductDetailScreen(navController, "67cdd20838591fcf41a06e47")
+                ProductDetailScreen(navController, "67cdd20838591fcf41a06e58")
             }
             composable("category/{categoryName}") { backStackEntry ->
                 val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""

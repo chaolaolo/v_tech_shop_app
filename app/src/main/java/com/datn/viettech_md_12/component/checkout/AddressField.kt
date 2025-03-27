@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -17,19 +18,18 @@ import androidx.compose.ui.unit.sp
 fun AddressField(label: String, value: String) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             label,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             color = Color.Gray
         )
         Text(
             value,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             color = Color.Gray
         )
     }

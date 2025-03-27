@@ -108,7 +108,7 @@ fun CheckoutReviewItemsScreen(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .background(Color.White)
-                    .padding(20.dp)
+                    .padding(horizontal = 10.dp)
             ) {
                 items(checkoutItems) { item ->
                     CheckoutItemTile(

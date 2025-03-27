@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datn.viettech_md_12.R
@@ -33,6 +34,7 @@ import com.datn.viettech_md_12.component.MyTextField
 
 //CheckoutPaymentUI
 @Composable
+@Preview(showSystemUi = true)
 fun CheckoutPaymentUI() {
 
     var cardHolderName by remember { mutableStateOf("") }
@@ -42,13 +44,12 @@ fun CheckoutPaymentUI() {
 
     Column(
         modifier = Modifier
-            .padding(horizontal = 20.dp)
+            .padding(20.dp)
             .background(Color.White)
             .fillMaxHeight()
             .verticalScroll(rememberScrollState())
     ) {
         //chọn hình thức thanh toán
-        Spacer(Modifier.height(20.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
