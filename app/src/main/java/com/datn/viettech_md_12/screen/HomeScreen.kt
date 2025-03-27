@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -37,7 +39,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             CustomTopAppBar(
                 title = "ietTech",
                 iconLogo = R.drawable.ic_logo,
-                icon1 = R.drawable.ic_search,
+                icon1 = R.drawable.search,
                 icon2 = R.drawable.rectangle_7,
                 navController = navController,
                 actionTitle1 = "search",
@@ -59,6 +61,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xfff4f5fd))
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -87,7 +90,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1C1B1B),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            fontSize = 18.sp
                         )
 
                         Text(
@@ -122,7 +126,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1C1B1B),
                         maxLines = 1,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        fontSize = 18.sp
+
                     )
 
                     Text(
