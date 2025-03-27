@@ -44,10 +44,18 @@ import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
-
+class LoginScreen : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            LoginUser()
+        }
+    }
+}
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginScreen() {
+fun LoginUser() {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -164,20 +172,7 @@ fun LoginScreen() {
         )
         //login with google button
         Spacer(modifier = Modifier.height(10.dp))
-        MyButton(
-            text = "Đăng nhập với Google",
-            onClick = {},
-            modifier = Modifier.border(
-                width = 1.dp,
-                brush = SolidColor(Color(0xFFF4F5FD)),
-                shape = RoundedCornerShape(8.dp)
-            ),
-            backgroundColor = Color.White,
-            textColor = Color.Black,
-            painterIconResId = R.drawable.google_logo
-        )
-        //accept privacy policy notice text
-        Spacer(modifier = Modifier.height(10.dp))
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
