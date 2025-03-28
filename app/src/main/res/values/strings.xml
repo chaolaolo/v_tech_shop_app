@@ -17,4 +17,5 @@
     <string name="change_password">Thay đổi mật khẩu</string>
     <string name="dark_theme">Chủ đề tối</string>
     <string name="title_activity_test_sign_up_api">TestSignUpApi</string>
+    <string name="title_activity_splash_screen">SplashScreen</string>
 </resources>

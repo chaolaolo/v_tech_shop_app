@@ -1,5 +1,12 @@
 package com.datn.viettech_md_12.screen.authentication
 
+import android.annotation.SuppressLint
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,9 +39,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
-
+class OnbroadingActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.R)
+    @SuppressLint("WrongConstant")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.hide(android.view.WindowInsets.Type.systemBars()) // Ẩn cả thanh trạng thái và thanh điều hướng
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        setContent {
+            val navController = rememberNavController()
+           OnboardingScreen(navController)
+        }
+    }
+}
 @Composable
 fun OnboardingScreen(navController: NavController) {
     val pagerState = rememberPagerState()
@@ -92,7 +117,7 @@ fun OnboardingScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.weight(1f))
             TextButton(onClick = { navController.navigate("home") }) {
-                Text("Skip for now", color = Color(0xFF00C853))
+                Text("Bỏ qua ngay", color = Color(0xFF00C853))
             }
         }
 
@@ -169,7 +194,7 @@ fun OnboardingScreen(navController: NavController) {
         ) {
             Box(
                 modifier = Modifier
-                    .background(Color.LightGray, shape = RoundedCornerShape(50.dp))
+                    .background(Color(0xffF4FDFA), shape = RoundedCornerShape(50.dp))
                     .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 HorizontalPagerIndicator(
