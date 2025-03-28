@@ -34,11 +34,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import com.datn.viettech_md_12.data.model.CartMode
 import com.datn.viettech_md_12.data.model.CartModel
 
 @Composable
 fun CheckoutItemTile(
-    item: CartModel,
+    item: CartMode,
     onQuantityChange: (Int, Int) -> Unit,
     onDelete: (Int) -> Unit,
 ) {

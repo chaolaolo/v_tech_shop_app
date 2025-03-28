@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".MyApplication"
@@ -16,36 +17,6 @@
         android:theme="@style/Theme.VietTech_MD_12"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-        <activity
-            android:name=".screen.checkout.CheckoutItemsScreen"
-            android:exported="false"
-            android:label="@string/title_activity_checkout_items_screen"
-            android:theme="@style/Theme.VietTech_MD_12" />
-        <activity
-            android:name=".screen.checkout.CheckoutShippingScreen"
-            android:exported="false"
-            android:label="@string/title_activity_checkout_items_screen"
-            android:theme="@style/Theme.VietTech_MD_12" />
-        <activity
-            android:name=".screen.cart.CartScreen"
-            android:exported="false"
-            android:label="@string/title_activity_checkout_shipping_screen"
-            android:theme="@style/Theme.VietTech_MD_12" />
-        <activity
-            android:name=".screen.authentication.LoginScreen"
-            android:exported="false"
-            android:label="@string/title_activity_sign_in_screen"
-            android:theme="@style/Theme.VietTech_MD_12" />
-        <activity
-            android:name=".screen.authentication.RegisterScreen"
-            android:exported="false"
-            android:label="@string/title_activity_sign_up_screen"
-            android:theme="@style/Theme.VietTech_MD_12" />
-        <activity
-            android:name=".screen.authentication.EmailVertificationScreen"
-            android:exported="false"
-            android:label="@string/title_activity_sign_up_screen"
-            android:theme="@style/Theme.VietTech_MD_12" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,6 +1,8 @@
 package com.datn.viettech_md_12.data.model
 
-data class CartModel(
+import com.google.gson.annotations.SerializedName
+
+data class CartMode(
     val id: Int,
     val name: String,
     val imageUrl: String,
@@ -10,3 +12,33 @@ data class CartModel(
     var isSelected: Boolean = true
 )
 
+
+data class CartModel(
+    @SerializedName("message") val message: String,
+    @SerializedName("statusCode") val statusCode: Int,
+    @SerializedName("metadata") val metadata: Metadata
+)
+
+data class Metadata(
+    @SerializedName("_id") val _id: String,
+    @SerializedName("cart_state") val cart_state: String,
+    @SerializedName("cart_products") val cart_products: List<CartProduct>,
+    @SerializedName("cart_count_product") val cart_count_product: Int,
+    @SerializedName("cart_userId") val cart_userId: String,
+) {
+    data class CartProduct(
+        @SerializedName("productId") val productId: String,
+        @SerializedName("name") val name: String,
+        @SerializedName("price") val price: Double,
+        @SerializedName("image") val image: String,
+        @SerializedName("quantity") val quantity: Int,
+        @SerializedName("variant") val variant: ProductVariant,
+    )
+
+    data class ProductVariant(
+        @SerializedName("variantId") val variantId: String,
+        @SerializedName("variant_name") val variant_name: String,
+        @SerializedName("variant_value") val variant_value: String,
+        @SerializedName("sku") val sku: String,
+    )
+}

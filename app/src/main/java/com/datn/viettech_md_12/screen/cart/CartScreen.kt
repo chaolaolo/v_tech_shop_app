@@ -53,6 +53,9 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,19 +76,25 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.Metadata
+import com.datn.viettech_md_12.viewmodel.CartViewModel
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CartScreen(navController: NavController) {
+fun CartScreen(
+    navController: NavController,
+    cartViewModel: CartViewModel = viewModel(),
+) {
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden,
@@ -93,78 +102,20 @@ fun CartScreen(navController: NavController) {
         )
     )
     val scope = rememberCoroutineScope()
+    val cartState by cartViewModel.cartState.collectAsState()
 
-    val cartItems = remember {
-        mutableStateListOf(
-            CartModel(
-                1,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://mihanoi.vn/wp-content/uploads/2024/09/dong-ho-do-huyet-ap-thong-minh-fruit-health-6.jpg",
-                15.25,
-                20.00,
-                1
-            ),
-            CartModel(
-                2,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartModel(
-                3,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartModel(
-                4,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartModel(
-                5,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartModel(
-                6,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartModel(
-                7,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartModel(
-                8,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-        )
-    }
-    val selectedItems = remember { mutableStateListOf<Int>() }
+    val selectedItems = remember { mutableStateListOf<String>() }
     val isShowVoucherSheet = remember { mutableStateOf(false) }
     val voucherCode = remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        cartViewModel.fetchCart(
+            token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMxNzEzOTIsImV4cCI6MTc0MzM0NDE5Mn0.QwDYV1bAd33mYCXyBHBaqJtK0MDIuJgStcLlyFRN2kQ",
+            userId = "67cc0f8c02e39ebe9f7b60d5",
+            userIdQuery = "67cc0f8c02e39ebe9f7b60d5"
+        )
+    }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
@@ -203,16 +154,13 @@ fun CartScreen(navController: NavController) {
                 Spacer(Modifier.height(20.dp))
             }
         },
-
-//    ) { }
-//    Scaffold(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
             .systemBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Giỏ Hàng") },
+                title = { Text(text = "Giỏ Hàng", color = Color.Black) },
                 colors = TopAppBarColors(
                     containerColor = Color.White,
                     scrolledContainerColor = Color.Transparent,
@@ -252,127 +200,107 @@ fun CartScreen(navController: NavController) {
                 .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(Color.White)
-                    .padding(horizontal = 10.dp)
-            ) {
-                items(cartItems) { item ->
-                    CartItemTile(
-                        item,
-                        selectedItems.contains(item.id),
-                        onSelectionChange = { selected ->
-                            if (selected) {
-                                if (!selectedItems.contains(item.id)) {
-                                    selectedItems.add(item.id)
-                                }
-                            } else {
-                                selectedItems.remove(item.id)
-                            }
-                        },
-                        onQuantityChange = { id, newQuantity ->
-                            val index = cartItems.indexOfFirst { it.id == id }
-                            if (index != -1) {
-                                cartItems[index] = cartItems[index].copy(
-                                    quantity = newQuantity,
-                                )
-                            }
-                        },
-                        onDelete = { id ->
-                            selectedItems.remove(id)
-                            cartItems.removeAll { it.id == id }
-                        },
-                        navController
-                    )
-                }
-            }
-
-
-            //Hiện EmptyCart nếu không có item nào
-            if (cartItems.size == 0) {
+            when {
+//                cartState?.isLoading == true -> {
+//                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//                        CircularProgressIndicator()
+//                    }
+//                }
+                cartState?.body() == null -> {
                 EmptyCart()
             }
 
-            //
-            val selectedCartItems = cartItems.filter { selectedItems.contains(it.id) }
-            OrderSummary(
-                navController = navController,
-                selectedItems = selectedCartItems
-            )
-
-        }//end column
-
-//        if (isShowVoucherSheet.value) {
-//            // Hiển thị ModalBottomSheet
-//            ModalBottomSheet(
-//                onDismissRequest = { isShowVoucherSheet.value = false }, // Đóng
-//                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-//                containerColor = Color.White,
-//                contentColor = Color.Black,
-//                tonalElevation = 8.dp,
-//                scrimColor = Color.Black.copy(alpha = 0.5f),
-//                windowInsets = WindowInsets.ime,
-//                modifier = Modifier
-//                ) {
-//                Column(
-//                    modifier = Modifier
-//                        .padding(horizontal = 20.dp)
-//                        .fillMaxWidth()
-//                        .imePadding()
-//                ) {
-//                    Text(
-//                        "Voucher Code sheet",
-//                        color = Color.Black,
-//                        fontSize = 20.sp,
-//                        fontWeight = FontWeight.Bold,
-//                    )
-//                    Spacer(Modifier.height(10.dp))
-//                    MyTextField(
-//                        hint = "Nhập mã giảm giá",
-//                        value = voucherCode.value,
-//                        onValueChange = { voucherCode.value = it },
-//                        isPassword = false
-//                    )
-//                    Spacer(Modifier.height(10.dp))
-//                    MyButton(
-//                        text = "Áp dụng",
-//                        onClick = { /*TODO()*/ },
-//                        modifier = Modifier,
-//                        backgroundColor = Color.Black,
-//                        textColor = Color.White,
-//                    )
-//                    Spacer(Modifier.height(20.dp))
-//                }
-//            }
-//        }
+                else -> {
+                    val cartModel = cartState?.body()
+                    cartModel?.let { cart ->
+                        CartContent(
+                            navController = navController,
+                            cartProducts = cart.metadata.cart_products,
+                            selectedItems = selectedItems,
+                            cartViewModel = cartViewModel,
+                        )
+                    }
+                }
+            }
+        }
     }//end scaffold
-
-
-
 }// end cart UI
 
 @Composable
-fun OrderSummary(navController:NavController, selectedItems: List<CartModel>) {
+fun CartContent(
+    navController: NavController,
+    cartProducts: List<Metadata.CartProduct>,
+    selectedItems: MutableList<String>,
+    cartViewModel: CartViewModel,
+) {
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+//            .weight(1f)
+//            .fillMaxSize()
+                .background(Color.White)
+                .padding(horizontal = 10.dp)
+        ) {
+            items(cartProducts) { item ->
+                CartItemTile(
+                    item,
+                    selectedItems.contains(item.productId),
+                    onSelectionChange = { selected ->
+                        if (selected) {
+                            if (!selectedItems.contains(item.productId)) {
+                                selectedItems.add(item.productId)
+                            }
+                        } else {
+                            selectedItems.remove(item.productId)
+                        }
+                    },
+                    onQuantityChange = { id, newQuantity ->
+                        cartViewModel.updateProductQuantity(id, newQuantity)
+//                        val index = cartProducts.indexOfFirst { it.productId == id }
+//                        if (index != -1) {
+////                        cartProducts[index] = cartProducts[index].copy(
+////                            quantity = newQuantity,
+////                        )
+//                        }
+                    },
+                    onDelete = { id ->
+                        selectedItems.remove(id)
+//                    cartProducts.removeAll { it.id == id }
+                    },
+                    navController
+                )
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        val selectedCartItems = cartProducts.filter { selectedItems.contains(it.productId) }
+        OrderSummary(
+            navController = navController,
+            selectedItems = selectedCartItems
+        )
+    }
+}
+
+@Composable
+fun OrderSummary(navController: NavController, selectedItems: List<Metadata.CartProduct>) {
     val subtotal = selectedItems.sumOf { it.price * it.quantity }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp)
     ) {
-        Text("Thông tin đặt hàng", fontWeight = FontWeight.W600, fontSize = 14.sp)
+        Text("Thông tin đặt hàng", fontWeight = FontWeight.W600, fontSize = 14.sp, color = Color.Black)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng giá tiền", fontSize = 12.sp, color = Color.Gray)
-            Text("VND ${"%.2f".format(subtotal)}", fontSize = 12.sp)
+            Text("VND ${"%.2f".format(subtotal)}", fontSize = 12.sp, color = Color.Gray)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Phí vận chuyển", fontSize = 12.sp, color = Color.Gray)
-            Text("VND 0.00", fontSize = 12.sp)
+            Text("VND 0.00", fontSize = 12.sp, color = Color.Gray)
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 0.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Tổng thanh toán", fontSize = 16.sp, fontWeight = FontWeight.W500)
-            Text("VND ${"%.2f".format(subtotal)}", fontSize = 16.sp, fontWeight = FontWeight.W500)
+            Text("Tổng thanh toán", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
+            Text("VND ${"%.2f".format(subtotal)}", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
         }
         Spacer(Modifier.height(5.dp))
         MyButton(
@@ -387,11 +315,11 @@ fun OrderSummary(navController:NavController, selectedItems: List<CartModel>) {
 
 @Composable
 fun CartItemTile(
-    item: CartModel,
+    product: Metadata.CartProduct,
     isSelected: Boolean,
     onSelectionChange: (Boolean) -> Unit,
-    onQuantityChange: (Int, Int) -> Unit,
-    onDelete: (Int) -> Unit,
+    onQuantityChange: (String, Int) -> Unit,
+    onDelete: (String) -> Unit,
     navController: NavController,
 ) {
     Row(
@@ -400,12 +328,13 @@ fun CartItemTile(
             .padding(vertical = 2.dp)
             .background(Color.White)
             .clickable {
-                navController.navigate("product_detail/${item.id}") // Chuyển đến chi tiết sản phẩm
+                navController.navigate("product_detail/${product.productId}") // Chuyển đến chi tiết sản phẩm
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
-            painter = rememberAsyncImagePainter(item.imageUrl),
+//            painter = rememberAsyncImagePainter("http://103.166.184.249:3056/${product.image}"),
+            painter = rememberAsyncImagePainter(product.image),
             contentDescription = null,
             modifier = Modifier
                 .size(80.dp)
@@ -416,9 +345,9 @@ fun CartItemTile(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(item.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
-            Text("VND ${item.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp)
-            Text("VND ${item.originalPrice}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
+            Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
+            Text("VND ${product.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
+            Text("VND ${product.price}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
             Row(
                 modifier = Modifier
                     .border(
@@ -431,14 +360,14 @@ fun CartItemTile(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
-                    onClick = { if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) },
+                    onClick = { if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1) },
                     modifier = Modifier.size(16.dp)
                 ) {
                     Icon(Icons.Default.Remove, contentDescription = "Decrease")
                 }
-                Text("${item.quantity}", fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp))
+                Text("${product.quantity}", fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
                 IconButton(
-                    onClick = { onQuantityChange(item.id, item.quantity + 1) },
+                    onClick = { onQuantityChange(product.productId, product.quantity + 1) },
                     modifier = Modifier.size(16.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Increase")
@@ -471,7 +400,7 @@ fun CartItemTile(
                 tint = Color.Red,
                 modifier = Modifier
                     .size(20.dp)
-                    .clickable { onDelete(item.id) },
+                    .clickable { onDelete(product.productId) },
             )
         }
     }

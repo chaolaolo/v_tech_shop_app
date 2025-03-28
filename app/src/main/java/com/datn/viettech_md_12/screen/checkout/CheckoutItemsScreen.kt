@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
+import com.datn.viettech_md_12.data.model.CartMode
 import com.datn.viettech_md_12.data.model.CartModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +39,7 @@ import com.datn.viettech_md_12.data.model.CartModel
 fun CheckoutReviewItemsScreen(navController: NavController) {
     val checkoutItems = remember {
         mutableStateListOf(
-            CartModel(
+            CartMode(
                 1,
                 "Loop Silicone Strong Magnetic Watch",
                 "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
@@ -46,7 +47,7 @@ fun CheckoutReviewItemsScreen(navController: NavController) {
                 20.00,
                 1
             ),
-            CartModel(
+            CartMode(
                 2,
                 "M6 Smart watch IP67 Waterproof",
                 "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
@@ -54,7 +55,7 @@ fun CheckoutReviewItemsScreen(navController: NavController) {
                 18.00,
                 1
             ),
-            CartModel(
+            CartMode(
                 3,
                 "Loop Silicone Strong Magnetic Watch",
                 "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
@@ -62,7 +63,7 @@ fun CheckoutReviewItemsScreen(navController: NavController) {
                 20.00,
                 1
             ),
-            CartModel(
+            CartMode(
                 4,
                 "M6 Smart watch IP67 Waterproof",
                 "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
