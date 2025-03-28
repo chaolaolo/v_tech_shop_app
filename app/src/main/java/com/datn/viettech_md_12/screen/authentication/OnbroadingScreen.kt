@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.screen.authentication
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
@@ -62,6 +64,7 @@ class OnbroadingActivity : ComponentActivity() {
 }
 @Composable
 fun OnboardingScreen(navController: NavController) {
+    val context = LocalContext.current
     val pagerState = rememberPagerState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -141,7 +144,10 @@ fun OnboardingScreen(navController: NavController) {
         ) {
             if (pagerState.currentPage == pages.size - 1) {
                 Button(
-                    onClick = { navController.navigate("login") },
+                    onClick = {
+                        val intent = Intent(context, LoginScreen::class.java)
+                        context.startActivity(intent)
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .border(2.dp, Color(0xffF4F5FD), shape = RoundedCornerShape(12.dp))
