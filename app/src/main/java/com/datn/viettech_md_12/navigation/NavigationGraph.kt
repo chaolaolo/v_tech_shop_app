@@ -23,6 +23,7 @@ import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.SearchScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
+import com.datn.viettech_md_12.screen.authentication.OnboardingScreen
 import com.datn.viettech_md_12.screen.cart.CartScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
@@ -82,6 +83,7 @@ fun NavigationGraph() {
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
             composable("payment_screen") { PaymentScreen(navController) }
+            composable("onb_screen") { OnboardingScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
