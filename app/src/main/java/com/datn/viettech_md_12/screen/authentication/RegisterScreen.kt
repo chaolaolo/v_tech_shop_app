@@ -1,8 +1,12 @@
 package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
+import RegisterRequest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -38,17 +42,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
+import com.datn.viettech_md_12.viewmodel.UserViewModel
+
+class RegisterScreen : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
+        enableEdgeToEdge()
+        setContent {
+            SignUpUser(userViewModel)
+        }
+    }
+}
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun RegisterScreen() {
+fun SignUpUser( userViewModel: UserViewModel) {
     val context = LocalContext.current
+    var username by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -72,7 +92,7 @@ fun RegisterScreen() {
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         )
-        Row (
+        Row(
             verticalAlignment = Alignment.CenterVertically
         ){
             Text(
@@ -82,18 +102,40 @@ fun RegisterScreen() {
             )
             TextButton(
                 modifier = Modifier,
-                onClick = {},
+                onClick = {
+                    val intent = Intent(context, LoginScreen::class.java)
+                    context.startActivity(intent)
+                },
                 contentPadding = PaddingValues(0.dp)
             ) {
-            Text(
-                "Đăng Nhập",
-                fontSize = 16.sp,
-                color = Color(0xFF21D4B4),
-            )
-        }
+                Text(
+                    "Đăng Nhập",
+                    fontSize = 16.sp,
+                    color = Color(0xFF21D4B4),
+                )
+            }
         }
         Spacer(Modifier.height(20.dp))
-        //Full Name TextField
+        Row {
+            Text(
+                text = "Tên đăng nhập",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = " *",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Red
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        MyTextField(
+            hint = "Nhập tên đăng nhập",
+            value = username,
+            onValueChange = { username = it },
+            modifier = Modifier
+        )
         Row {
             Text(
                 text = "Họ tên",
@@ -112,6 +154,26 @@ fun RegisterScreen() {
             hint = "Nhập họ tên",
             value = fullName,
             onValueChange = { fullName = it },
+            modifier = Modifier
+        )
+        Row {
+            Text(
+                text = "Số điện thoại",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = " *",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Red
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        MyTextField(
+            hint = "Nhập điện thoại",
+            value = phone,
+            onValueChange = { phone = it },
             modifier = Modifier
         )
         //Email TextField
@@ -160,57 +222,36 @@ fun RegisterScreen() {
         )
         //confirm password TextField
         Spacer(modifier = Modifier.height(10.dp))
-        Row {
-            Text(
-                text = "Xác nhận mật khẩu",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = " *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Red
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        MyTextField(
-            hint = "Xác nhận mật khẩu",
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            modifier = Modifier,
-            isPassword = true
-        )
+
         //Login button
         Spacer(modifier = Modifier.height(20.dp))
         MyButton(
-            text = "Đăng Ký",
-            onClick = {},
+            text = if (isLoading) "Đang đăng ký..." else "Đăng Ký",
+            onClick = {
+                isLoading = true
+                val request = RegisterRequest(username, fullName, phone, email, password)
+                userViewModel.signUp(
+                    request,
+                    context,
+                    onSuccess = {
+                        isLoading = false
+                        Toast.makeText(context, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(context, LoginScreen::class.java)
+                        context.startActivity(intent)
+                    },
+                    onError = { error ->
+                        isLoading = false
+                        Log.e("dcm_error_signup", error)
+                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            },
             modifier = Modifier,
-            backgroundColor = Color.Black,
-            textColor = Color.White
+            backgroundColor = if (isLoading) Color.Gray else Color.Black,
+            textColor = Color.White,
+            isLoading = isLoading
         )
-        //login with google button
-        Spacer(modifier = Modifier.height(10.dp))
-        MyButton(
-            text = "Đăng ký với Google",
-            onClick = {},
-            modifier = Modifier.border(
-                width = 1.dp,
-                brush = SolidColor(Color(0xFFF4F5FD)),
-                shape = RoundedCornerShape(8.dp)
-            ),
-            backgroundColor = Color.White,
-            textColor = Color.Black,
-            painterIconResId = R.drawable.google_logo
-        )
-        //accept privacy policy notice text
+
         Spacer(modifier = Modifier.height(10.dp))
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun RegisterPreview() {
-    RegisterScreen()
 }

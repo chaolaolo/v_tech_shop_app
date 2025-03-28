@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -34,10 +35,11 @@ fun MyButton(
     backgroundColor: Color = Color.Black,
     textColor: Color = Color.White,
     painterIconResId: Int? = null,
-    vectorIcon: ImageVector? = null
+    vectorIcon: ImageVector? = null,
+    isLoading: Boolean = false
 ) {
     Card(
-        onClick = onClick,
+        onClick = { if (!isLoading) onClick() }, //vo hieu hoa khi trang thai load
         modifier = modifier
             .fillMaxWidth()
             .height(50.dp)
@@ -49,6 +51,12 @@ fun MyButton(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = textColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
             Text(
                 text,
                 color = textColor,

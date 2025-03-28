@@ -23,10 +23,15 @@ import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.SearchScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
+import com.datn.viettech_md_12.screen.authentication.OnboardingScreen
 import com.datn.viettech_md_12.screen.cart.CartScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
 import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
+import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
+import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
+import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
+import com.datn.viettech_md_12.screen.profile_detail.ShippingScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -63,8 +68,7 @@ fun NavigationGraph() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-//            startDestination = "product_detail/67cdd20838591fcf41a06e47",
-            startDestination = "cart",
+            startDestination = "home",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -73,9 +77,14 @@ fun NavigationGraph() {
             composable("categories") { CategoriesScreen(navController) }
             composable("cart") { CartScreen(navController) }
             composable("wishlist") { WishlistScreen() }
-            composable("profile") { ProfileScreen() }
+            composable("profile") { ProfileScreen(navController) }
+            composable("change_password_screen") { ChangePasswordScreen(navController) }
+            composable("order_history_screen") { OrderHistoryScreen(navController) }
+            composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
+            composable("payment_screen") { PaymentScreen(navController) }
+            composable("onb_screen") { OnboardingScreen(navController) }
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("product_detail/{productId}") { backStackEntry ->

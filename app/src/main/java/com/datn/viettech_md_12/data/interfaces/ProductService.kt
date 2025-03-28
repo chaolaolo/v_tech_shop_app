@@ -1,6 +1,8 @@
 package com.datn.viettech_md_12.data.interfaces
 
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.ProductListResponse
+import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.model.ProductResponse
 import retrofit2.Response
 import retrofit2.http.GET
@@ -17,6 +19,8 @@ interface ProductService {
     @GET("shop/products/{id}")
     suspend fun getProductById(@Path("id") id: String): Response<ProductResponse>
 
+    @GET("shop/products") //hien thi tat ca san pham
+    suspend fun getAllProducts(): Response<ProductListResponse>
     @PUT
     suspend fun updateCart(cartModel: CartModel): CartModel
 }
