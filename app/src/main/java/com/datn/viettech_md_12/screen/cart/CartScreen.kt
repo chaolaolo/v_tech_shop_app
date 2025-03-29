@@ -2,6 +2,7 @@ package com.datn.viettech_md_12.screen.cart
 
 import MyButton
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Space
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -79,6 +80,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
@@ -322,6 +324,13 @@ fun CartItemTile(
     onDelete: (String) -> Unit,
     navController: NavController,
 ) {
+    val imageUrl = if (product.image.startsWith("http")) {
+        product.image
+    } else {
+        "http://103.166.184.249:3056/${product.image.replace("\\", "/")}"
+    }
+
+    Log.d("lol", "Loading image from URL: $imageUrl")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -332,15 +341,28 @@ fun CartItemTile(
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(
-//            painter = rememberAsyncImagePainter("http://103.166.184.249:3056/${product.image}"),
-            painter = rememberAsyncImagePainter(product.image),
+//        Image(
+////            painter = rememberAsyncImagePainter("http://103.166.184.249:3056/${product.image}"),
+//            painter = rememberAsyncImagePainter("https://via.placeholder.com/150"), // Link ảnh mẫu
+//            contentDescription = null,
+//            modifier = Modifier
+//                .size(80.dp)
+//                .background(Color(0xFFF4FDFA))
+//                .clip(RoundedCornerShape(12.dp)),
+//            contentScale = ContentScale.Crop,
+//
+//            )
+        AsyncImage(
+            model = imageUrl,
             contentDescription = null,
             modifier = Modifier
                 .size(80.dp)
                 .background(Color(0xFFF4FDFA))
                 .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.ic_launcher_background),
+            error = painterResource(R.drawable.ic_launcher_foreground),
+            onError = { Log.e("lol", "Failed to load image: $imageUrl") }
 
         )
         Spacer(modifier = Modifier.width(8.dp))
