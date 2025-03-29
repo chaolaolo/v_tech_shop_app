@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.data.model.ProductModel
-import com.datn.viettech_md_12.screen.screen_testapi.ui.theme.VietTech_MD_12Theme
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 class ProductScreen : ComponentActivity() {
