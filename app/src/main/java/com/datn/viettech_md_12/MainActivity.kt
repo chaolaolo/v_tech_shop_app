@@ -27,12 +27,14 @@ class MainActivity : ComponentActivity() {
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.hide(android.view.WindowInsets.Type.systemBars()) // Ẩn cả thanh trạng thái và thanh điều hướng
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        val isLoggedIn = intent.getBooleanExtra("isLoggedIn", false)
         setContent {
 //            VietTech_MD_12Theme {
 //                NavigationGraph()
 //            }
             val hasSeenOnboarding = remember { mutableStateOf(false) }
-            NavigationGraph(startDestination = if (hasSeenOnboarding.value) "home" else "onb_screen")
+            NavigationGraph(startDestination = if (isLoggedIn) "home" else if (hasSeenOnboarding.value) "home" else "onb_screen")
         }
     }
 }

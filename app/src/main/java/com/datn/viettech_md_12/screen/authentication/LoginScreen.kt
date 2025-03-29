@@ -186,7 +186,10 @@ fun LoginUser(userViewModel: UserViewModel) {
                     onSuccess = {
                         isLoading = false
                         Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(context, MainActivity::class.java)
+                        val intent = Intent(context, MainActivity::class.java).apply {
+                            putExtra("isLoggedIn", true)
+                        }
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong kh được back lại màn này
                         context.startActivity(intent)
                     },
                     onError = { error ->
