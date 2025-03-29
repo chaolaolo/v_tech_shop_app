@@ -72,7 +72,7 @@ fun Splash() {
         iterations = LottieConstants.IterateForever // Lặp animation mãi mãi
     )
     LaunchedEffect(key1 = true) {
-        delay(5000)
+        delay(3000)
         val intent = Intent(context, OnbroadingActivity::class.java)
         context.startActivity(intent)
     }
@@ -83,8 +83,9 @@ fun Splash() {
             .background(
                 Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFFB9FBC0),
-                        Color(0xFF00C853)
+                        Color(0xFFF4FDFA),
+                        Color(0xFF77EE90),
+
                     )
                 )
             ),
@@ -112,7 +113,7 @@ fun Splash() {
 
             Text(
                 text = "Mang đến ưu đãi tuyệt vời... Chỉ vài giây nữa thôi!",
-                color = Color.White,
+                color = Color(0xffffffff),
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center
             )
