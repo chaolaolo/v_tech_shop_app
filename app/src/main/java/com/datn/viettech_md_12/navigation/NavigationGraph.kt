@@ -35,7 +35,7 @@ import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun NavigationGraph() {
+fun NavigationGraph(startDestination: String = "home") {
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
@@ -67,7 +67,7 @@ fun NavigationGraph() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "home",
+            startDestination = startDestination,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

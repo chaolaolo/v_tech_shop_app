@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
+import com.datn.viettech_md_12.navigation.NavigationGraph
 import kotlinx.coroutines.launch
 
 class OnbroadingActivity : ComponentActivity() {
@@ -57,8 +58,9 @@ class OnbroadingActivity : ComponentActivity() {
         controller.hide(android.view.WindowInsets.Type.systemBars()) // Ẩn cả thanh trạng thái và thanh điều hướng
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         setContent {
-            val navController = rememberNavController()
-           OnboardingScreen(navController)
+//            val navController = rememberNavController()
+//           OnboardingScreen(navController)
+            NavigationGraph(startDestination = "onb_screen")
         }
     }
 }
