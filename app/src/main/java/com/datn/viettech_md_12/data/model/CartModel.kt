@@ -42,3 +42,11 @@ data class Metadata(
         @SerializedName("sku") val sku: String,
     )
 }
+
+
+// Thêm data class cho request body
+data class DeleteCartItemRequest(
+    @SerializedName("userId") val userId: String,
+    @SerializedName("variantId") val variantId: String,
+    @SerializedName("productId") val productId: String
+)

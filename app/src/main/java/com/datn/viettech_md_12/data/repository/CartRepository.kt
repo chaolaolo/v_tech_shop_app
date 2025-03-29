@@ -2,6 +2,7 @@ package com.datn.viettech_md_12.data.repository
 
 import com.datn.viettech_md_12.data.interfaces.CartService
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
 import com.datn.viettech_md_12.data.remote.ApiClient.cartService
 import retrofit2.Response
 
@@ -20,5 +21,23 @@ class CartRepository(
 
     suspend fun updateCart(token: String, userId: String, cart: CartModel): Response<CartModel> {
         return cartService.updateCart(token, userId, cart)
+    }
+
+    suspend fun deleteCartItem(
+        token: String,
+        userId: String,
+        productId: String,
+        variantId: String
+    ): Response<Unit> {
+        val request = DeleteCartItemRequest(
+            userId = userId,
+            productId = productId,
+            variantId = variantId
+        )
+        return cartService.deleteCartItem(
+            token = token,
+            userId = userId,
+            request = request
+        )
     }
 }

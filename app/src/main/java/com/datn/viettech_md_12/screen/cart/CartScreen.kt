@@ -121,13 +121,14 @@ fun CartScreen(
     val selectedItems = remember { mutableStateListOf<String>() }
     val isShowVoucherSheet = remember { mutableStateOf(false) }
     val voucherCode = remember { mutableStateOf("") }
-
+   val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMyNjIzNzAsImV4cCI6MTc0MzQzNTE3MH0" +
+            ".lIrLg24hkE0WJuwjUh4dnbFGcL4po97H_VgEDesBtIc"
+   val userId = "67cc0f8c02e39ebe9f7b60d5"
     LaunchedEffect(Unit) {
         cartViewModel.fetchCart(
-            token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMyNjIzNzAsImV4cCI6MTc0MzQzNTE3MH0" +
-                    ".lIrLg24hkE0WJuwjUh4dnbFGcL4po97H_VgEDesBtIc",
-            userId = "67cc0f8c02e39ebe9f7b60d5",
-            userIdQuery = "67cc0f8c02e39ebe9f7b60d5"
+            token = token,
+            userId = userId,
+            userIdQuery = userId
         )
     }
 
@@ -233,6 +234,8 @@ fun CartScreen(
                             cartProducts = cart.metadata.cart_products,
                             selectedItems = selectedItems,
                             cartViewModel = cartViewModel,
+                            token = token,
+                            userId = userId
                         )
                     }
                 }
@@ -247,6 +250,8 @@ fun CartContent(
     cartProducts: List<Metadata.CartProduct>,
     selectedItems: MutableList<String>,
     cartViewModel: CartViewModel,
+    token: String,
+    userId: String
 ) {
     Column(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -278,11 +283,14 @@ fun CartContent(
 ////                        )
 //                        }
                     },
-                    onDelete = { id ->
-                        selectedItems.remove(id)
+                    onDelete = { productId, variantId  ->
+                        selectedItems.remove(variantId)
 //                    cartProducts.removeAll { it.id == id }
                     },
-                    navController
+                    navController,
+                    cartViewModel = cartViewModel,
+                    token = token,
+                    userId = userId
                 )
             }
         }
@@ -333,19 +341,22 @@ fun CartItemTile(
     isSelected: Boolean,
     onSelectionChange: (Boolean) -> Unit,
     onQuantityChange: (String, Int) -> Unit,
-    onDelete: (String) -> Unit,
+    onDelete: (String, String) -> Unit,
     navController: NavController,
+    cartViewModel: CartViewModel,
+    token: String,
+    userId: String
 ) {
 
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val swipeThreshold = 250f
     val anchors = mapOf(0f to 0, -swipeThreshold to 1)
 
-    LaunchedEffect(swipeableState.currentValue) {
-        if (swipeableState.currentValue == 1) {
-            onDelete(product.productId)
-        }
-    }
+//    LaunchedEffect(swipeableState.currentValue) {
+//        if (swipeableState.currentValue == 1) {
+//            onDelete(product.productId)
+//        }
+//    }
 
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
@@ -373,7 +384,22 @@ fun CartItemTile(
                 .fillMaxSize()
                 .padding(end = 10.dp)
                 .clickable {
-                    onDelete(product.productId)
+//                    onDelete(product.productId)
+                    onDelete(product.productId, product.variant.variantId)
+                    cartViewModel.deleteCartItem(
+                        token = token,
+                        userId = userId,
+                        productId = product.productId,
+                        variantId = product.variant.variantId,
+                        onSuccess = {
+                            // Có thể thêm thông báo thành công
+                            Log.d("CartItemTile", "Xóa sản phẩm thành công")
+                        },
+                        onError = { error ->
+                            Log.e("CartItemTile", "Lỗi khi xóa sản phẩm: $error")
+                            // Có thể hiển thị Snackbar thông báo lỗi
+                        }
+                    )
                     Log.d("CartScreen", "ondelete: clicked")
 //                        dismissState.reset()
                 },
