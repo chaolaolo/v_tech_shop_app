@@ -89,7 +89,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
-                ProductDetailScreen(navController, "67cdd20838591fcf41a06e58")
+                ProductDetailScreen(navController, productId)
             }
             composable("category/{categoryName}") { backStackEntry ->
                 val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""

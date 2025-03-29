@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.datn.viettech_md_12.screen.cart
 
 import MyButton
@@ -9,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -29,16 +33,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material.rememberSwipeableState
+import androidx.compose.material.swipeable
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -75,6 +85,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -105,6 +116,7 @@ fun CartScreen(
     )
     val scope = rememberCoroutineScope()
     val cartState by cartViewModel.cartState.collectAsState()
+    val isLoading by cartViewModel.isLoading.collectAsState()
 
     val selectedItems = remember { mutableStateListOf<String>() }
     val isShowVoucherSheet = remember { mutableStateOf(false) }
@@ -112,7 +124,8 @@ fun CartScreen(
 
     LaunchedEffect(Unit) {
         cartViewModel.fetchCart(
-            token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMxNzEzOTIsImV4cCI6MTc0MzM0NDE5Mn0.QwDYV1bAd33mYCXyBHBaqJtK0MDIuJgStcLlyFRN2kQ",
+            token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMyNjIzNzAsImV4cCI6MTc0MzQzNTE3MH0" +
+                    ".lIrLg24hkE0WJuwjUh4dnbFGcL4po97H_VgEDesBtIc",
             userId = "67cc0f8c02e39ebe9f7b60d5",
             userIdQuery = "67cc0f8c02e39ebe9f7b60d5"
         )
@@ -203,11 +216,11 @@ fun CartScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when {
-//                cartState?.isLoading == true -> {
-//                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//                        CircularProgressIndicator()
-//                    }
-//                }
+                isLoading == true -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
                 cartState?.body() == null -> {
                 EmptyCart()
             }
@@ -238,7 +251,7 @@ fun CartContent(
     Column(Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
-//            .weight(1f)
+            .weight(1f)
 //            .fillMaxSize()
                 .background(Color.White)
                 .padding(horizontal = 10.dp)
@@ -246,14 +259,14 @@ fun CartContent(
             items(cartProducts) { item ->
                 CartItemTile(
                     item,
-                    selectedItems.contains(item.productId),
+                    selectedItems.contains(item.variant.variantId),
                     onSelectionChange = { selected ->
                         if (selected) {
-                            if (!selectedItems.contains(item.productId)) {
-                                selectedItems.add(item.productId)
+                            if (!selectedItems.contains(item.variant.variantId)) {
+                                selectedItems.add(item.variant.variantId)
                             }
                         } else {
-                            selectedItems.remove(item.productId)
+                            selectedItems.remove(item.variant.variantId)
                         }
                     },
                     onQuantityChange = { id, newQuantity ->
@@ -273,8 +286,7 @@ fun CartContent(
                 )
             }
         }
-        Spacer(Modifier.weight(1f))
-        val selectedCartItems = cartProducts.filter { selectedItems.contains(it.productId) }
+        val selectedCartItems = cartProducts.filter { selectedItems.contains(it.variant.variantId) }
         OrderSummary(
             navController = navController,
             selectedItems = selectedCartItems
@@ -288,7 +300,7 @@ fun OrderSummary(navController: NavController, selectedItems: List<Metadata.Cart
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
+            .padding(start = 10.dp,end = 10.dp,top = 6.dp)
     ) {
         Text("Thông tin đặt hàng", fontWeight = FontWeight.W600, fontSize = 14.sp, color = Color.Black)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -324,23 +336,79 @@ fun CartItemTile(
     onDelete: (String) -> Unit,
     navController: NavController,
 ) {
+
+    val swipeableState = rememberSwipeableState(initialValue = 0)
+    val swipeThreshold = 250f
+    val anchors = mapOf(0f to 0, -swipeThreshold to 1)
+
+    LaunchedEffect(swipeableState.currentValue) {
+        if (swipeableState.currentValue == 1) {
+            onDelete(product.productId)
+        }
+    }
+
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
     } else {
         "http://103.166.184.249:3056/${product.image.replace("\\", "/")}"
     }
-
     Log.d("lol", "Loading image from URL: $imageUrl")
-    Row(
+
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
-            .background(Color.White)
-            .clickable {
-                navController.navigate("product_detail/${product.productId}") // Chuyển đến chi tiết sản phẩm
-            },
-        verticalAlignment = Alignment.CenterVertically,
+            .swipeable(
+                state = swipeableState,
+                anchors = anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.5f) },
+                orientation = Orientation.Horizontal
+            )
+            .background(if (swipeableState.offset.value < -swipeThreshold / 2) Color.Red else Color.White)
     ) {
+        //nút xóa sp khỏi giỏ hàng
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(end = 10.dp)
+                .clickable {
+                    onDelete(product.productId)
+                    Log.d("CartScreen", "ondelete: clicked")
+//                        dismissState.reset()
+                },
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(80.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Xóa",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.White
+                )
+            }
+        }
+
+        // nội dung của item
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset{ IntOffset(swipeableState.offset.value.toInt(), 0) }
+                .background(Color.White)
+                .clickable {
+                    navController.navigate("product_detail/${product.productId}") // Chuyển đến chi tiết sản phẩm
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
 //        Image(
 ////            painter = rememberAsyncImagePainter("http://103.166.184.249:3056/${product.image}"),
 //            painter = rememberAsyncImagePainter("https://via.placeholder.com/150"), // Link ảnh mẫu
@@ -352,78 +420,71 @@ fun CartItemTile(
 //            contentScale = ContentScale.Crop,
 //
 //            )
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .size(80.dp)
-                .background(Color(0xFFF4FDFA))
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(R.drawable.ic_launcher_background),
-            error = painterResource(R.drawable.ic_launcher_foreground),
-            onError = { Log.e("lol", "Failed to load image: $imageUrl") }
-
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
-            Text("VND ${product.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
-            Text("VND ${product.price}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
-            Row(
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = null,
                 modifier = Modifier
-                    .border(
-                        width = 1.dp,
-                        brush = SolidColor(Color(0xFFF4F5FD)),
-                        shape = RoundedCornerShape(6.dp)
-                    )
-                    .padding(horizontal = 4.dp, vertical = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = { if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1) },
-                    modifier = Modifier.size(16.dp)
+                    .size(80.dp)
+                    .background(Color(0xFFF4FDFA))
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.ic_launcher_foreground),
+                onError = { Log.e("lol", "Failed to load image: $imageUrl") }
+
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
+                Text("VND ${product.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
+                Text("VND ${product.price}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
+                Row(
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            brush = SolidColor(Color(0xFFF4F5FD)),
+                            shape = RoundedCornerShape(6.dp)
+                        )
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = "Decrease")
-                }
-                Text("${product.quantity}", fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
-                IconButton(
-                    onClick = { onQuantityChange(product.productId, product.quantity + 1) },
-                    modifier = Modifier.size(16.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Increase")
+                    IconButton(
+                        onClick = { if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1) },
+                        modifier = Modifier.size(16.dp)
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                    }
+                    Text("${product.quantity}", fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                    IconButton(
+                        onClick = { onQuantityChange(product.productId, product.quantity + 1) },
+                        modifier = Modifier.size(16.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                    }
                 }
             }
-        }
-        Spacer(Modifier.width(4.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(20.dp),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Checkbox(
-                checked = isSelected,
-                onCheckedChange = { onSelectionChange(it) },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = Color(0xFF21D4B4),
-                    uncheckedColor = Color.Gray,
-                    checkmarkColor = Color.White,
-                    disabledCheckedColor = Color.LightGray, // vô hiệu hóa và được chọn
-                    disabledUncheckedColor = Color.LightGray // vô hiệu hóa và không được chọn
-                ),
-            )
-//            Spacer(Modifier.height(10.dp))
-            Icon(
-                Icons.Default.DeleteOutline,
-                contentDescription = "Delete",
-                tint = Color.Red,
+            Spacer(Modifier.width(4.dp))
+            Column(
                 modifier = Modifier
-                    .size(20.dp)
-                    .clickable { onDelete(product.productId) },
-            )
+                    .fillMaxHeight()
+                    .width(20.dp)
+                    .padding(end = 4.dp),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onSelectionChange(it) },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Color(0xFF21D4B4),
+                        uncheckedColor = Color.Gray,
+                        checkmarkColor = Color.White,
+                        disabledCheckedColor = Color.LightGray, // vô hiệu hóa và được chọn
+                        disabledUncheckedColor = Color.LightGray // vô hiệu hóa và không được chọn
+                    ),
+                )
+            }
         }
     }
 }
@@ -437,6 +498,7 @@ fun EmptyCart() {
             .background(color = Color.White)
             .padding(horizontal = 20.dp)
             .systemBarsPadding(),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         //ảnh giỏ hàng
