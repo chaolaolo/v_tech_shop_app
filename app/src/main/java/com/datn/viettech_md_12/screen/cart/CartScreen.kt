@@ -4,6 +4,7 @@ package com.datn.viettech_md_12.screen.cart
 
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Application
 import android.util.Log
 import android.widget.Space
 import androidx.compose.foundation.BorderStroke
@@ -80,6 +81,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -99,6 +101,7 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.Metadata
 import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import kotlinx.coroutines.launch
 
 
@@ -107,7 +110,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CartScreen(
     navController: NavController,
-    cartViewModel: CartViewModel = viewModel(),
+    cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
