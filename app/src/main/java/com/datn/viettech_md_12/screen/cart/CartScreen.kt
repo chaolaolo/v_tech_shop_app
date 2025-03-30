@@ -121,8 +121,7 @@ fun CartScreen(
     val selectedItems = remember { mutableStateListOf<String>() }
     val isShowVoucherSheet = remember { mutableStateOf(false) }
     val voucherCode = remember { mutableStateOf("") }
-   val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMyNjIzNzAsImV4cCI6MTc0MzQzNTE3MH0" +
-            ".lIrLg24hkE0WJuwjUh4dnbFGcL4po97H_VgEDesBtIc"
+   val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMzMDM0MDMsImV4cCI6MTc0MzQ3NjIwM30.HFBLyvuTOwmavvIToqR4Ofa-aEUk0RbtHbXXpvdehhQ"
    val userId = "67cc0f8c02e39ebe9f7b60d5"
     LaunchedEffect(Unit) {
         cartViewModel.fetchCart(
@@ -219,7 +218,7 @@ fun CartScreen(
             when {
                 isLoading == true -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = Color(0xFF21D4B4))
                     }
                 }
                 cartState?.body() == null -> {
@@ -451,13 +450,12 @@ fun CartItemTile(
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
-                    .background(Color(0xFFF4FDFA))
+                    .background(Color.Transparent)
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.ic_launcher_background),
-                error = painterResource(R.drawable.ic_launcher_foreground),
+                error = painterResource(R.drawable.error_img),
                 onError = { Log.e("lol", "Failed to load image: $imageUrl") }
-
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {

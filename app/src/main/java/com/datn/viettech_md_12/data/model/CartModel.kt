@@ -48,5 +48,26 @@ data class Metadata(
 data class DeleteCartItemRequest(
     @SerializedName("userId") val userId: String,
     @SerializedName("variantId") val variantId: String,
-    @SerializedName("productId") val productId: String
+    @SerializedName("productId") val productId: String,
 )
+
+data class UpdateCartRequest(
+    @SerializedName("userId") val userId: String,
+    @SerializedName("product") val product: CartProduct,
+) {
+    data class CartProduct(
+        @SerializedName("productId") val productId: String,
+        @SerializedName("quantity") val quantity: Int,
+        @SerializedName("name") val name: String? = null,
+        @SerializedName("price") val price: Double? = null,
+        @SerializedName("image") val image: String? = null,
+        @SerializedName("variant") val variant: ProductVariant? = null
+    ){
+        data class ProductVariant(
+            @SerializedName("variantId") val variantId: String? = null,
+            @SerializedName("variant_name") val variantName: String? = null,
+            @SerializedName("variant_value") val variantValue: String? = null,
+            @SerializedName("sku") val sku: String? = null
+        )
+    }
+}

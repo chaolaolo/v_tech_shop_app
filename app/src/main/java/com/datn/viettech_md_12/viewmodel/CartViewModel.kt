@@ -30,21 +30,6 @@ class CartViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-//    fun fetchCart(token:String, userId:String, userIdQuery:String) {
-//        viewModelScope.launch {
-//            try {
-//                val response = cartRepository.getCart(
-//                    token = token,
-//                    userId = userId,
-//                    userIdQuery=userIdQuery
-//                )
-//                _cartState.value = response
-//                Log.d("CartViewModel", "Fetch Cart Success: ${response.body()}")
-//            } catch (e: Exception) {
-//                Log.e("CartViewModel", "Fetch Cart Error: ${e.message}", e)
-//            }
-//        }
-//    }
 
     fun fetchCart(token: String, userId: String, userIdQuery: String) {
         viewModelScope.launch {
@@ -75,25 +60,6 @@ class CartViewModel : ViewModel() {
                 Log.e("dm_error", "Lỗi chung: ${e.message}", e)
             } finally {
                 _isLoading.value = false // Kết thúc trạng thái loading
-            }
-        }
-    }
-
-
-
-
-    fun updateCart(token: String, userId: String, cart: CartModel) {
-        viewModelScope.launch {
-            try {
-                val response = cartRepository.updateCart(token, userId, cart)
-                _updateCartState.value = response
-                if (response.isSuccessful) {
-                    Log.d("CartViewModel", "Update Cart Success: ${response.body()}")
-                } else {
-                    Log.e("CartViewModel", "Update Cart Failed: ${response.errorBody()?.string()}")
-                }
-            } catch (e: Exception) {
-                Log.e("CartViewModel", "Update Cart Error: ${e.message}", e)
             }
         }
     }
