@@ -29,11 +29,16 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     response.body()?.let { body ->
                         val token = body.metadata?.tokens?.accessToken
+                        val userId = body.metadata.account._id  // Lấy userId (_id) từ response
+                        Log.d("dcm_id", "signUp: $userId")
                         if (token != null) { // Chỉ lưu token khi nó tồn tại
                             Log.d("dcm_success_signup", "Đăng ký thành công - Token: $token")
                             val sharedPreferences =
                                 context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                            sharedPreferences.edit().putString("accessToken", token).apply()
+                            sharedPreferences.edit()
+                                .putString("accessToken", token)
+                                .putString("userId", userId)  // Lưu userId
+                                .apply()
                             onSuccess()
                         } else {
                             onError("Token không tồn tại")
@@ -74,13 +79,18 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     response.body()?.let { body ->
                         val token = response.body()?.result?.metadata?.tokens?.accessToken
+                        val userId = response.body()?.result?.metadata?.account?._id
                         Log.d("dcm_debug_signin", "Token nhận được: $token")
+                        Log.d("dcm_id", "UserId nhận được: $userId")
 
                         if (token != null) {
                             Log.d("dcm_success_signin", "Đăng nhập thành công: Token: $token")
                             val sharedPreferences =
                                 context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                            sharedPreferences.edit().putString("accessToken", token).apply()
+                            sharedPreferences.edit()
+                                .putString("accessToken", token)
+                                .putString("userId", userId)  // Lưu userId
+                                .apply()
 
                             // Kiểm tra lại token sau khi lưu
                             val savedToken = sharedPreferences.getString("accessToken", null)

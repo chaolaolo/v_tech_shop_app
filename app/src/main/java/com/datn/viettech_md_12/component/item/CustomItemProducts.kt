@@ -29,78 +29,48 @@ import com.datn.viettech_md_12.data.model.ProductModel
 
 @Composable
 fun CustomItemProducts(product: ProductModel) {
-//    fun parseColor(hex: String): Color {
-//        return Color(android.graphics.Color.parseColor("#$hex"))
-//    }
-//
-//    var selectedColor by remember { mutableStateOf<String?>(null) }
-//    var colors by remember { mutableStateOf(colorHexList.map { it to parseColor(it) }) }
     var isFavorite by remember { mutableStateOf(false) }
     val BASE_URL = "http://103.166.184.249:3056/"
 
     Card(
         shape = MaterialTheme.shapes.large,
         modifier = Modifier
-            .width(183.dp)
-            .height(260.dp)
+            .width(180.dp)
+            .height(230.dp)
             .clickable {},
         colors = CardColors(
             containerColor = Color.White,
             contentColor = Color.White,
             disabledContainerColor = Color.White,
             disabledContentColor = Color.White
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box {
-            Column {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier.padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(158.dp)
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        .height(140.dp)
+                        .clip(MaterialTheme.shapes.medium),
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
                         model = "$BASE_URL${product.productThumbnail}",
-                        contentDescription = "ta_dcm",
+                        contentDescription = "Product Image",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.img_test_order), // hien thi trong truong hop load
-//                        error = painterResource(R.drawable.ic_launcher_foreground) // hien thi neu nhu anh loi
+                        contentScale = ContentScale.Fit, // Để ảnh không bị cắt
+                        placeholder = painterResource(R.drawable.img_test_order)
                     )
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    colors.forEachIndexed { index, (colorHex, color) ->
-//                        Box(
-//                            modifier = Modifier
-//                                .offset(x = (-6 * index).dp)
-//                                .size(27.dp)
-//                                .clip(CircleShape)
-//                                .background(color)
-//                                .border(
-//                                    width = if (selectedColor == colorHex) 2.dp else 0.dp,
-//                                    color = Color(0xFF1F8BDA),
-//                                    shape = CircleShape
-//                                )
-//                                .zIndex(colors.size - index.toFloat())
-//                                .clickable {
-//                                    selectedColor =
-//                                        if (selectedColor == colorHex) null else colorHex
-//                                    colors = colors.sortedByDescending { it.first == selectedColor }
-//                                }
-//                        )
-//                    }
-////                    Text(
-////                        "All ${colors.size} colors",
-////                        color = Color(0xFF1C1B1B),
-////                        style = MaterialTheme.typography.bodyMedium
-////                    )
-//                }
+
                 Text(
                     product.productName,
                     color = Color(0xFF1C1B1B),
@@ -111,20 +81,13 @@ fun CustomItemProducts(product: ProductModel) {
                 )
 
                 Text(
-                    "${product.productPrice}$",
+                    "${product.productPrice}",
                     color = Color(0xFF1C1B1B),
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyMedium
                 )
-//                    Text(
-//                        text = "$186.00",
-//                        color = Color.Gray,
-//                        style = MaterialTheme.typography.bodyMedium.copy(
-//                            textDecoration = TextDecoration.LineThrough
-//                        )
-//                    )
-
             }
+
             IconButton(
                 onClick = { isFavorite = !isFavorite },
                 modifier = Modifier
@@ -141,6 +104,121 @@ fun CustomItemProducts(product: ProductModel) {
         }
     }
 }
+
+//@Composable
+//fun CustomItemProducts(product: ProductModel) {
+////    fun parseColor(hex: String): Color {
+////        return Color(android.graphics.Color.parseColor("#$hex"))
+////    }
+////
+////    var selectedColor by remember { mutableStateOf<String?>(null) }
+////    var colors by remember { mutableStateOf(colorHexList.map { it to parseColor(it) }) }
+//    var isFavorite by remember { mutableStateOf(false) }
+//    val BASE_URL = "http://103.166.184.249:3056/"
+//
+//    Card(
+//        shape = MaterialTheme.shapes.large,
+//        modifier = Modifier
+//            .width(183.dp)
+//            .height(260.dp)
+//            .clickable {},
+//        colors = CardColors(
+//            containerColor = Color.White,
+//            contentColor = Color.White,
+//            disabledContainerColor = Color.White,
+//            disabledContentColor = Color.White
+//        )
+//    ) {
+//        Box {
+//            Column {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(158.dp)
+//                        .clip(MaterialTheme.shapes.extraLarge)
+//                        .background(MaterialTheme.colorScheme.surfaceVariant),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    AsyncImage(
+//                        model = "$BASE_URL${product.productThumbnail}",
+//                        contentDescription = "ta_dcm",
+//                        modifier = Modifier.fillMaxSize(),
+//                        contentScale = ContentScale.Crop,
+//                        placeholder = painterResource(R.drawable.img_test_order), // hien thi trong truong hop load
+////                        error = painterResource(R.drawable.ic_launcher_foreground) // hien thi neu nhu anh loi
+//                    )
+//                }
+//                Spacer(modifier = Modifier.height(8.dp))
+////                Row(
+////                    modifier = Modifier.fillMaxWidth(),
+////                    verticalAlignment = Alignment.CenterVertically
+////                ) {
+////                    colors.forEachIndexed { index, (colorHex, color) ->
+////                        Box(
+////                            modifier = Modifier
+////                                .offset(x = (-6 * index).dp)
+////                                .size(27.dp)
+////                                .clip(CircleShape)
+////                                .background(color)
+////                                .border(
+////                                    width = if (selectedColor == colorHex) 2.dp else 0.dp,
+////                                    color = Color(0xFF1F8BDA),
+////                                    shape = CircleShape
+////                                )
+////                                .zIndex(colors.size - index.toFloat())
+////                                .clickable {
+////                                    selectedColor =
+////                                        if (selectedColor == colorHex) null else colorHex
+////                                    colors = colors.sortedByDescending { it.first == selectedColor }
+////                                }
+////                        )
+////                    }
+//////                    Text(
+//////                        "All ${colors.size} colors",
+//////                        color = Color(0xFF1C1B1B),
+//////                        style = MaterialTheme.typography.bodyMedium
+//////                    )
+////                }
+//                Text(
+//                    product.productName,
+//                    color = Color(0xFF1C1B1B),
+//                    style = MaterialTheme.typography.bodyLarge,
+//                    fontWeight = FontWeight.Bold,
+//                    maxLines = 1,
+//                    overflow = TextOverflow.Ellipsis
+//                )
+//
+//                Text(
+//                    "${product.productPrice}$",
+//                    color = Color(0xFF1C1B1B),
+//                    fontWeight = FontWeight.Bold,
+//                    style = MaterialTheme.typography.bodyMedium
+//                )
+////                    Text(
+////                        text = "$186.00",
+////                        color = Color.Gray,
+////                        style = MaterialTheme.typography.bodyMedium.copy(
+////                            textDecoration = TextDecoration.LineThrough
+////                        )
+////                    )
+//
+//            }
+//            IconButton(
+//                onClick = { isFavorite = !isFavorite },
+//                modifier = Modifier
+//                    .align(Alignment.TopEnd)
+//                    .padding(8.dp)
+//                    .size(24.dp)
+//            ) {
+//                Icon(
+//                    painter = painterResource(if (!isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_selected),
+//                    contentDescription = "Favorite",
+//                    tint = Color.Unspecified
+//                )
+//            }
+//        }
+//    }
+//}
 
 //@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 //@Composable

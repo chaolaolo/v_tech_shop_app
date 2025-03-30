@@ -64,7 +64,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 .background(Color(0xfff4f5fd))
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 16.dp) // Thay vì Spacer(height = 80.dp)
         ) {
             item {
                 Spacer(Modifier.height(24.dp))
@@ -172,9 +173,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 }
             }
 
-            item {
-                Spacer(Modifier.height(80.dp))
-            }
+//            item {
+//                Spacer(Modifier.height(30.dp))
+//            }
         }
     }
 }
