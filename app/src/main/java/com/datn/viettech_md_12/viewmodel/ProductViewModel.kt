@@ -1,5 +1,7 @@
 package com.datn.viettech_md_12.viewmodel
 
+import FavoriteRequest
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -76,6 +78,7 @@ class ProductViewModel : ViewModel() {
             }
         }
     }
+
     fun getAllProduct() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -101,6 +104,49 @@ class ProductViewModel : ViewModel() {
                 Log.e("dcm_error", "Lỗi chung: ${e.message}")
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun addToFavorites(productId: String, context: Context) {
+        viewModelScope.launch {
+            //lay token
+            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            val token = sharedPreferences.getString("accessToken", "")
+            val clientId = sharedPreferences.getString("clientId", "")
+            Log.d("dcm_debug", "Token: Bearer $token")  // Log token
+            Log.d("dcm_debug", "ClientId: $clientId")  // Log clientId
+            if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
+                val favoriteRequest = FavoriteRequest( productId = productId)
+                Log.d(
+                    "dcm_request",
+                    "Sending request: $favoriteRequest"
+                )  // Log request để kiểm tra
+                try {
+                    val response = _repository.addToFavorites(
+                        favoriteRequest, token, clientId
+                    )
+                    Log.d("dcm_token_id", "Token used: Bearer $token")
+                    if (response.isSuccessful) {
+                        response.body()?.let {
+                            Log.d(
+                                "dcm_success_fav",
+                                "Thêm vào danh sách yêu thích thành công: ${it.favorite}"
+                            )
+                        }
+                    } else {
+                        Log.e(
+                            "dcm_error_fav",
+                            "Lỗi thêm vào danh sách yêu thích: ${response.code()} - ${response.message()}"
+                        )
+                        Log.e("dcm_error_fav", "Chi tiết lỗi: ${response.errorBody()?.string()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("dcm_error_fav", "Lỗi khi thêm yêu thích: ${e.message}")
+                }
+
+            } else {
+                Log.e("dcm_error_fav", "Token hoặc UserId không tồn tại trong SharedPreferences")
             }
         }
     }

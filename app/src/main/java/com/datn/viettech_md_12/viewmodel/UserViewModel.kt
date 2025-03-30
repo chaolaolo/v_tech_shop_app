@@ -37,7 +37,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                                 context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
-                                .putString("userId", userId)  // Lưu userId
+                                .putString("clientId", userId)  // Lưu userId
                                 .apply()
                             onSuccess()
                         } else {
@@ -89,7 +89,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                                 context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
-                                .putString("userId", userId)  // Lưu userId
+                                .putString("clientId", userId)  // Lưu userId
                                 .apply()
 
                             // Kiểm tra lại token sau khi lưu

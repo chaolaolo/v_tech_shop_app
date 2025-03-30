@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.component.item
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,9 +27,10 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.ProductModel
+import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @Composable
-fun CustomItemProducts(product: ProductModel) {
+fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, context: Context) {
     var isFavorite by remember { mutableStateOf(false) }
     val BASE_URL = "http://103.166.184.249:3056/"
 
@@ -89,7 +91,13 @@ fun CustomItemProducts(product: ProductModel) {
             }
 
             IconButton(
-                onClick = { isFavorite = !isFavorite },
+                onClick = {
+                    isFavorite = !isFavorite
+                    if (isFavorite) {
+                        // Gọi API thêm vào danh sách yêu thích
+                        viewModel.addToFavorites(product.id, context)
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(8.dp)
