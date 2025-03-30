@@ -1,7 +1,10 @@
 package com.datn.viettech_md_12.viewmodel
 
+import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
@@ -16,7 +19,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 
-class CartViewModel : ViewModel() {
+class CartViewModel(application: Application) : ViewModel() {
     private val cartRepository = ApiClient.cartRepository
 
     private val _cartState = MutableStateFlow<Response<CartModel>?>(null)
@@ -31,18 +34,22 @@ class CartViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMzMDM0MDMsImV4cCI6MTc0MzQ3NjIwM30.HFBLyvuTOwmavvIToqR4Ofa-aEUk0RbtHbXXpvdehhQ"
-    private val userId = "67cc0f8c02e39ebe9f7b60d5"
+    private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    private val token: String? = sharedPreferences.getString("accessToken", null)
+    private val userId: String? = sharedPreferences.getString("userId", null)
+
+//    private val token =
+//        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMzMDM0MDMsImV4cCI6MTc0MzQ3NjIwM30.HFBLyvuTOwmavvIToqR4Ofa-aEUk0RbtHbXXpvdehhQ"
+//    private val userId = "67cc0f8c02e39ebe9f7b60d5"
 
     fun fetchCart() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val response = cartRepository.getCart(
-                    token = token,
-                    userId = userId,
-                    userIdQuery = userId
+                    token = token?:"",
+                    userId = userId?:"",
+                    userIdQuery = userId?:""
                 )
                 if (response.isSuccessful) {
                     _cartState.value = response
@@ -78,8 +85,8 @@ class CartViewModel : ViewModel() {
 //            _isLoading.value = true
             try {
                 val response = cartRepository.updateCartItem(
-                    token = token,
-                    userId = userId,
+                    token = token?:"",
+                    userId = userId?:"",
                     productId = productId,
                     variantId = variantId,
                     newQuantity = newQuantity
@@ -134,8 +141,8 @@ class CartViewModel : ViewModel() {
             _isLoading.value = true
             try {
                 val response = cartRepository.deleteCartItem(
-                    token = token,
-                    userId = userId,
+                    token = token?:"",
+                    userId = userId?:"",
                     productId = productId,
                     variantId = variantId
                 )
@@ -178,4 +185,14 @@ class CartViewModel : ViewModel() {
         }
     }
 
+}
+
+
+class CartViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
+            return CartViewModel(application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }

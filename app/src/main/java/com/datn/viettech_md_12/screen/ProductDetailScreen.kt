@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
@@ -49,8 +50,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -71,6 +75,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import com.google.accompanist.flowlayout.FlowRow
+import com.google.accompanist.flowlayout.MainAxisAlignment
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,6 +90,12 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var isFavorite by remember { mutableStateOf(false) }
+
+    var isExpanded by remember { mutableStateOf(false) }
+    var showMoreVisible by remember { mutableStateOf(false) }
+    val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -122,12 +134,15 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
                                     modifier = Modifier
                                         .clip(CircleShape)
                                         .background(color = Color.Black)
+                                        .size(30.dp)
                                 ) {
-                                    IconButton(onClick = { /* nút back */ }) {
+                                    IconButton(onClick = { isFavorite = !isFavorite }) {
                                         Icon(
                                             contentDescription = "favourite icon",
-                                            imageVector = Icons.Default.FavoriteBorder,
-                                            tint = Color.White
+                                            imageVector = if (!isFavorite) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
+                                            tint = if (!isFavorite) Color.White else Color.Red,
+                                            modifier = Modifier
+                                                .size(20.dp)
                                         )
                                     }
                                 }
@@ -262,12 +277,42 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
                                 }
                                 // Description
                                 Spacer(Modifier.height(4.dp))
-                                Text(
+                                FlowRow(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.Start),
+//                                    mainAxisAlignment = MainAxisAlignment.Center,
+                                ) {
+                                    Text(
                                     text = "${product?.productDescription}",
-                                    fontSize = 12.sp,
+                                        fontSize = 12.sp,
                                     color = Color.Gray,
-                                    modifier = Modifier.padding(top = 8.dp),
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        maxLines = if (isExpanded) Int.MAX_VALUE else 5,
+                                        overflow = TextOverflow.Ellipsis,
+                                        onTextLayout = { layoutResult ->
+                                            textLayoutResult.value = layoutResult
+                                            showMoreVisible = layoutResult.hasVisualOverflow && !isExpanded
+                                        }
                                 )
+                                    if (showMoreVisible) {
+                                        Text(text = "... Xem thêm",
+                                            fontSize = 12.sp,
+                                            color = Color(0xFF21D4B4),
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier
+                                                .padding(top = 4.dp)
+                                                .clickable { isExpanded = true })
+                                    } else if (isExpanded) {
+                                        Text(text = "Thu gọn",
+                                            fontSize = 12.sp,
+                                            color = Color(0xFF21D4B4),
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier
+                                                .padding(top = 4.dp)
+                                                .clickable { isExpanded = false })
+                                    }
+                                }
 
                                 // chọn màu
                                 Spacer(Modifier.height(4.dp))
@@ -296,9 +341,7 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
                                 Row(
                                     modifier = Modifier
                                         .border(
-                                            width = 1.dp,
-                                            brush = SolidColor(Color(0xFFF4F5FD)),
-                                            shape = RoundedCornerShape(8.dp)
+                                            width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(8.dp)
                                         )
                                         .padding(horizontal = 6.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -333,9 +376,7 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
                                         modifier = Modifier
                                             .weight(1f)
                                             .border(
-                                                width = 1.dp,
-                                                brush = SolidColor(Color(0xFFF4F5FD)),
-                                                shape = RoundedCornerShape(12.dp)
+                                                width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(12.dp)
                                             ),
                                         backgroundColor = Color.White,
                                         textColor = Color.Black,
@@ -377,9 +418,7 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.White)
                             .border(
-                                width = 1.dp,
-                                color = Color(0xFFEEEEEE),
-                                shape = RoundedCornerShape(12.dp)
+                                width = 1.dp, color = Color(0xFFEEEEEE), shape = RoundedCornerShape(12.dp)
                             )
                             .padding(16.dp)
                     ) {
