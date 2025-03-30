@@ -87,6 +87,7 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
             CircularProgressIndicator(
+                color = Color(0xFF21D4B4),
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {
@@ -136,18 +137,23 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
 
                     ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        AsyncImage(
-                            model = "http://103.166.184.249:3056/${product?.productThumbnail}",
-                            contentDescription = "p detail image",
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(350.dp)
-                                .background(Color(0xFFF4FDFA))
-                            ,
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.logo),
-                            error = painterResource(R.drawable.ic_logo)
-                        )
+                                .height(300.dp)
+                                .padding(bottom = 20.dp)
+                                .background(Color(0xFFF4FDFA)),
+                        ) {
+                            AsyncImage(
+                            model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                contentDescription = "p detail image",
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(R.drawable.logo),
+                                error = painterResource(R.drawable.error_img)
+                            )
+                        }
                         Log.d("zzzzzzzzzzzzzz", "productThumbnail: ${product?.productThumbnail}")
 //                            Image(
 //                                painter = painterResource(R.drawable.ic_launcher_background),

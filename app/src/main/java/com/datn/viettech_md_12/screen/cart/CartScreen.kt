@@ -67,6 +67,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -121,14 +122,9 @@ fun CartScreen(
     val selectedItems = remember { mutableStateListOf<String>() }
     val isShowVoucherSheet = remember { mutableStateOf(false) }
     val voucherCode = remember { mutableStateOf("") }
-   val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMzMDM0MDMsImV4cCI6MTc0MzQ3NjIwM30.HFBLyvuTOwmavvIToqR4Ofa-aEUk0RbtHbXXpvdehhQ"
-   val userId = "67cc0f8c02e39ebe9f7b60d5"
+
     LaunchedEffect(Unit) {
-        cartViewModel.fetchCart(
-            token = token,
-            userId = userId,
-            userIdQuery = userId
-        )
+        cartViewModel.fetchCart()
     }
 
     BottomSheetScaffold(
@@ -233,8 +229,6 @@ fun CartScreen(
                             cartProducts = cart.metadata.cart_products,
                             selectedItems = selectedItems,
                             cartViewModel = cartViewModel,
-                            token = token,
-                            userId = userId
                         )
                     }
                 }
@@ -249,18 +243,15 @@ fun CartContent(
     cartProducts: List<Metadata.CartProduct>,
     selectedItems: MutableList<String>,
     cartViewModel: CartViewModel,
-    token: String,
-    userId: String
 ) {
     Column(Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
-            .weight(1f)
-//            .fillMaxSize()
+                .weight(1f)
                 .background(Color.White)
                 .padding(horizontal = 10.dp)
         ) {
-            items(cartProducts) { item ->
+            items(cartProducts, key =  {it.variant.variantId}) { item ->
                 CartItemTile(
                     item,
                     selectedItems.contains(item.variant.variantId),
@@ -273,23 +264,11 @@ fun CartContent(
                             selectedItems.remove(item.variant.variantId)
                         }
                     },
-                    onQuantityChange = { id, newQuantity ->
-                        cartViewModel.updateProductQuantity(id, newQuantity)
-//                        val index = cartProducts.indexOfFirst { it.productId == id }
-//                        if (index != -1) {
-////                        cartProducts[index] = cartProducts[index].copy(
-////                            quantity = newQuantity,
-////                        )
-//                        }
-                    },
                     onDelete = { productId, variantId  ->
                         selectedItems.remove(variantId)
-//                    cartProducts.removeAll { it.id == id }
                     },
                     navController,
                     cartViewModel = cartViewModel,
-                    token = token,
-                    userId = userId
                 )
             }
         }
@@ -307,7 +286,7 @@ fun OrderSummary(navController: NavController, selectedItems: List<Metadata.Cart
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 10.dp,end = 10.dp,top = 6.dp)
+            .padding(start = 10.dp, end = 10.dp, top = 6.dp)
     ) {
         Text("Thông tin đặt hàng", fontWeight = FontWeight.W600, fontSize = 14.sp, color = Color.Black)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -339,23 +318,15 @@ fun CartItemTile(
     product: Metadata.CartProduct,
     isSelected: Boolean,
     onSelectionChange: (Boolean) -> Unit,
-    onQuantityChange: (String, Int) -> Unit,
     onDelete: (String, String) -> Unit,
     navController: NavController,
     cartViewModel: CartViewModel,
-    token: String,
-    userId: String
 ) {
 
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val swipeThreshold = 250f
     val anchors = mapOf(0f to 0, -swipeThreshold to 1)
-
-//    LaunchedEffect(swipeableState.currentValue) {
-//        if (swipeableState.currentValue == 1) {
-//            onDelete(product.productId)
-//        }
-//    }
+    val quantityState = remember { mutableStateOf(product.quantity) }
 
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
@@ -383,11 +354,8 @@ fun CartItemTile(
                 .fillMaxSize()
                 .padding(end = 10.dp)
                 .clickable {
-//                    onDelete(product.productId)
                     onDelete(product.productId, product.variant.variantId)
                     cartViewModel.deleteCartItem(
-                        token = token,
-                        userId = userId,
                         productId = product.productId,
                         variantId = product.variant.variantId,
                         onSuccess = {
@@ -400,7 +368,6 @@ fun CartItemTile(
                         }
                     )
                     Log.d("CartScreen", "ondelete: clicked")
-//                        dismissState.reset()
                 },
             contentAlignment = Alignment.CenterEnd
         ) {
@@ -427,24 +394,13 @@ fun CartItemTile(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .offset{ IntOffset(swipeableState.offset.value.toInt(), 0) }
+                .offset { IntOffset(swipeableState.offset.value.toInt(), 0) }
                 .background(Color.White)
                 .clickable {
                     navController.navigate("product_detail/${product.productId}") // Chuyển đến chi tiết sản phẩm
                 },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-//        Image(
-////            painter = rememberAsyncImagePainter("http://103.166.184.249:3056/${product.image}"),
-//            painter = rememberAsyncImagePainter("https://via.placeholder.com/150"), // Link ảnh mẫu
-//            contentDescription = null,
-//            modifier = Modifier
-//                .size(80.dp)
-//                .background(Color(0xFFF4FDFA))
-//                .clip(RoundedCornerShape(12.dp)),
-//            contentScale = ContentScale.Crop,
-//
-//            )
             AsyncImage(
                 model = imageUrl,
                 contentDescription = null,
@@ -474,14 +430,30 @@ fun CartItemTile(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
-                        onClick = { if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1) },
+                        onClick = {
+                            if (quantityState.value > 1) {
+                                quantityState.value -= 1
+                                cartViewModel.updateProductQuantity(
+                                    productId = product.productId,
+                                    variantId = product.variant.variantId,
+                                    newQuantity = quantityState.value,
+                                )
+                            }
+                        },
                         modifier = Modifier.size(16.dp)
                     ) {
                         Icon(Icons.Default.Remove, contentDescription = "Decrease")
                     }
-                    Text("${product.quantity}", fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                    Text("${quantityState.value}", fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
                     IconButton(
-                        onClick = { onQuantityChange(product.productId, product.quantity + 1) },
+                        onClick = {
+                            quantityState.value += 1
+                            cartViewModel.updateProductQuantity(
+                                productId = product.productId,
+                                variantId = product.variant.variantId,
+                                newQuantity = quantityState.value,
+                            )
+                        },
                         modifier = Modifier.size(16.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Increase")

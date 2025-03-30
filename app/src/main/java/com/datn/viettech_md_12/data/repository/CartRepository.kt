@@ -12,8 +12,10 @@ import retrofit2.Response
 class CartRepository(
     private val apiService: CartService
 ) {
-    //   suspend fun getCart(): Response<CartModel> = apiService.getCart()
-    suspend fun getCart(token:String, userId:String, userIdQuery:String): Response<CartModel> {
+    suspend fun getCart(
+        token: String,
+        userId: String, userIdQuery: String,
+    ): Response<CartModel> {
         return cartService.getCart(
             token = token,
             userId = userId,
@@ -21,33 +23,19 @@ class CartRepository(
         )
     }
 
-//    suspend fun updateCart(token: String, userId: String, cart: CartModel): Response<CartModel> {
-//        return cartService.updateCart(token, userId, cart)
-//    }
-
-        suspend fun updateCartItemQuantity(
+        suspend fun updateCartItem(
             token: String,
             userId: String,
             productId: String,
+            variantId: String,
             newQuantity: Int,
-            originalProduct: Metadata.CartProduct?=null
         ): Response<CartModel> {
             val request = UpdateCartRequest(
                 userId = userId,
                 product = UpdateCartRequest.CartProduct(
                     productId = productId,
+                    variantId = variantId,
                     quantity = newQuantity,
-                    name = originalProduct?.name,
-                    price = originalProduct?.price,
-                    image = originalProduct?.image,
-                    variant = originalProduct?.variant?.let { variant ->
-                        UpdateCartRequest.CartProduct.ProductVariant(
-                            variantId = variant.variantId,
-                            variantName = variant.variant_name,
-                            variantValue = variant.variant_value,
-                            sku = variant.sku
-                        )
-                    }
                 )
             )
             return cartService.updateCart(

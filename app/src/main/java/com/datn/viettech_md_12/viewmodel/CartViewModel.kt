@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.UpdateCartRequest
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,15 +31,18 @@ class CartViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMzMDM0MDMsImV4cCI6MTc0MzQ3NjIwM30.HFBLyvuTOwmavvIToqR4Ofa-aEUk0RbtHbXXpvdehhQ"
+    private val userId = "67cc0f8c02e39ebe9f7b60d5"
 
-    fun fetchCart(token: String, userId: String, userIdQuery: String) {
+    fun fetchCart() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val response = cartRepository.getCart(
                     token = token,
                     userId = userId,
-                    userIdQuery = userIdQuery
+                    userIdQuery = userId
                 )
                 if (response.isSuccessful) {
                     _cartState.value = response
@@ -64,31 +68,63 @@ class CartViewModel : ViewModel() {
         }
     }
 
-    fun updateProductQuantity(productId: String, newQuantity: Int) {
-        val currentCartResponse = _cartState.value
-        val currentCart = currentCartResponse?.body()
+    fun updateProductQuantity(
+        productId: String,
+        variantId: String,
+        newQuantity: Int,
+    ) {
+        updateLocalCartState(productId, newQuantity)
+        viewModelScope.launch {
+//            _isLoading.value = true
+            try {
+                val response = cartRepository.updateCartItem(
+                    token = token,
+                    userId = userId,
+                    productId = productId,
+                    variantId = variantId,
+                    newQuantity = newQuantity
+                )
 
-        if (currentCart != null) {
-            val updatedCart = currentCart.copy(
-                metadata = currentCart.metadata.copy(
-                    cart_products = currentCart.metadata.cart_products.map { product ->
-                        if (product.productId == productId) {
-                            product.copy(quantity = newQuantity)
-                        } else {
-                            product
-                        }
-                    }
+                _updateCartState.value = response
+
+                if (response.isSuccessful) {
+                    // Update local state first for better UX
+//                    updateLocalCartState(productId, newQuantity)
+                    // Then refresh from server
+//                    fetchCart()
+                    Log.d("CartViewModel", "Update quantity success")
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                    Log.e("CartViewModel", "Update quantity failed: $errorMsg")
+                }
+            } catch (e: Exception) {
+                Log.e("CartViewModel", "updateProductQuantity: $e", )
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private fun updateLocalCartState(productId: String, newQuantity: Int) {
+        val currentCart = _cartState.value?.body()
+        currentCart?.let { cart ->
+            val updatedProducts = cart.metadata.cart_products.map { product ->
+                if (product.productId == productId) {
+                    product.copy(quantity = newQuantity)
+                } else {
+                    product
+                }
+            }
+            val updatedCart = cart.copy(
+                metadata = cart.metadata.copy(
+                    cart_products = updatedProducts
                 )
             )
-
-            // Tạo một Response mới với body được cập nhật
             _cartState.value = Response.success(updatedCart)
         }
     }
 
     fun deleteCartItem(
-        token: String,
-        userId: String,
         productId: String,
         variantId: String,
         onSuccess: () -> Unit = {},
@@ -108,7 +144,7 @@ class CartViewModel : ViewModel() {
 
                 if (response.isSuccessful) {
                     // Cập nhật lại giỏ hàng sau khi xóa thành công
-                    fetchCart(token, userId, userId)
+                    fetchCart()
                     onSuccess()
                     Log.d("CartViewModel", "Delete item success")
                 } else {
