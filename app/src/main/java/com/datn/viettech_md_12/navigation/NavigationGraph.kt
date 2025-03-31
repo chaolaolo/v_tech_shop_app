@@ -16,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.MyApplication
 import com.datn.viettech_md_12.component.CustomNavigationBar
+import com.datn.viettech_md_12.component.checkout.CheckoutShippingUI
 import com.datn.viettech_md_12.screen.CategoriesScreen
 import com.datn.viettech_md_12.screen.HomeScreen
 import com.datn.viettech_md_12.screen.ProductDetailScreen
@@ -87,6 +88,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("onb_screen") { OnboardingScreen(navController) }
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
+            composable("address") { CheckoutShippingUI() }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
                 ProductDetailScreen(navController, productId)
