@@ -77,3 +77,5 @@ data class ProductByCateModelResponse(
     @SerializedName("metadata")
     val metadata: List<ProductByCateModel>
 )
+
+
