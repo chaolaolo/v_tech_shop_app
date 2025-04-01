@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.component
 
+import android.util.Log
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -57,6 +58,8 @@ fun CustomCategoryItem(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val BASE_URL = "http://103.166.184.249:3056"
+    Log.d("23222", "CustomCategoryItem: $BASE_URL$imageUrl")
     Card(
         modifier = modifier
             .size(87.dp, 69.dp)
@@ -78,7 +81,7 @@ fun CustomCategoryItem(
             verticalArrangement = Arrangement.Center
         ) {
             AsyncImage(
-                model = imageUrl,
+                model = "$BASE_URL$imageUrl",
                 contentDescription = name,
                 modifier = Modifier.size(50.dp),
                 contentScale = ContentScale.Crop,
