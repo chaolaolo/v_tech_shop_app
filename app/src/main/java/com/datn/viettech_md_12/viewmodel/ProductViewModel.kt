@@ -32,6 +32,7 @@ class ProductViewModel : ViewModel() {
 
     private val myColorHexList = listOf("FF1C1B1B", "FF08E488", "FF21D4B4")
 
+
     private val _favoriteProducts = MutableStateFlow<List<FavoriteItem>>(emptyList())
     val favoriteProducts: StateFlow<List<FavoriteItem>> = _favoriteProducts
     init {

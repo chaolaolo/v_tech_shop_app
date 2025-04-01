@@ -5,9 +5,13 @@ import FavoriteRequest
 import FavoriteResponse
 import android.util.Log
 import com.datn.viettech_md_12.data.interfaces.ProductService
+import com.datn.viettech_md_12.data.model.Product
+import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
-import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.model.ProductResponse
+import com.datn.viettech_md_12.data.model.SearchResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 
@@ -28,6 +32,9 @@ class ProductRepository(
         return apiService.addProductToFavorites(favoriteRequest, token, clientId)  // Truyền clientId vào đây
     }
 
+    suspend fun getProductsByCategory(categoryId: String): Response<ProductByCateModelResponse> =
+        apiService.getProductsByCategory(categoryId)
+
     suspend fun getFavoriteProducts(
         token: String,
         clientId: String
@@ -42,5 +49,11 @@ class ProductRepository(
         apiKey: String
     ): Response<Void> {
         return apiService.removeProductFromFavorites(productId, token, clientId, apiKey)
+    }
+
+    suspend fun searchProducts(query: String): Response<SearchResponse> {
+        return withContext(Dispatchers.IO) {
+            apiService.searchProducts(query)
+        }
     }
 }

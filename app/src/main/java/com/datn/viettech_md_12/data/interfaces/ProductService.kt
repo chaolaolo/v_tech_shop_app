@@ -4,18 +4,20 @@ import FavoriteListResponse
 import FavoriteRequest
 import FavoriteResponse
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.model.ProductResponse
+import com.datn.viettech_md_12.data.model.SearchResponse
 import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ProductService {
 //    @Headers(
@@ -30,6 +32,10 @@ interface ProductService {
     suspend fun getAllProducts(): Response<ProductListResponse>
     @PUT
     suspend fun updateCart(cartModel: CartModel): CartModel
+
+    @GET("shop/products/category/{categoryId}")
+    suspend fun getProductsByCategory(@Path("categoryId") categoryId: String): Response<ProductByCateModelResponse>
+
     @Headers(
         "Content-Type: application/json",
         "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
@@ -59,4 +65,7 @@ interface ProductService {
         @Header("x-client-id") clientId: String,
         @Header("x-api-key") apiKey: String
     ): Response<Void>
+
+    @GET("shop/products")
+    suspend fun searchProducts(@Query("search") query: String): Response<SearchResponse>
 }

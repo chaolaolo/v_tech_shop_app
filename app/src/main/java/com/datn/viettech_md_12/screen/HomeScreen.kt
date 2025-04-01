@@ -20,20 +20,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.*
 import com.datn.viettech_md_12.component.item.CustomItemProducts
+import com.datn.viettech_md_12.viewmodel.CategoryViewModel
 import com.datn.viettech_md_12.viewmodel.HomeViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel(),viewModel: ProductViewModel = viewModel()) {
-
+fun HomeScreen(
+    navController: NavController,
+    homeViewModel: HomeViewModel = viewModel(),
+    categoryViewModel: CategoryViewModel = viewModel(),
+    productViewModel: ProductViewModel = viewModel()
+) {
     val banners by homeViewModel.banners.collectAsState()
-    val categories by homeViewModel.categories.collectAsState()
-    val latestProducts by homeViewModel.latestProducts.collectAsState()
-    val products by viewModel.products.collectAsState()
+    val categories by categoryViewModel.categories.collectAsState()
+    val products by productViewModel.products.collectAsState()
 
     Scaffold(
         topBar = {
@@ -48,16 +51,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             )
         },
         containerColor = Color.White,
-//        bottomBar = {
-//            val currentRoute =
-//                navController.currentBackStackEntryAsState().value?.destination?.route
-//            if (currentRoute != "search") {
-//                CustomNavigationBar(
-//                    navController = navController,
-//                    selectedRoute = currentRoute ?: "home"
-//                )
-//            }
-//        }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -66,7 +59,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 16.dp) // Thay vì Spacer(height = 80.dp)
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             item {
                 Spacer(Modifier.height(24.dp))
@@ -76,6 +69,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                     CustomHorizontalPager(banners.map { painterResource(it) })
                 }
             }
+
             item {
                 Spacer(Modifier.height(24.dp))
                 Column(
@@ -111,13 +105,20 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                     if (categories.isEmpty()) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     } else {
-                        CustomLazyRow(categories)
+                        CustomLazyRow(categories, navController) // 🛠️ Fix thiếu tham số
                     }
                 }
             }
 
             item {
                 Spacer(Modifier.height(16.dp))
+                Text(
+                    text = "Sản phẩm mới nhất",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1C1B1B),
+                    maxLines = 1
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -132,15 +133,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                         fontSize = 18.sp
 
                     )
-
-                    Text(
-                        text = "Xem thêm",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF21D4B4),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.clickable {},
-                    )
                 }
                 Spacer(Modifier.height(8.dp))
             }
@@ -151,7 +143,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                         .fillMaxWidth()
                         .height(520.dp)
                 ) {
-                    if (latestProducts.isEmpty()) {
+                    if (products.isEmpty()) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     } else {
                         LazyVerticalGrid(
@@ -159,20 +151,13 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-//                            items(latestProducts.take(4)) { item ->
-//                                CustomItemProducts(
-//                                    image = item.image,
-//                                    colorHexList = item.color,
-//                                    title = item.name
-//                                )
-//                            }
                             items(products) { product ->
                                 val context = LocalContext.current // Lấy context hiện tại
 
                                 CustomItemProducts(
                                     product = product,
                                     context = context,
-                                    viewModel = viewModel
+                                    viewModel = productViewModel
                                 )
                             }
                         }
@@ -180,9 +165,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 }
             }
 
-//            item {
-//                Spacer(Modifier.height(30.dp))
-//            }
         }
     }
 }

@@ -8,8 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -89,20 +88,15 @@ fun NavigationGraph(startDestination: String = "home") {
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
                 ProductDetailScreen(navController, "67cdd20838591fcf41a06e47")
             }
-            composable("category/{categoryName}") { backStackEntry ->
-                val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+            composable("category/{categoryId}") { backStackEntry ->
+                val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+                // Gửi categoryId tới ProductListScreen
                 ProductListScreen(
-                    navController, categoryName,
-                    productViewModel = productViewModel
+                    navController = navController,
+                    categoryId = categoryId,
+                    productByCategoryViewModel = viewModel()
                 )
             }
         }
     }
-}
-
-
-@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
-@Composable
-fun PreviewCustomTopAppBar() {
-    NavigationGraph()
 }
