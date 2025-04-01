@@ -2,9 +2,11 @@ package com.datn.viettech_md_12.data.remote
 
 import UserRepository
 import com.datn.viettech_md_12.data.interfaces.CartService
+import com.datn.viettech_md_12.data.interfaces.CategoryService
 import com.datn.viettech_md_12.data.interfaces.ProductService
 import com.datn.viettech_md_12.data.interfaces.UserService
 import com.datn.viettech_md_12.data.repository.CartRepository
+import com.datn.viettech_md_12.data.repository.CategoryRepository
 import com.datn.viettech_md_12.data.repository.ProductRepository
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -17,6 +19,14 @@ object ApiClient {
         .addConverterFactory(GsonConverterFactory.create())
         .baseUrl(BASE_URL)
         .build()
+
+    val categoryService: CategoryService by lazy {
+        retrofit.create(CategoryService::class.java)
+    }
+
+    val categoryRepository: CategoryRepository by lazy {
+        CategoryRepository(categoryService)
+    }
 
     val cartService: CartService by lazy {
         retrofit.create(CartService::class.java)

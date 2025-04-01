@@ -1,6 +1,5 @@
 package com.datn.viettech_md_12.component.item
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,13 +13,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 
 @Composable
-fun CustomItemCategories(image: Int, title: String, onClick: () -> Unit) {
+fun CustomItemCategories(image: String?, title: String, onClick: () -> Unit) {
     Card(
         shape = MaterialTheme.shapes.large,
         modifier = Modifier
@@ -44,11 +42,12 @@ fun CustomItemCategories(image: Int, title: String, onClick: () -> Unit) {
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(image),
-                        contentDescription = "Profile image",
+                    AsyncImage(
+                        model = image,
+                        contentDescription = image,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(R.drawable.ic_launcher_foreground)
                     )
                 }
                 Text(
@@ -64,16 +63,3 @@ fun CustomItemCategories(image: Int, title: String, onClick: () -> Unit) {
         }
     }
 }
-
-//@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
-//@Composable
-//fun CustomTopicItemPreview() {
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//
-//        CustomItemCategories(image = R.drawable.banner3, "hehe")
-//    }
-//}
