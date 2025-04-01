@@ -19,6 +19,7 @@ import com.datn.viettech_md_12.R
 
 @Composable
 fun CustomItemCategories(image: String?, title: String, onClick: () -> Unit) {
+    val BASE_URL = "http://103.166.184.249:3056"
     Card(
         shape = MaterialTheme.shapes.large,
         modifier = Modifier
@@ -43,7 +44,7 @@ fun CustomItemCategories(image: String?, title: String, onClick: () -> Unit) {
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
-                        model = image,
+                        model = "$BASE_URL$image",
                         contentDescription = image,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
