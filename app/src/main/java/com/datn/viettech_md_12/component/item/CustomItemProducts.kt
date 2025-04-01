@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,22 +36,17 @@ fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, conte
     val BASE_URL = "http://103.166.184.249:3056/"
 
     Card(
-        shape = MaterialTheme.shapes.large,
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .width(180.dp)
-            .height(230.dp)
+            .width(160.dp)
+            .height(200.dp)
             .clickable {},
-        colors = CardColors(
-            containerColor = Color.White,
-            contentColor = Color.White,
-            disabledContainerColor = Color.White,
-            disabledContentColor = Color.White
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF8F8F8)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier.padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -58,43 +54,70 @@ fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, conte
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp)
-                        .clip(MaterialTheme.shapes.medium),
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
                         model = "$BASE_URL${product.productThumbnail}",
                         contentDescription = "Product Image",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit, // Để ảnh không bị cắt
+                        contentScale = ContentScale.Fit,
                         placeholder = painterResource(R.drawable.img_test_order)
                     )
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    product.productName,
-                    color = Color(0xFF1C1B1B),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, shape = RoundedCornerShape(8.dp))
+                        .padding(8.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                product.productName,
+                                color = Color.Black,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                "${product.productPrice}VNĐ",
+                                color = Color(0xFF4CAF50),
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
 
-                Text(
-                    "${product.productPrice}",
-                    color = Color(0xFF1C1B1B),
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+//                        IconButton(
+//                            onClick = {},
+//                            modifier = Modifier
+//                                .size(24.dp)
+//                                .background(Color(0xFF4CAF50), shape = CircleShape)
+//                        ) {
+//                            Icon(
+//                                painter = painterResource(R.drawable.ic_logo),
+//                                contentDescription = "Add",
+//                                tint = Color.White,
+//                                modifier = Modifier.size(16.dp)
+//                            )
+//                        }
+                    }
+                }
             }
 
             IconButton(
                 onClick = {
                     isFavorite = !isFavorite
                     if (isFavorite) {
-                        // Gọi API thêm vào danh sách yêu thích
                         viewModel.addToFavorites(product.id, context)
                     }
                 },
