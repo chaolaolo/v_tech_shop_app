@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.component.item
 
+import FavoriteItem
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,6 +35,8 @@ import com.datn.viettech_md_12.viewmodel.ProductViewModel
 fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, context: Context) {
     var isFavorite by remember { mutableStateOf(false) }
     val BASE_URL = "http://103.166.184.249:3056/"
+    val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) //lay trang thai da luu tru
+    isFavorite = sharedPreferences.getBoolean(product.id, false)
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -97,19 +100,6 @@ fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, conte
                             )
                         }
 
-//                        IconButton(
-//                            onClick = {},
-//                            modifier = Modifier
-//                                .size(24.dp)
-//                                .background(Color(0xFF4CAF50), shape = CircleShape)
-//                        ) {
-//                            Icon(
-//                                painter = painterResource(R.drawable.ic_logo),
-//                                contentDescription = "Add",
-//                                tint = Color.White,
-//                                modifier = Modifier.size(16.dp)
-//                            )
-//                        }
                     }
                 }
             }
@@ -118,7 +108,12 @@ fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, conte
                 onClick = {
                     isFavorite = !isFavorite
                     if (isFavorite) {
-                        viewModel.addToFavorites(product.id, context)
+//                        viewModel.addToFavorites(product.id, context)
+                        val productId = product.id
+                        viewModel.addToFavorites(productId, context)
+                    } else{
+                        val favoriteId = product.id
+                        viewModel.removeFromFavorites(favoriteId, context)
                     }
                 },
                 modifier = Modifier

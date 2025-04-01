@@ -35,4 +35,12 @@ class ProductRepository(
         Log.d("dcm_debug_fav", "Fetching favorite products with Token: $token and ClientId: $clientId")
         return apiService.getFavoriteProducts(token, clientId)
     }
+    suspend fun removeFromFavorites(
+        productId: String,
+        token: String,
+        clientId: String,
+        apiKey: String
+    ): Response<Void> {
+        return apiService.removeProductFromFavorites(productId, token, clientId, apiKey)
+    }
 }
