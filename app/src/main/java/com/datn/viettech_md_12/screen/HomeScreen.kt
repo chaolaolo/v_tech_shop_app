@@ -36,7 +36,6 @@ fun HomeScreen(
 ) {
     val banners by homeViewModel.banners.collectAsState()
     val categories by categoryViewModel.categories.collectAsState()
-    val latestProducts by homeViewModel.latestProducts.collectAsState()
     val products by productViewModel.products.collectAsState()
 
     Scaffold(
@@ -134,15 +133,6 @@ fun HomeScreen(
                         fontSize = 18.sp
 
                     )
-
-                    Text(
-                        text = "Xem thêm",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF21D4B4),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.clickable {},
-                    )
                 }
                 Spacer(Modifier.height(8.dp))
             }
@@ -153,7 +143,7 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .height(520.dp)
                 ) {
-                    if (latestProducts.isEmpty()) {
+                    if (products.isEmpty()) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     } else {
                         LazyVerticalGrid(
@@ -161,22 +151,13 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(products, key = { it.id }) { product ->
-                                CustomItemProducts(product = product)
-//                            items(latestProducts.take(4)) { item ->
-//                                CustomItemProducts(
-//                                    image = item.image,
-//                                    colorHexList = item.color,
-//                                    title = item.name
-//                                )
-//                            }
                             items(products) { product ->
                                 val context = LocalContext.current // Lấy context hiện tại
 
                                 CustomItemProducts(
                                     product = product,
                                     context = context,
-                                    viewModel = viewModel
+                                    viewModel = productViewModel
                                 )
                             }
                         }
@@ -184,9 +165,6 @@ fun HomeScreen(
                 }
             }
 
-//            item {
-//                Spacer(Modifier.height(30.dp))
-//            }
         }
     }
 }
