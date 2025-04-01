@@ -66,7 +66,6 @@ fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, conte
                         contentDescription = "Product Image",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit,
-                        placeholder = painterResource(R.drawable.img_test_order)
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
