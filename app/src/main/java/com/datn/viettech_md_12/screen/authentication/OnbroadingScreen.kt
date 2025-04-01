@@ -186,7 +186,7 @@ fun OnboardingScreen(navController: NavController) {
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Next", color = Color.White)
+                        Text("Tiếp tục", color = Color.White)
                     }
                 }
 
