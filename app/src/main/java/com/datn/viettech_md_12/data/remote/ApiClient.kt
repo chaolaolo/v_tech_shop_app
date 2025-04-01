@@ -1,8 +1,10 @@
 package com.datn.viettech_md_12.data.remote
 
+import UserRepository
 import com.datn.viettech_md_12.data.interfaces.CartService
 import com.datn.viettech_md_12.data.interfaces.CategoryService
 import com.datn.viettech_md_12.data.interfaces.ProductService
+import com.datn.viettech_md_12.data.interfaces.UserService
 import com.datn.viettech_md_12.data.repository.CartRepository
 import com.datn.viettech_md_12.data.repository.CategoryRepository
 import com.datn.viettech_md_12.data.repository.ProductRepository
@@ -33,12 +35,17 @@ object ApiClient {
     val productService: ProductService by lazy {
         retrofit.create(ProductService::class.java)
     }
-
+    val userService: UserService by lazy {
+        retrofit.create(UserService::class.java)
+    }
     val cartRepository: CartRepository by lazy {
         CartRepository(cartService)
     }
 
     val productRepository: ProductRepository by lazy {
         ProductRepository(productService)
+    }
+    val userRepository: UserRepository by lazy {
+        UserRepository(userService)
     }
 }

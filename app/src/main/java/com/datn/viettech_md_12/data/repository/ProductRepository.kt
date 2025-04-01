@@ -1,5 +1,9 @@
 package com.datn.viettech_md_12.data.repository
 
+import FavoriteListResponse
+import FavoriteRequest
+import FavoriteResponse
+import android.util.Log
 import com.datn.viettech_md_12.data.interfaces.ProductService
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
@@ -14,7 +18,23 @@ class ProductRepository(
         apiService.getProductById(id);
 
     suspend fun getAllProducts(): Response<ProductListResponse> = apiService.getAllProducts()
+    suspend fun addToFavorites(
+        favoriteRequest: FavoriteRequest,
+        token: String,
+        clientId: String,  // Thêm tham số clientId
+    ): Response<FavoriteResponse> {
+        Log.d("dcm_debug_api_call", "Sending Favorite Request: Body = $favoriteRequest, Token = $token, ClientId = $clientId")
 
     suspend fun getProductsByCategory(categoryId: String): Response<ProductByCateModelResponse> =
         apiService.getProductsByCategory(categoryId)
+        return apiService.addProductToFavorites(favoriteRequest, token, clientId)  // Truyền clientId vào đây
+    }
+
+    suspend fun getFavoriteProducts(
+        token: String,
+        clientId: String
+    ): Response<FavoriteListResponse> {
+        Log.d("dcm_debug_fav", "Fetching favorite products with Token: $token and ClientId: $clientId")
+        return apiService.getFavoriteProducts(token, clientId)
+    }
 }

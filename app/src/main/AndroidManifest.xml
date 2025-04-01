@@ -17,6 +17,20 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".screen.authentication.LoginScreen"
+            android:exported="false"
+            android:label="@string/title_activity_splash_screen"
+            android:theme="@style/Theme.VietTech_MD_12" />
+        <activity
+            android:name=".screen.authentication.OnbroadingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.VietTech_MD_12" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:label="@string/title_activity_test_sign_up_api"
+            android:theme="@style/Theme.VietTech_MD_12" />
+        <activity
             android:name=".screen.checkout.CheckoutItemsScreen"
             android:exported="false"
             android:label="@string/title_activity_checkout_items_screen"
@@ -32,12 +46,12 @@
             android:label="@string/title_activity_checkout_shipping_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".screen.authentication.LoginScreen"
+            android:name=".screen.authentication.RegisterScreen"
             android:exported="false"
             android:label="@string/title_activity_sign_in_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".screen.authentication.RegisterScreen"
+            android:name=".screen.screen_testapi.TestSignUpApi"
             android:exported="false"
             android:label="@string/title_activity_sign_up_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
@@ -47,7 +61,7 @@
             android:label="@string/title_activity_sign_up_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".MainActivity"
+            android:name=".screen.authentication.SplashScreen"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.VietTech_MD_12">

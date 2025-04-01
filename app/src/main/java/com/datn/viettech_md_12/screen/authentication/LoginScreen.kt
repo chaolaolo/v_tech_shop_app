@@ -1,8 +1,12 @@
 package com.datn.viettech_md_12.screen.authentication
 
+import LoginRequest
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -40,17 +44,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import com.datn.viettech_md_12.MainActivity
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
+import com.datn.viettech_md_12.viewmodel.UserViewModel
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
-
+class LoginScreen : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
+        enableEdgeToEdge()
+        setContent {
+            LoginUser(userViewModel)
+        }
+    }
+}
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginScreen() {
+fun LoginUser(userViewModel: UserViewModel) {
     val context = LocalContext.current
-    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -84,7 +101,10 @@ fun LoginScreen() {
             )
             TextButton(
                 modifier = Modifier,
-                onClick = {},
+                onClick = {
+                    val intent = Intent(context, RegisterScreen::class.java)
+                    context.startActivity(intent)
+                },
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Text(
@@ -98,7 +118,7 @@ fun LoginScreen() {
         //Email TextField
         Row {
             Text(
-                text = "Email",
+                text = "Tên đăng nhập",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -111,9 +131,9 @@ fun LoginScreen() {
         }
         Spacer(modifier = Modifier.height(4.dp))
         MyTextField(
-            hint = "Email",
-            value = email,
-            onValueChange = { email = it },
+            hint = "Tên đăng nhập",
+            value = username,
+            onValueChange = { username = it },
             modifier = Modifier
         )
         //password TextField
@@ -156,28 +176,37 @@ fun LoginScreen() {
         //Login button
         Spacer(modifier = Modifier.height(20.dp))
         MyButton(
-            text = "Đăng Nhập",
-            onClick = {},
+            text = if (isLoading) "Đang đăng nhập..." else "Đăng nhập ",
+            onClick = {
+                isLoading = true
+                val request = LoginRequest(username,password)
+                userViewModel.signIn(
+                    request,
+                    context,
+                    onSuccess = {
+                        isLoading = false
+                        Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(context, MainActivity::class.java).apply {
+                            putExtra("isLoggedIn", true)
+                        }
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong kh được back lại màn này
+                        context.startActivity(intent)
+                    },
+                    onError = { error ->
+                        isLoading = false
+                        Log.e("dcm_error_signin", error)
+                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            },
             modifier = Modifier,
-            backgroundColor = Color.Black,
-            textColor = Color.White
+            backgroundColor = if (isLoading) Color.Gray else Color.Black,
+            textColor = Color.White,
+            isLoading = isLoading
         )
         //login with google button
         Spacer(modifier = Modifier.height(10.dp))
-        MyButton(
-            text = "Đăng nhập với Google",
-            onClick = {},
-            modifier = Modifier.border(
-                width = 1.dp,
-                brush = SolidColor(Color(0xFFF4F5FD)),
-                shape = RoundedCornerShape(8.dp)
-            ),
-            backgroundColor = Color.White,
-            textColor = Color.Black,
-            painterIconResId = R.drawable.google_logo
-        )
-        //accept privacy policy notice text
-        Spacer(modifier = Modifier.height(10.dp))
+
         Box(
             modifier = Modifier
                 .fillMaxSize()

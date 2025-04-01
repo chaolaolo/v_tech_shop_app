@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,10 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
@@ -41,7 +44,7 @@ fun HomeScreen(
             CustomTopAppBar(
                 title = "ietTech",
                 iconLogo = R.drawable.ic_logo,
-                icon1 = R.drawable.ic_search,
+                icon1 = R.drawable.search,
                 icon2 = R.drawable.rectangle_7,
                 navController = navController,
                 actionTitle1 = "search",
@@ -53,9 +56,11 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xfff4f5fd))
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 16.dp) // Thay vì Spacer(height = 80.dp)
         ) {
             item {
                 Spacer(Modifier.height(24.dp))
@@ -82,7 +87,8 @@ fun HomeScreen(
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1C1B1B),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            fontSize = 18.sp
                         )
 
                         Text(
@@ -114,6 +120,30 @@ fun HomeScreen(
                     color = Color(0xFF1C1B1B),
                     maxLines = 1
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Sản phẩm mới nhất",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1C1B1B),
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f),
+                        fontSize = 18.sp
+
+                    )
+
+                    Text(
+                        text = "Xem thêm",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF21D4B4),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.clickable {},
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
             }
 
@@ -133,11 +163,30 @@ fun HomeScreen(
                         ) {
                             items(products, key = { it.id }) { product ->
                                 CustomItemProducts(product = product)
+//                            items(latestProducts.take(4)) { item ->
+//                                CustomItemProducts(
+//                                    image = item.image,
+//                                    colorHexList = item.color,
+//                                    title = item.name
+//                                )
+//                            }
+                            items(products) { product ->
+                                val context = LocalContext.current // Lấy context hiện tại
+
+                                CustomItemProducts(
+                                    product = product,
+                                    context = context,
+                                    viewModel = viewModel
+                                )
                             }
                         }
                     }
                 }
             }
+
+//            item {
+//                Spacer(Modifier.height(30.dp))
+//            }
         }
     }
 }
