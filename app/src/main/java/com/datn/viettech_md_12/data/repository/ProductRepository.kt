@@ -5,11 +5,14 @@ import FavoriteRequest
 import FavoriteResponse
 import android.util.Log
 import com.datn.viettech_md_12.data.interfaces.ProductService
+import com.datn.viettech_md_12.data.model.Product
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductResponse
+import com.datn.viettech_md_12.data.model.SearchResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Response
-
 
 class ProductRepository(
     private val apiService: ProductService
@@ -23,8 +26,15 @@ class ProductRepository(
         token: String,
         clientId: String,  // Thêm tham số clientId
     ): Response<FavoriteResponse> {
-        Log.d("dcm_debug_api_call", "Sending Favorite Request: Body = $favoriteRequest, Token = $token, ClientId = $clientId")
-        return apiService.addProductToFavorites(favoriteRequest, token, clientId)  // Truyền clientId vào đây
+        Log.d(
+            "dcm_debug_api_call",
+            "Sending Favorite Request: Body = $favoriteRequest, Token = $token, ClientId = $clientId"
+        )
+        return apiService.addProductToFavorites(
+            favoriteRequest,
+            token,
+            clientId
+        )  // Truyền clientId vào đây
     }
 
     suspend fun getProductsByCategory(categoryId: String): Response<ProductByCateModelResponse> =
@@ -34,7 +44,16 @@ class ProductRepository(
         token: String,
         clientId: String
     ): Response<FavoriteListResponse> {
-        Log.d("dcm_debug_fav", "Fetching favorite products with Token: $token and ClientId: $clientId")
+        Log.d(
+            "dcm_debug_fav",
+            "Fetching favorite products with Token: $token and ClientId: $clientId"
+        )
         return apiService.getFavoriteProducts(token, clientId)
+    }
+
+    suspend fun searchProducts(query: String): Response<SearchResponse> {
+        return withContext(Dispatchers.IO) {
+            apiService.searchProducts(query)
+        }
     }
 }

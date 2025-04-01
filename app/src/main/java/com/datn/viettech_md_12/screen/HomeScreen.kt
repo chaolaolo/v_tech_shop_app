@@ -59,7 +59,7 @@ fun HomeScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 16.dp) // Thay vì Spacer(height = 80.dp)
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             item {
                 Spacer(Modifier.height(24.dp))

@@ -7,6 +7,7 @@ import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductResponse
+import com.datn.viettech_md_12.data.model.SearchResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -15,6 +16,7 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ProductService {
 //    @Headers(
@@ -54,4 +56,7 @@ interface ProductService {
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
     ): Response<FavoriteListResponse>
+
+    @GET("shop/products")
+    suspend fun searchProducts(@Query("search") query: String): Response<SearchResponse>
 }

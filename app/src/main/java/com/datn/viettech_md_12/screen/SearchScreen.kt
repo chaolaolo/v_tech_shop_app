@@ -3,48 +3,41 @@ package com.datn.viettech_md_12.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.CustomTopAppBar
+import com.datn.viettech_md_12.component.item.CustomItemProducts
+import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import com.datn.viettech_md_12.viewmodel.SearchViewModel
 
 @Composable
-fun SearchScreen(navController: NavController) {
+fun SearchScreen(
+    navController: NavController,
+    searchViewModel: SearchViewModel = viewModel(),
+    productViewModel: ProductViewModel = viewModel()
+
+) {
     val text = remember { mutableStateOf("") }
+    val searchResults by searchViewModel.searchResults.collectAsState()
+    val isLoading by searchViewModel.isLoading.collectAsState()
+    val errorMessage by searchViewModel.errorMessage.collectAsState()
 
     Scaffold(
         topBar = {
@@ -85,8 +78,7 @@ fun SearchScreen(navController: NavController) {
                         painter = painterResource(id = R.drawable.ic_search),
                         contentDescription = null,
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .size(24.dp)
+                        modifier = Modifier.size(24.dp)
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -100,14 +92,22 @@ fun SearchScreen(navController: NavController) {
                     ) {
                         BasicTextField(
                             value = text.value,
-                            onValueChange = { text.value = it },
+                            onValueChange = {
+                                text.value = it
+                                if (it.isNotEmpty()) {
+                                    searchViewModel.searchProducts(it)
+                                } else {
+                                    searchViewModel.clearSearchResults() // Hàm để làm rỗng danh sách kết quả
+                                }
+                            },
                             textStyle = LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
                                 color = Color.Black
                             ),
                             modifier = Modifier
                                 .height(56.dp)
-                                .fillMaxWidth().padding(start = 0.dp, top = 12.dp)
+                                .fillMaxWidth()
+                                .padding(start = 0.dp, top = 12.dp)
                                 .background(Color.Transparent),
                         )
                         if (text.value.isEmpty()) {
@@ -116,22 +116,39 @@ fun SearchScreen(navController: NavController) {
                                 color = Color(0xFF6F7384),
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Left,
-                                modifier = Modifier
-                                    .align(Alignment.CenterStart)
-                                    .padding(start = 0.dp)
+                                modifier = Modifier.align(Alignment.CenterStart)
                             )
                         }
                     }
+                }
+            }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (errorMessage != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = errorMessage!!, color = Color.Red)
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    items(searchResults) { product ->
+                        val context = LocalContext.current
 
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_setting),
-                        contentDescription = null,
-                    )
+                        CustomItemProducts(
+                            product = product,
+                            context = context,
+                            viewModel = productViewModel
+                        )
+                    }
                 }
             }
         }
     }
 }
-

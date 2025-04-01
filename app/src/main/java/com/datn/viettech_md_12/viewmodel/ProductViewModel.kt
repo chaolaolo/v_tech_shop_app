@@ -32,8 +32,6 @@ class ProductViewModel : ViewModel() {
 
     private val myColorHexList = listOf("FF1C1B1B", "FF08E488", "FF21D4B4")
 
-//    private val _favoriteProducts = MutableStateFlow<List<ProductModel>>(emptyList())
-//    val favoriteProducts: StateFlow<List<ProductModel>> = _favoriteProducts
 
     private val _favoriteProducts = MutableStateFlow<List<FavoriteItem>>(emptyList())
     val favoriteProducts: StateFlow<List<FavoriteItem>> = _favoriteProducts
@@ -47,20 +45,6 @@ class ProductViewModel : ViewModel() {
     private fun loadCategories() {
         viewModelScope.launch {
             delay(2000)
-
-//2000            _products.value = listOf(
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 0", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 1", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 2", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 3", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 4", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 5", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 6", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 7", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 8", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 9", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 10", 186.00, 126.00),
-//            )
 
             _isLoading.value = false
         }
