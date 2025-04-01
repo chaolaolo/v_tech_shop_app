@@ -117,7 +117,7 @@ fun ItemFavorite(favoriteItem: FavoriteItem) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${product.product_price}đ",
+                    text = "${product.product_price}VND",
                     color = Color.Red,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
