@@ -68,7 +68,7 @@ import com.datn.viettech_md_12.data.model.CartMode
 @Composable
 fun PaymentUI(navController: NavController) {
     val payOptions =
-        listOf("Thanh toán khi nhận hàng" to R.drawable.banner2, "VnPay" to R.drawable.banner3)
+        listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
     var selectedPayOption by remember { mutableStateOf(payOptions[0].first) }
 
     val checkoutItems = remember {
@@ -171,7 +171,7 @@ fun PaymentUI(navController: NavController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .clickable {
-                    navController.navigate("address")
+                    navController.navigate("address_screen")
                 },
             verticalArrangement = Arrangement.Top,
         ) {
@@ -307,7 +307,9 @@ fun PaymentUI(navController: NavController) {
                         .fillMaxWidth()
                 )
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -322,7 +324,9 @@ fun PaymentUI(navController: NavController) {
                     )
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -339,11 +343,11 @@ fun PaymentUI(navController: NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 2.dp),
+                        .padding(bottom = 2.dp, start = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "Vận chuyển",
+                        "Giảm giá",
                         color = Color.Black,
                         fontSize = 14.sp,
                     )
@@ -353,7 +357,7 @@ fun PaymentUI(navController: NavController) {
                         fontSize = 14.sp,
                     )
                 }
-                HorizontalDivider(Modifier.height(1.dp), color = Color.Gray)
+                HorizontalDivider(Modifier.height(0.5.dp), color = Color.LightGray)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -374,7 +378,9 @@ fun PaymentUI(navController: NavController) {
                 }
                 MyButton(
                     text = "Đặt hàng",
-                    onClick = { },
+                    onClick = {
+                        navController.navigate("order_successfully")
+                    },
                     modifier = Modifier.padding(top = 8.dp),
                     backgroundColor = Color.Black,
                     textColor = Color.White,
@@ -394,7 +400,10 @@ fun PayMethodItem(
     onSelected: () -> Unit
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(30.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
             painter = painterResource(id = imageRes),

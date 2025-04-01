@@ -62,33 +62,42 @@ fun CheckoutItemTile(
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(item.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
-            Text("VND ${item.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp)
-            Text("VND ${item.originalPrice}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
-//            Row(
-//                modifier = Modifier
-//                    .border(
-//                        width = 1.dp,
-//                        brush = SolidColor(Color(0xFFF4F5FD)),
-//                        shape = RoundedCornerShape(6.dp)
-//                    )
-//                    .padding(horizontal = 4.dp, vertical = 2.dp),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                IconButton(
-//                    onClick = { if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) },
-//                    modifier = Modifier.size(20.dp)
-//                ) {
-//                    Icon(Icons.Default.Remove, contentDescription = "Decrease")
-//                }
-//                androidx.compose.material.Text("${item.quantity}", modifier = Modifier.padding(horizontal = 14.dp))
-//                IconButton(
-//                    onClick = { onQuantityChange(item.id, item.quantity + 1) },
-//                    modifier = Modifier.size(20.dp)
-//                ) {
-//                    Icon(Icons.Default.Add, contentDescription = "Increase")
-//                }
-//            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column() {
+                    Text("VND ${item.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp)
+                    Text("VND ${item.originalPrice}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
+                }
+                Row(
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            brush = SolidColor(Color(0xFFF4F5FD)),
+                            shape = RoundedCornerShape(6.dp)
+                        )
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        onClick = { if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) },
+                        modifier = Modifier.size(20.dp)
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                    }
+                    androidx.compose.material.Text("${item.quantity}", modifier = Modifier.padding(horizontal = 14.dp))
+                    IconButton(
+                        onClick = { onQuantityChange(item.id, item.quantity + 1) },
+                        modifier = Modifier.size(20.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                    }
+                }
+        }
         }
 //        Column(
 //            modifier = Modifier
