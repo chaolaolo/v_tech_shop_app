@@ -154,7 +154,7 @@ fun OnboardingScreen(navController: NavController) {
                         .weight(1f)
                         .border(2.dp, Color(0xffF4F5FD), shape = RoundedCornerShape(12.dp))
                         .height(60.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("Đăng nhập ", color = Color.Black)
@@ -183,7 +183,7 @@ fun OnboardingScreen(navController: NavController) {
                         modifier = Modifier
                             .width(350.dp)
                             .height(60.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text("Tiếp tục", color = Color.White)

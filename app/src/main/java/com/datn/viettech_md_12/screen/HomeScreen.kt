@@ -62,7 +62,7 @@ fun HomeScreen(
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             item {
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(13.dp))
                 if (banners.isEmpty()) {
                     CircularProgressIndicator()
                 } else {
@@ -111,14 +111,6 @@ fun HomeScreen(
             }
 
             item {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "Sản phẩm mới nhất",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1C1B1B),
-                    maxLines = 1
-                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
