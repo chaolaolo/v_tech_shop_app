@@ -6,10 +6,12 @@ import FavoriteResponse
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
+import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.model.ProductResponse
 import com.datn.viettech_md_12.data.model.SearchResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
@@ -56,6 +58,14 @@ interface ProductService {
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
     ): Response<FavoriteListResponse>
+
+    @DELETE("shop/favorites/{id}")
+    suspend fun removeProductFromFavorites(
+        @Path("id") productId: String,
+        @Header("authorization") token: String,
+        @Header("x-client-id") clientId: String,
+        @Header("x-api-key") apiKey: String
+    ): Response<Void>
 
     @GET("shop/products")
     suspend fun searchProducts(@Query("search") query: String): Response<SearchResponse>

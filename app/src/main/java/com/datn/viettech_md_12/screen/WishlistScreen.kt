@@ -67,12 +67,12 @@ fun WishlistScreen(viewModel: ProductViewModel) {
         LazyColumn {
             if (favoriteProducts.isNotEmpty()) {
                 items(favoriteProducts) { product ->
-                    ItemFavorite(product)
+                    ItemFavorite(favoriteItem = product, viewModel = viewModel)
                     Log.d("dcm_list_fav", "WishlistScreen - Product: $product")
                 }
             } else {
                 item {
-                  EmptyWishList()
+                    EmptyWishList()
                 }
             }
         }
@@ -80,10 +80,10 @@ fun WishlistScreen(viewModel: ProductViewModel) {
 
 }
 @Composable
-fun ItemFavorite(favoriteItem: FavoriteItem) {
+fun ItemFavorite(favoriteItem: FavoriteItem, viewModel: ProductViewModel) {
     val product = favoriteItem.product
     val BASE_URL = "http://103.166.184.249:3056/"
-
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -123,14 +123,16 @@ fun ItemFavorite(favoriteItem: FavoriteItem) {
                     fontSize = 16.sp
                 )
             }
-//            Button(
-//                onClick = { /* Xóa khỏi danh sách yêu thích */ },
-//                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-//                modifier = Modifier.clip(RoundedCornerShape(8.dp))
-//            ) {
-//                Text("Xóa", color = Color.White)
-//            }
-//
+            Button(
+                onClick = {
+                    viewModel.removeFromFavorites(product.id, context)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                modifier = Modifier.clip(RoundedCornerShape(8.dp))
+            ) {
+                Text("Xóa", color = Color.White)
+            }
+
         }
     }
 }

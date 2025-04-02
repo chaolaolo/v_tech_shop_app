@@ -125,5 +125,5 @@ fun Splash() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun GreetingPreview() {
-//    Splash()
+    Splash()
 }

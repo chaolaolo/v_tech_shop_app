@@ -32,10 +32,10 @@ class HomeViewModel : ViewModel() {
             delay(2000)
 
             _banners.value = listOf(
-                R.drawable.banner1,
-                R.drawable.banner2,
-                R.drawable.banner3,
-                R.drawable.banner4
+                R.drawable.bn_01,
+                R.drawable.bn_02,
+                R.drawable.bn_03,
+                R.drawable.bn_02
             )
 
             _categories.value = listOf(
@@ -46,11 +46,11 @@ class HomeViewModel : ViewModel() {
             )
 
             _latestProducts.value = listOf(
-                Product(R.drawable.banner3, false, myColorHexList, "Product 0", 186.00, 126.00),
-                Product(R.drawable.banner3, false, myColorHexList, "Product 1", 186.00, 126.00),
-                Product(R.drawable.banner3, false, myColorHexList, "Product 2", 186.00, 126.00),
-                Product(R.drawable.banner3, false, myColorHexList, "Product 3", 186.00, 126.00),
-                Product(R.drawable.banner3, false, myColorHexList, "Product 4", 186.00, 126.00),
+                Product(R.drawable.bn_03, false, myColorHexList, "Product 0", 186.00, 126.00),
+                Product(R.drawable.bn_03, false, myColorHexList, "Product 1", 186.00, 126.00),
+                Product(R.drawable.bn_03, false, myColorHexList, "Product 2", 186.00, 126.00),
+                Product(R.drawable.bn_03, false, myColorHexList, "Product 3", 186.00, 126.00),
+                Product(R.drawable.bn_03, false, myColorHexList, "Product 4", 186.00, 126.00),
             )
         }
     }

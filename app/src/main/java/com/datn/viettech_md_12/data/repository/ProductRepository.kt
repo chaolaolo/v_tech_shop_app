@@ -14,11 +14,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 
+
 class ProductRepository(
     private val apiService: ProductService
 ) {
     suspend fun getProductById(id: String): Response<ProductResponse> =
-        apiService.getProductById(id)
+        apiService.getProductById(id);
 
     suspend fun getAllProducts(): Response<ProductListResponse> = apiService.getAllProducts()
     suspend fun addToFavorites(
@@ -26,15 +27,9 @@ class ProductRepository(
         token: String,
         clientId: String,  // Thêm tham số clientId
     ): Response<FavoriteResponse> {
-        Log.d(
-            "dcm_debug_api_call",
-            "Sending Favorite Request: Body = $favoriteRequest, Token = $token, ClientId = $clientId"
-        )
-        return apiService.addProductToFavorites(
-            favoriteRequest,
-            token,
-            clientId
-        )  // Truyền clientId vào đây
+        Log.d("dcm_debug_api_call", "Sending Favorite Request: Body = $favoriteRequest, Token = $token, ClientId = $clientId")
+
+        return apiService.addProductToFavorites(favoriteRequest, token, clientId)  // Truyền clientId vào đây
     }
 
     suspend fun getProductsByCategory(categoryId: String): Response<ProductByCateModelResponse> =
@@ -44,11 +39,16 @@ class ProductRepository(
         token: String,
         clientId: String
     ): Response<FavoriteListResponse> {
-        Log.d(
-            "dcm_debug_fav",
-            "Fetching favorite products with Token: $token and ClientId: $clientId"
-        )
+        Log.d("dcm_debug_fav", "Fetching favorite products with Token: $token and ClientId: $clientId")
         return apiService.getFavoriteProducts(token, clientId)
+    }
+    suspend fun removeFromFavorites(
+        productId: String,
+        token: String,
+        clientId: String,
+        apiKey: String
+    ): Response<Void> {
+        return apiService.removeProductFromFavorites(productId, token, clientId, apiKey)
     }
 
     suspend fun searchProducts(query: String): Response<SearchResponse> {
