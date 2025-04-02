@@ -74,7 +74,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("home") { HomeScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
             composable("my_cart") { CartScreen(navController) }
-            composable("wishlist") { WishlistScreen(viewModel = productViewModel) }
+            composable("wishlist") { WishlistScreen(viewModel = productViewModel,navController) }
             composable("profile") { ProfileScreen(navController) }
             composable("change_password_screen") { ChangePasswordScreen(navController) }
             composable("order_history_screen") { OrderHistoryScreen(navController) }

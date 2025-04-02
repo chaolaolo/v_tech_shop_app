@@ -127,7 +127,7 @@ fun CustomItemProductsBase(
                             )
 
                             Text(
-                                "${price ?: 0.0}$",
+                                "${price ?: 0.0}VND",
                                 color = Color(0xFF4CAF50),
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium
