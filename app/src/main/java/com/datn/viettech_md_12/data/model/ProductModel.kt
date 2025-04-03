@@ -48,44 +48,48 @@ import com.google.gson.annotations.SerializedName
 }
 */
 data class ProductModel(
-    @SerializedName("category")
-    val category: Category,
     @SerializedName("_id")
     val id: String,
-    @SerializedName("image_ids")
-    val imageIds: List<Any>,
+    @SerializedName("product_name")
+    val productName: String,
+    @SerializedName("product_thumbnail")
+    val productThumbnail: String,
+    @SerializedName("product_description")
+    val productDescription: String,
+    @SerializedName("product_price")
+    val productPrice: Double,
+    @SerializedName("product_stock")
+    val productStock: Int,
+    @SerializedName("category")
+    val category: Category,
+    @SerializedName("product_ratingsAverage")
+    val productRatingsAverage: Double,
     @SerializedName("isDraft")
     val isDraft: Boolean,
     @SerializedName("isPulished")
     val isPublished: Boolean,
-    @SerializedName("product_attributes")
-    val productAttributes: ProductAttributes,
-    @SerializedName("product_description")
-    val productDescription: String,
-    @SerializedName("product_name")
-    val productName: String,
-    @SerializedName("product_price")
-    val productPrice: Double,
-    @SerializedName("product_ratingsAverage")
-    val productRatingsAverage: Double,
+    @SerializedName("image_ids")
+    val imageIds: List<Any>,
+//    @SerializedName("product_attributes")
+//    val productAttributes: ProductAttributes,
+    @SerializedName("attributeIds")
+    val attributeIds: ProductAttributes,
     @SerializedName("product_slug")
     val productSlug: String,
-    @SerializedName("product_stock")
-    val productStock: Int,
-    @SerializedName("product_thumbnail")
-    val productThumbnail: String,
     @SerializedName("variations")
     val variations: List<Variation>
 ) {
     data class Category(
-        @SerializedName("attributes_template")
-        val attributesTemplate: List<String>,
         @SerializedName("_id")
         val id: String,
         @SerializedName("name")
         val name: String,
         @SerializedName("parent_category")
-        val parentCategory: Any
+        val parentCategory: Any,
+        @SerializedName("attributes_template")
+        val attributesTemplate: List<String>,
+        @SerializedName("thumbnail")
+        val thumbnail: String,
     )
 
     data class ProductAttributes(
@@ -104,6 +108,10 @@ data class ProductModel(
     data class Variation(
         @SerializedName("_id")
         val id: String,
+        @SerializedName("productId")
+        val productId: String,
+        @SerializedName("variantDetails")
+        val variantDetails: List<VariantDetail>,
         @SerializedName("price")
         val price: Double,
         @SerializedName("sku")
@@ -114,6 +122,13 @@ data class ProductModel(
         val variantName: String,
         @SerializedName("variant_value")
         val variantValue: String
+    )
+
+    data class VariantDetail(
+        @SerializedName("variantId")
+        val variantId: String,
+        @SerializedName("value")
+        val value: String
     )
 
 }
