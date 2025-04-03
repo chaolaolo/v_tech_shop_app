@@ -23,11 +23,9 @@ import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.SearchScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
-import com.datn.viettech_md_12.screen.authentication.OnboardingScreen
 import com.datn.viettech_md_12.screen.cart.CartScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
-import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
 import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
@@ -36,7 +34,7 @@ import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun NavigationGraph(startDestination: String = "home") {
+fun NavigationGraph() {
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
@@ -51,7 +49,7 @@ fun NavigationGraph(startDestination: String = "home") {
 
 //    val hideBottomBar = currentBackStackEntry.value?.destination?.route == "search"
     val hideBottomBar = when (selectedRoute) {
-        "home", "categories", "cart", "wishlist", "profile" -> false
+        "home", "categories", "my_cart", "wishlist", "profile" -> false
         else -> true
     }
 
@@ -68,14 +66,14 @@ fun NavigationGraph(startDestination: String = "home") {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = startDestination,
+            startDestination = "home",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
             composable("home") { HomeScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
-            composable("cart") { CartScreen(navController) }
+            composable("my_cart") { CartScreen(navController) }
             composable("wishlist") { WishlistScreen() }
             composable("profile") { ProfileScreen(navController) }
             composable("change_password_screen") { ChangePasswordScreen(navController) }
@@ -84,8 +82,6 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
             composable("payment_screen") { PaymentScreen(navController) }
-            composable("onb_screen") { OnboardingScreen(navController) }
-            composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
