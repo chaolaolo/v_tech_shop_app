@@ -4,10 +4,12 @@ import UserRepository
 import com.datn.viettech_md_12.data.interfaces.CartService
 import com.datn.viettech_md_12.data.interfaces.CategoryService
 import com.datn.viettech_md_12.data.interfaces.ProductService
+import com.datn.viettech_md_12.data.interfaces.ReviewService
 import com.datn.viettech_md_12.data.interfaces.UserService
 import com.datn.viettech_md_12.data.repository.CartRepository
 import com.datn.viettech_md_12.data.repository.CategoryRepository
 import com.datn.viettech_md_12.data.repository.ProductRepository
+import com.datn.viettech_md_12.data.repository.ReviewRepository
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -31,7 +33,10 @@ object ApiClient {
     val cartService: CartService by lazy {
         retrofit.create(CartService::class.java)
     }
-
+    // Khai báo reviewService
+    val reviewService: ReviewService by lazy {
+        retrofit.create(ReviewService::class.java)
+    }
     val productService: ProductService by lazy {
         retrofit.create(ProductService::class.java)
     }
@@ -47,5 +52,8 @@ object ApiClient {
     }
     val userRepository: UserRepository by lazy {
         UserRepository(userService)
+    }
+    val reviewRepository: ReviewRepository by lazy {
+        ReviewRepository(reviewService)
     }
 }

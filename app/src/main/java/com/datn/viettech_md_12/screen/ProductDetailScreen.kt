@@ -21,10 +21,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
@@ -42,6 +47,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -65,11 +71,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -77,6 +85,7 @@ import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 import kotlinx.coroutines.launch
@@ -88,9 +97,11 @@ fun ProductDetailScreen(
     navController: NavController,
     productId: String,
     viewModel: ProductViewModel= viewModel(),
+    reviewViewModel: ReviewViewModel = viewModel()
 ) {
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
+        reviewViewModel.getReviewsByProduct(productId)
     }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -102,7 +113,9 @@ fun ProductDetailScreen(
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
     val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
-
+    val reviews by reviewViewModel.reviews.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf("") }
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -369,7 +382,7 @@ fun ProductDetailScreen(
                                     }
                                 }
 
-                                Spacer(Modifier.weight(1f))
+                                Spacer(Modifier.height(4.dp))
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -424,6 +437,124 @@ fun ProductDetailScreen(
                                         textColor = Color.White,
                                         vectorIcon = Icons.Default.AddShoppingCart
                                     )
+                                }
+                                // review màn
+                                if (reviews.isEmpty()) {
+                                    // Nếu không có review, hiển thị một thông báo
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(300.dp)
+                                            .wrapContentHeight(align = Alignment.CenterVertically),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Chưa có đánh giá nào cho sản phẩm này.",
+                                            fontSize = 16.sp,
+                                            color = Color.Gray,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                } else {
+                                    LazyColumn(modifier = Modifier.height(300.dp)) {
+                                        items(reviews) { review ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(8.dp)
+                                            ) {
+                                                // Avatar của người đánh giá
+                                                val avatarUrl = review.avatar.replace(
+                                                    "http://localhost:",
+                                                    "http://103.166.184.249:"
+                                                )
+                                                AsyncImage(
+                                                    model = avatarUrl,
+                                                    contentDescription = "Avatar",
+                                                    modifier = Modifier
+                                                        .size(40.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color.LightGray),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                Spacer(modifier = Modifier.width(8.dp))
+
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    // Tên người đánh giá
+                                                    Text(
+                                                        text = review.username,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+
+                                                    // Xếp hạng sao
+                                                    Row {
+                                                        repeat(5) { index ->
+                                                            Icon(
+                                                                Icons.Filled.Star,
+                                                                contentDescription = "Star",
+                                                                tint = if (index < review.rating) Color(
+                                                                    0xFFFFD700
+                                                                ) else Color.Gray,
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                        }
+                                                    }
+
+                                                    // Nội dung đánh giá
+                                                    Text(
+                                                        text = review.contents_review,
+                                                        fontSize = 14.sp
+                                                    )
+
+                                                    // Ảnh đính kèm trong review (nếu có)
+                                                    if (review.images.isNotEmpty()) {
+                                                        LazyRow(
+                                                            horizontalArrangement = Arrangement.spacedBy(
+                                                                8.dp
+                                                            ),
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                            items(review.images) { image ->
+                                                                val fixedUrl = image.url.replace(
+                                                                    "http://localhost:",
+                                                                    "http://103.166.184.249:"
+                                                                )
+
+                                                                // Hiển thị ảnh trong 1 hàng ngang
+                                                                AsyncImage(
+                                                                    model = fixedUrl,
+                                                                    contentDescription = "Review Image",
+                                                                    modifier = Modifier
+                                                                        .size(100.dp)
+                                                                        .clip(RoundedCornerShape(8.dp))
+                                                                        .background(Color.Gray)
+                                                                        .clickable {
+                                                                            // Khi ấn vào ảnh, mở dialog với ảnh lớn
+                                                                            selectedImageUrl =
+                                                                                fixedUrl
+                                                                            showDialog = true
+                                                                        },
+                                                                    contentScale = ContentScale.Crop
+                                                                )
+                                                            }
+                                                        }
+
+                                                        Spacer(modifier = Modifier.height(8.dp)) // Khoảng cách giữa các ảnh
+                                                    }
+
+                                                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Hiển thị Dialog khi showDialog là true
+                                    if (showDialog) {
+                                        ShowImageDialog(imageUrl = selectedImageUrl) {
+                                            showDialog = false // Đóng dialog khi ấn ra ngoài
+                                        }
+                                    }
                                 }
                             }
 
@@ -482,6 +613,32 @@ fun ProductDetailScreen(
                 }
             }
 
+        }
+    }
+}
+@Composable
+fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        // Sử dụng Surface để tạo khung cho ảnh
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Black.copy(alpha = 0.9f),
+            modifier = Modifier
+                .fillMaxWidth(0.9f) // Khung chiếm 90% chiều rộng màn hình
+                .wrapContentHeight() // Chiều cao sẽ tự động thay đổi theo ảnh
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                // AsyncImage để tải ảnh từ URL
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Full Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight() // Cho phép ảnh có chiều cao tự động theo kích thước của ảnh
+                        .padding(16.dp), // Padding xung quanh ảnh để không bị chặt vào khung
+                    contentScale = ContentScale.Fit // Đảm bảo ảnh không bị cắt và tỷ lệ đúng
+                )
+            }
         }
     }
 }
