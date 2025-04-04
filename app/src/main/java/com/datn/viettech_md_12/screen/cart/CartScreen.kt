@@ -283,14 +283,14 @@ fun CartContent(
             selectedItems.contains(itemKey) }
         OrderSummary(
             navController = navController,
-            selectedItems = selectedCartItems
+            selectedItems = cartProducts
         )
     }
 }
 
 @Composable
 fun OrderSummary(navController: NavController, selectedItems: List<Metadata.CartProduct>) {
-    val subtotal = selectedItems.sumOf { it.price * it.quantity }
+    val subtotal = selectedItems.filter { it.isSelected }.sumOf { it.price * it.quantity }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -312,7 +312,7 @@ fun OrderSummary(navController: NavController, selectedItems: List<Metadata.Cart
         }
         Spacer(Modifier.height(5.dp))
         MyButton(
-            text = "Thanh Toán(${selectedItems.size})",
+            text = "Thanh Toán(${selectedItems.count{it.isSelected}})",
             onClick = {navController.navigate("payment") },
             backgroundColor = Color.Black,
             textColor = Color.White,
