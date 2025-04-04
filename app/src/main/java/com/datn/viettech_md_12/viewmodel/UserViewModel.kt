@@ -1,10 +1,12 @@
 package com.datn.viettech_md_12.viewmodel
 
+import ChangePasswordRequest
 import LoginRequest
 import RegisterRequest
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.remote.ApiClient
@@ -13,6 +15,7 @@ import java.net.UnknownHostException
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val userRepository = ApiClient.userRepository
+    val changePasswordState = mutableStateOf<String?>(null)
 
     fun signUp(
         request: RegisterRequest,
@@ -71,7 +74,10 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         viewModelScope.launch {
             try {
-                Log.d("dcm_debug_request", "SignIn Request: username=${request.username}, password=${request.password}")
+                Log.d(
+                    "dcm_debug_request",
+                    "SignIn Request: username=${request.username}, password=${request.password}"
+                )
                 val response = userRepository.signIn(request)
 
                 // Log thông tin response
@@ -90,7 +96,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                         if (!token.isNullOrEmpty()) {
                             Log.d("dcm_success_signin", "Đăng nhập thành công!")
 
-                            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                            val sharedPreferences =
+                                context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
                                 .putString("clientId", userId)
@@ -114,9 +121,11 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                         response.code() == 401 && errorBody.contains("Invalid credentials") -> {
                             onError("Sai tên đăng nhập hoặc mật khẩu!")
                         }
+
                         response.code() == 500 -> {
                             onError("Lỗi máy chủ! Vui lòng thử lại sau.")
                         }
+
                         else -> {
                             onError("Đăng nhập thất bại")
                         }
@@ -132,5 +141,66 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    fun changePassword(
+        context: Context,
+        oldPassword: String,
+        newPassword: String,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val clientId = sharedPreferences.getString("clientId", "") ?: ""
+                val token = sharedPreferences.getString("accessToken", "") ?: ""
 
+                val request = ChangePasswordRequest(
+                    accountId = clientId,
+                    oldPassword = oldPassword,
+                    newPassword = newPassword
+                )
+
+                val response = userRepository.changePassword(clientId, token, request)
+
+                if (response.isSuccessful && response.body()?.status == "success") {
+                    Log.d("ChangePassword", "Success: ${response.body()}")
+                    onSuccess(response.body()?.message ?: "Đổi mật khẩu thành công!")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("ChangePassword", "Failed: code=${response.code()}, errorBody=$errorBody")
+                    onError("Đổi mật khẩu thất bại. Mật khẩu mới phải có ít nhất 6 ký tự!")
+                }
+            } catch (e: Exception) {
+                onError("Lỗi kết nối: ${e.message}")
+            }
+        }
+    }
+
+//    fun changePassword(
+//        request: ChangePasswordRequest,
+//        context: Context
+//    ) {
+//        viewModelScope.launch {
+//            try {
+//                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+//                val token = sharedPreferences.getString("accessToken", null)
+//                val clientId = sharedPreferences.getString("clientId", null)
+//
+//                if (token.isNullOrEmpty() || clientId.isNullOrEmpty()) {
+//                    changePasswordState.value = "Thiếu token hoặc clientId"
+//                    return@launch
+//                }
+//
+//                val response = userRepository.changePassword(token, clientId, request)
+//                if (response.isSuccessful) {
+//                    changePasswordState.value = response.body()?.message ?: "Đổi mật khẩu thành công"
+//                } else {
+//                    val errorBody = response.errorBody()?.string()
+//                    changePasswordState.value = "Thất bại: $errorBody"
+//                }
+//            } catch (e: Exception) {
+//                changePasswordState.value = "Lỗi mạng: ${e.localizedMessage}"
+//            }
+//        }
+//    }
 }
