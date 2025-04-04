@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.data.remote.ApiClient.cartRepository
 import com.datn.viettech_md_12.data.remote.ApiClient.productRepository
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.delay
@@ -161,6 +162,63 @@ class ProductViewModel : ViewModel() {
 
             } else {
                 Log.e("dcm_error_fav", "Token hoặc UserId không tồn tại trong SharedPreferences")
+            }
+        }
+    }
+
+    fun addProductToCart(
+        productId: String,
+        variantId: String,
+        quantity: Int,
+        context:Context,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            val token = sharedPreferences.getString("accessToken", "")
+            val userId = sharedPreferences.getString("clientId", "")
+            _isLoading.value = true
+            try {
+                val response = cartRepository.addToCart(
+                    token = token ?: "",
+                    userId = userId ?: "",
+                    productId = productId,
+                    detailsVariantId = variantId,
+                    quantity = quantity
+                )
+
+                if (response.isSuccessful) {
+                    // Cập nhật lại giỏ hàng sau khi thêm sản phẩm thành công
+                    onSuccess()
+                    Log.d("CartViewModel", "Add to cart success")
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                    Log.e("CartViewModel", "Add to cart failed: $errorMsg")
+                    onError(errorMsg)
+                }
+            } catch (e: UnknownHostException) {
+                val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: SocketTimeoutException) {
+                val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: HttpException) {
+                val errorMsg = "Lỗi HTTP: ${e.message()}"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: JsonSyntaxException) {
+                val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "Lỗi không xác định"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } finally {
+                _isLoading.value = false
             }
         }
     }

@@ -229,7 +229,7 @@ fun CartScreen(
                     cartModel?.let { cart ->
                         CartContent(
                             navController = navController,
-                            cartProducts = cart.metadata.cart_products,
+                            cartProducts = cart.metadata?.cart_products?: emptyList(),
                             selectedItems = selectedItems,
                             cartViewModel = cartViewModel,
                         )
@@ -254,28 +254,31 @@ fun CartContent(
                 .background(Color.White)
                 .padding(horizontal = 10.dp)
         ) {
-            items(cartProducts, key =  {it.variant.variantId}) { item ->
+            items(cartProducts, key =  {it.detailsVariantId ?: it.productId}) { item ->
+                val itemKey = item.detailsVariantId ?: item.productId
                 CartItemTile(
                     item,
-                    selectedItems.contains(item.variant.variantId),
+                    selectedItems.contains(itemKey),
                     onSelectionChange = { selected ->
                         if (selected) {
-                            if (!selectedItems.contains(item.variant.variantId)) {
-                                selectedItems.add(item.variant.variantId)
+                            if (!selectedItems.contains(itemKey)) {
+                                selectedItems.add(itemKey)
                             }
                         } else {
-                            selectedItems.remove(item.variant.variantId)
+                            selectedItems.remove(itemKey)
                         }
                     },
-                    onDelete = { productId, variantId  ->
-                        selectedItems.remove(variantId)
+                    onDelete = { _, _  ->
+                        selectedItems.remove(itemKey)
                     },
                     navController,
                     cartViewModel = cartViewModel,
                 )
             }
         }
-        val selectedCartItems = cartProducts.filter { selectedItems.contains(it.variant.variantId) }
+        val selectedCartItems = cartProducts.filter {
+            val itemKey = it.detailsVariantId ?: it.productId
+            selectedItems.contains(itemKey) }
         OrderSummary(
             navController = navController,
             selectedItems = selectedCartItems
@@ -325,12 +328,12 @@ fun CartItemTile(
     navController: NavController,
     cartViewModel: CartViewModel,
 ) {
-
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val swipeThreshold = 250f
     val anchors = mapOf(0f to 0, -swipeThreshold to 1)
     val quantityState = remember { mutableStateOf(product.quantity) }
-
+    // Xử lý khi detailsVariantId null thì dùng productId
+    val variantIdToUse = product.detailsVariantId ?: product.productId
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
     } else {
@@ -357,12 +360,13 @@ fun CartItemTile(
                 .fillMaxSize()
                 .padding(end = 10.dp)
                 .clickable {
-                    onDelete(product.productId, product.variant.variantId)
+                    onDelete(product.productId, variantIdToUse)
                     cartViewModel.deleteCartItem(
                         productId = product.productId,
-                        variantId = product.variant.variantId,
+                        detailsVariantId = product.detailsVariantId ?: "",
                         onSuccess = {
                             // Có thể thêm thông báo thành công
+                            Log.d("CartItemTile", "Deleting productId: ${product.productId}, variantId: ${product.detailsVariantId}")
                             Log.d("CartItemTile", "Xóa sản phẩm thành công")
                         },
                         onError = { error ->
@@ -438,7 +442,7 @@ fun CartItemTile(
                                 quantityState.value -= 1
                                 cartViewModel.updateProductQuantity(
                                     productId = product.productId,
-                                    variantId = product.variant.variantId,
+                                    variantId = product.detailsVariantId ?: "",
                                     newQuantity = quantityState.value,
                                 )
                             }
@@ -453,7 +457,7 @@ fun CartItemTile(
                             quantityState.value += 1
                             cartViewModel.updateProductQuantity(
                                 productId = product.productId,
-                                variantId = product.variant.variantId,
+                                variantId =  product.detailsVariantId ?: "",
                                 newQuantity = quantityState.value,
                             )
                         },

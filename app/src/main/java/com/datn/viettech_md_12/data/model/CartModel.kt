@@ -32,22 +32,41 @@ data class Metadata(
         @SerializedName("price") val price: Double,
         @SerializedName("image") val image: String,
         @SerializedName("quantity") val quantity: Int,
+        @SerializedName("isSelected") val isSelected: Boolean,
+        @SerializedName("detailsVariantId") val detailsVariantId: String?,
         @SerializedName("variant") val variant: ProductVariant,
     )
 
     data class ProductVariant(
         @SerializedName("variantId") val variantId: String,
-        @SerializedName("variant_name") val variant_name: String,
-        @SerializedName("variant_value") val variant_value: String,
         @SerializedName("sku") val sku: String,
+        @SerializedName("values") val values: List<VariantValue>,
+    )
+
+    data class VariantValue(
+        @SerializedName("variantId") val variantId: String,
+        @SerializedName("value") val value: String,
+        @SerializedName("_id") val _id: String,
     )
 }
+
+data class AddToCartRequest(
+    @SerializedName("userId") val userId: String,
+    @SerializedName("product") val product: Product
+) {
+    data class Product(
+        @SerializedName("productId") val productId: String,
+        @SerializedName("quantity") val quantity: Int,
+        @SerializedName("detailsVariantId") val detailsVariantId: String? = null
+    )
+}
+
 
 
 // Thêm data class cho request body
 data class DeleteCartItemRequest(
     @SerializedName("userId") val userId: String,
-    @SerializedName("variantId") val variantId: String,
+    @SerializedName("detailsVariantId") val detailsVariantId: String?,
     @SerializedName("productId") val productId: String,
 )
 
@@ -57,8 +76,7 @@ data class UpdateCartRequest(
 ) {
     data class CartProduct(
         @SerializedName("productId") val productId: String,
-        @SerializedName("variantId") val variantId: String,
+        @SerializedName("detailsVariantId") val detailsVariantId: String?,
         @SerializedName("quantity") val quantity: Int,
-//        @SerializedName("isSelected") val isSelected: Boolean? = null
     )
 }

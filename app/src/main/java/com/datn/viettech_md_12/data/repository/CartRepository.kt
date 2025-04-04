@@ -1,17 +1,20 @@
 package com.datn.viettech_md_12.data.repository
 
 import com.datn.viettech_md_12.data.interfaces.CartService
+import com.datn.viettech_md_12.data.model.AddToCartRequest
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
-import com.datn.viettech_md_12.data.model.Metadata
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
-import com.datn.viettech_md_12.data.remote.ApiClient.cartService
+import com.datn.viettech_md_12.data.remote.ApiClient
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody
 import retrofit2.Response
 
 
 class CartRepository(
-    private val apiService: CartService
+    private val cartService: CartService,
 ) {
+    //Get cart
     suspend fun getCart(
         token: String,
         userId: String, userIdQuery: String,
@@ -23,38 +26,63 @@ class CartRepository(
         )
     }
 
-        suspend fun updateCartItem(
-            token: String,
-            userId: String,
-            productId: String,
-            variantId: String,
-            newQuantity: Int,
-        ): Response<CartModel> {
-            val request = UpdateCartRequest(
-                userId = userId,
-                product = UpdateCartRequest.CartProduct(
-                    productId = productId,
-                    variantId = variantId,
-                    quantity = newQuantity,
-                )
+    //Add to cart
+    suspend fun addToCart(
+        token: String,
+        userId: String,
+        productId: String,
+        quantity: Int,
+        detailsVariantId: String?
+    ): Response<CartModel> {
+        val request = AddToCartRequest(
+            userId = userId,
+            product = AddToCartRequest.Product(
+                productId = productId,
+                quantity = quantity,
+                detailsVariantId = detailsVariantId
             )
-            return cartService.updateCart(
-                token = token,
-                clientId = userId,
-                request = request
-            )
-        }
+        )
+        return cartService.addToCart(
+            token = token,
+            userId = userId,
+            request = request
+        )
+    }
 
+    //Update cart item quantity
+    suspend fun updateCartItem(
+        token: String,
+        userId: String,
+        productId: String,
+        detailsVariantId: String?,
+        newQuantity: Int,
+    ): Response<CartModel> {
+        val request = UpdateCartRequest(
+            userId = userId,
+            product = UpdateCartRequest.CartProduct(
+                productId = productId,
+                detailsVariantId = if (detailsVariantId.isNullOrBlank()) null else detailsVariantId,
+                quantity = newQuantity,
+            )
+        )
+        return ApiClient.cartService.updateCart(
+            token = token,
+            clientId = userId,
+            request = request
+        )
+    }
+
+    //Delete cart item
     suspend fun deleteCartItem(
         token: String,
         userId: String,
         productId: String,
-        variantId: String
+        detailsVariantId: String
     ): Response<Unit> {
         val request = DeleteCartItemRequest(
             userId = userId,
             productId = productId,
-            variantId = variantId
+            detailsVariantId = if (detailsVariantId.isNullOrBlank()) null else detailsVariantId
         )
         return cartService.deleteCartItem(
             token = token,
@@ -62,4 +90,10 @@ class CartRepository(
             request = request
         )
     }
+}
+
+
+// Extension function đơn giản hóa
+fun String.toResponseBody(contentType: String = "text/plain"): ResponseBody {
+    return this.toResponseBody(contentType.toMediaType().toString())
 }

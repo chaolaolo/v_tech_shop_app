@@ -7,8 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.data.remote.ApiClient.cartService
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,12 +38,9 @@ class CartViewModel(application: Application) : ViewModel() {
 
     private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val token: String? = sharedPreferences.getString("accessToken", null)
-    private val userId: String? = sharedPreferences.getString("userId", null)
+    private val userId: String? = sharedPreferences.getString("clientId", null)
 
-//    private val token =
-//        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2NjMGY4YzAyZTM5ZWJlOWY3YjYwZDUiLCJ1c2VybmFtZSI6ImN1c3RvbWVyMDMiLCJpYXQiOjE3NDMzMDM0MDMsImV4cCI6MTc0MzQ3NjIwM30.HFBLyvuTOwmavvIToqR4Ofa-aEUk0RbtHbXXpvdehhQ"
-//    private val userId = "67cc0f8c02e39ebe9f7b60d5"
-
+    //Get cart
     fun fetchCart() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -75,30 +74,28 @@ class CartViewModel(application: Application) : ViewModel() {
         }
     }
 
+    //Update cart item quantity
     fun updateProductQuantity(
         productId: String,
         variantId: String,
         newQuantity: Int,
     ) {
-        updateLocalCartState(productId, newQuantity)
+//        updateLocalCartState(productId, newQuantity)
         viewModelScope.launch {
 //            _isLoading.value = true
             try {
                 val response = cartRepository.updateCartItem(
-                    token = token?:"",
-                    userId = userId?:"",
+                    token = token ?: "",
+                    userId = userId ?: "",
                     productId = productId,
-                    variantId = variantId,
-                    newQuantity = newQuantity
+                    detailsVariantId = variantId,
+                    newQuantity = newQuantity,
                 )
 
-                _updateCartState.value = response
-
                 if (response.isSuccessful) {
-                    // Update local state first for better UX
-//                    updateLocalCartState(productId, newQuantity)
-                    // Then refresh from server
 //                    fetchCart()
+                    _updateCartState.value = response
+                    updateLocalCartState(productId, newQuantity)
                     Log.d("CartViewModel", "Update quantity success")
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Unknown error"
@@ -131,24 +128,25 @@ class CartViewModel(application: Application) : ViewModel() {
         }
     }
 
+    //Delete cart item
     fun deleteCartItem(
         productId: String,
-        variantId: String,
+        detailsVariantId: String,
         onSuccess: () -> Unit = {},
-        onError: (String) -> Unit = {}
+        onError: (String) -> Unit = {},
     ) {
         viewModelScope.launch {
             _isLoading.value = true
+            Log.d("CartViewModel", "token $token")
+            Log.d("CartViewModel", "client id $userId")
             try {
                 val response = cartRepository.deleteCartItem(
                     token = token?:"",
                     userId = userId?:"",
                     productId = productId,
-                    variantId = variantId
+                    detailsVariantId = detailsVariantId
                 )
-
                 _deleteCartItemState.value = response
-
                 if (response.isSuccessful) {
                     // Cập nhật lại giỏ hàng sau khi xóa thành công
                     fetchCart()

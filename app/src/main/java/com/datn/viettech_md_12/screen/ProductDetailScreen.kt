@@ -61,6 +61,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +75,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
@@ -82,10 +84,15 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ProductDetailScreen(navController: NavController, productId: String, viewModel: ProductViewModel= viewModel()) {
+fun ProductDetailScreen(
+    navController: NavController,
+    productId: String,
+    viewModel: ProductViewModel= viewModel(),
+) {
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
     }
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
@@ -385,12 +392,32 @@ fun ProductDetailScreen(navController: NavController, productId: String, viewMod
                                     MyButton(
                                         text = "Thêm vào giỏ",
                                         onClick = {
-                                            coroutineScope.launch {
-                                                Log.d("SnackbarDebug", "Snackbar gọi showSnackbar()")
-                                                snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
-                                                Log.d("SnackbarDebug", "Snackbar hiển thị")
+                                            Log.d("ProductDetailScreen", "productId: " + productId)
+                                            product?.let { product ->
+                                                Log.d("ProductDetailScreen", "product.id: " + product.id)
+                                                viewModel.addProductToCart(
+                                                    productId = product.id,
+                                                    variantId = "",
+                                                    quantity = 1,
+                                                    context = context,
+                                                    onSuccess = {
+                                                        coroutineScope.launch {
+                                                            snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
+                                                        }
+                                                    },
+                                                    onError = {
+                                                        coroutineScope.launch {
+                                                            snackbarHostState.showSnackbar("Thêm sản phẩm vào giỏ hàng thất bại.")
+                                                        }
+                                                    }
+                                                )
                                             }
-                                            Log.d("SnackbarDebug", "ProductDetailUI: Add to cart ok")
+//                                            coroutineScope.launch {
+//                                                Log.d("SnackbarDebug", "Snackbar gọi showSnackbar()")
+//                                                snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
+//                                                Log.d("SnackbarDebug", "Snackbar hiển thị")
+//                                            }
+//                                            Log.d("SnackbarDebug", "ProductDetailUI: Add to cart ok")
                                         },
                                         modifier = Modifier.weight(1f),
                                         backgroundColor = Color.Black,
