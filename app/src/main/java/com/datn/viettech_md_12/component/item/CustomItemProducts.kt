@@ -119,7 +119,7 @@ fun CustomItemProductsBase(
 //                            }
                             Text(
                                 name ?: "",
-//                                    color = Color.Black,
+                                    color = Color.Black,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,

@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.remote.ApiClient
 import kotlinx.coroutines.launch
+import java.net.UnknownHostException
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val userRepository = ApiClient.userRepository
@@ -72,24 +73,27 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 Log.d("dcm_debug_request", "SignIn Request: username=${request.username}, password=${request.password}")
                 val response = userRepository.signIn(request)
-                // Log toàn bộ response
+
+                // Log thông tin response
                 Log.d("dcm_debug_response", "Response Code: ${response.code()}")
                 Log.d("dcm_debug_response", "Response Body: ${response.body()}")
                 Log.d("dcm_debug_response", "Error Body: ${response.errorBody()?.string()}")
+
                 if (response.isSuccessful) {
                     response.body()?.let { body ->
-                        val token = response.body()?.result?.metadata?.tokens?.accessToken
-                        val userId = response.body()?.result?.metadata?.account?._id
+                        val token = body.result?.metadata?.tokens?.accessToken
+                        val userId = body.result?.metadata?.account?._id
+
                         Log.d("dcm_debug_signin", "Token nhận được: $token")
                         Log.d("dcm_id", "UserId nhận được: $userId")
 
-                        if (token != null) {
-                            Log.d("dcm_success_signin", "Đăng nhập thành công: Token: $token")
-                            val sharedPreferences =
-                                context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                        if (!token.isNullOrEmpty()) {
+                            Log.d("dcm_success_signin", "Đăng nhập thành công!")
+
+                            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
-                                .putString("clientId", userId)  // Lưu userId
+                                .putString("clientId", userId)
                                 .apply()
 
                             // Kiểm tra lại token sau khi lưu
@@ -98,26 +102,35 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
                             onSuccess()
                         } else {
-                            onError("Token không tồn tại")
+                            onError("Lỗi hệ thống: Không nhận được token từ server!")
                         }
                     }
                 } else {
                     val errorBody = response.errorBody()?.string() ?: "Lỗi không xác định"
-                    val errorMessage = "Lỗi: ${response.code()} - $errorBody"
-                    Log.e("dcm_error_login", errorMessage)
+                    Log.e("dcm_error_login", "Lỗi đăng nhập: ${response.code()} - $errorBody")
 
-                    // Xử lý lỗi đăng nhập tùy theo response từ server
-                    if (response.code() == 401 && errorBody.contains("Invalid credentials")) {
-                        onError("Sai tên đăng nhập hoặc mật khẩu!")
-                    } else {
-                        onError(errorMessage)
+                    // Xử lý lỗi tùy vào mã phản hồi từ server
+                    when {
+                        response.code() == 401 && errorBody.contains("Invalid credentials") -> {
+                            onError("Sai tên đăng nhập hoặc mật khẩu!")
+                        }
+                        response.code() == 500 -> {
+                            onError("Lỗi máy chủ! Vui lòng thử lại sau.")
+                        }
+                        else -> {
+                            onError("Đăng nhập thất bại")
+                        }
                     }
                 }
-
+            } catch (e: UnknownHostException) {
+                // Lỗi mất mạng, không kết nối được đến server
+                Log.e("dcm_error_login", "Không có kết nối mạng: ${e.message}")
+                onError("Kiểm tra kết nối mạng và thử lại!")
             } catch (e: Exception) {
-                Log.e("dcm_error_login", "Exception: ${e.message}")
+                Log.e("dcm_error_login", "Lỗi ngoại lệ: ${e.message}")
                 onError("Đã xảy ra lỗi: ${e.message}")
             }
         }
     }
+
 }

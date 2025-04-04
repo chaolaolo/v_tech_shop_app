@@ -3,6 +3,7 @@ package com.datn.viettech_md_12.screen.authentication
 import LoginRequest
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -51,6 +52,8 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
+import android.content.SharedPreferences
+
 class LoginScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +62,13 @@ class LoginScreen : ComponentActivity() {
         setContent {
             LoginUser(userViewModel)
         }
+    }
+}
+fun saveLoginState(context: Context, isLoggedIn: Boolean) {
+    val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+    with(sharedPreferences.edit()) {
+        putBoolean("IS_LOGGED_IN", isLoggedIn)
+        apply()
     }
 }
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -189,6 +199,8 @@ fun LoginUser(userViewModel: UserViewModel) {
                         val intent = Intent(context, MainActivity::class.java).apply {
                             putExtra("isLoggedIn", true)
                         }
+                        saveLoginState(context, true)
+
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong kh được back lại màn này
                         context.startActivity(intent)
                     },
