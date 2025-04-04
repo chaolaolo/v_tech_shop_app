@@ -78,7 +78,12 @@ fun ProductListScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 items(products, key = { it.id }) { product ->
-                    CustomItemProductsByCate(productByCateModel = product)
+                    CustomItemProductsByCate(
+                        productByCateModel = product,
+                        onClick = {
+                            navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
+                        }
+                    )
                 }
             }
         }

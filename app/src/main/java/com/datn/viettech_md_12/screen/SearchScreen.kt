@@ -144,7 +144,10 @@ fun SearchScreen(
                         CustomItemProducts(
                             product = product,
                             context = context,
-                            viewModel = productViewModel
+                            viewModel = productViewModel,
+                            onClick = {
+                                navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
+                            }
                         )
                     }
                 }

@@ -24,13 +24,16 @@ import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 @Composable
-fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, context: Context) {
-    CustomItemProductsBase(product = product, viewModel = viewModel, context = context)
+fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, context: Context,  onClick: () -> Unit) {
+    CustomItemProductsBase(product = product, viewModel = viewModel, context = context, onClick = onClick)
 }
 
 @Composable
-fun CustomItemProductsByCate(productByCateModel: ProductByCateModel) {
-    CustomItemProductsBase(productByCateModel = productByCateModel)
+fun CustomItemProductsByCate(productByCateModel: ProductByCateModel,  onClick: () -> Unit) {
+    CustomItemProductsBase(
+        productByCateModel = productByCateModel,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -38,7 +41,8 @@ fun CustomItemProductsBase(
     product: ProductModel? = null,
     productByCateModel: ProductByCateModel? = null,
     viewModel: ProductViewModel? = null,
-    context: Context? = null
+    context: Context? = null,
+    onClick: () -> Unit,
 ) {
     val imageUrl = product?.productThumbnail ?: productByCateModel?.productThumbnail
     val name = product?.productName ?: productByCateModel?.productName
@@ -65,7 +69,9 @@ fun CustomItemProductsBase(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .clickable {onClick()}) {
             Column(
                 modifier = Modifier.padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
