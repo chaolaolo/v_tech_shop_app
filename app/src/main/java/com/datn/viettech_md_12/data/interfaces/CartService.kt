@@ -4,6 +4,7 @@ import com.datn.viettech_md_12.data.model.AddToCartRequest
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
+import com.datn.viettech_md_12.data.model.UpdateIsSelectedRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -49,6 +50,18 @@ interface CartService {
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String,
         @Body request: UpdateCartRequest,
+    ): Response<CartModel>
+
+    // Update isSelected for cart item
+    @Headers(
+        "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683",
+        "Content-Type: application/json"
+    )
+    @POST("cart/update-is-selected")
+    suspend fun updateIsSelected(
+        @Header("authorization") token: String,
+        @Header("x-client-id") userId: String,
+        @Body request: UpdateIsSelectedRequest // Use the new request model for updating isSelected
     ): Response<CartModel>
 
     //Delete cart item

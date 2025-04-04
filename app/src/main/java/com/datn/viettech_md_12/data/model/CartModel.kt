@@ -32,9 +32,9 @@ data class Metadata(
         @SerializedName("price") val price: Double,
         @SerializedName("image") val image: String,
         @SerializedName("quantity") val quantity: Int,
-        @SerializedName("isSelected") val isSelected: Boolean,
+        @SerializedName("isSelected") var isSelected: Boolean,
         @SerializedName("detailsVariantId") val detailsVariantId: String?,
-        @SerializedName("variant") val variant: ProductVariant,
+        @SerializedName("variant") val variant: ProductVariant?,
     )
 
     data class ProductVariant(
@@ -80,3 +80,10 @@ data class UpdateCartRequest(
         @SerializedName("quantity") val quantity: Int,
     )
 }
+
+data class UpdateIsSelectedRequest(
+    @SerializedName("userId") val userId: String,
+    @SerializedName("productId") val productId: String,
+    @SerializedName("detailsVariantId") val detailsVariantId: String?,
+    @SerializedName("isSelected") val isSelected: Boolean,
+)

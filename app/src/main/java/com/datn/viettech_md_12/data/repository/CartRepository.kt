@@ -5,6 +5,7 @@ import com.datn.viettech_md_12.data.model.AddToCartRequest
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
+import com.datn.viettech_md_12.data.model.UpdateIsSelectedRequest
 import com.datn.viettech_md_12.data.remote.ApiClient
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody
@@ -68,6 +69,27 @@ class CartRepository(
         return ApiClient.cartService.updateCart(
             token = token,
             clientId = userId,
+            request = request
+        )
+    }
+
+    // Update isSelected status for cart item
+    suspend fun updateIsSelected(
+        token: String,
+        userId: String,
+        productId: String,
+        detailsVariantId: String?,
+        isSelected: Boolean
+    ): Response<CartModel> {
+        val request = UpdateIsSelectedRequest(
+            userId = userId,
+            productId = productId,
+            isSelected = isSelected,
+            detailsVariantId = if (detailsVariantId.isNullOrBlank()) null else detailsVariantId,
+        )
+        return cartService.updateIsSelected(
+            token = token,
+            userId = userId,
             request = request
         )
     }

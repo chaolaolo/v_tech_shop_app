@@ -7,10 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.CartModel
-import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
-import com.datn.viettech_md_12.data.model.UpdateCartRequest
 import com.datn.viettech_md_12.data.remote.ApiClient
-import com.datn.viettech_md_12.data.remote.ApiClient.cartService
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +26,9 @@ class CartViewModel(application: Application) : ViewModel() {
 
     private val _updateCartState = MutableStateFlow<Response<CartModel>?>(null)
     val updateCartState: StateFlow<Response<CartModel>?> get() = _updateCartState
+
+    private val _updateIsSelectedState = MutableStateFlow<Response<CartModel>?>(null)
+    val updateIsSelectedState: StateFlow<Response<CartModel>?> get() = _updateIsSelectedState
 
     private val _deleteCartItemState = MutableStateFlow<Response<Unit>?>(null)
     val deleteCartItemState: StateFlow<Response<Unit>?> get() = _deleteCartItemState
@@ -115,6 +115,81 @@ class CartViewModel(application: Application) : ViewModel() {
             val updatedProducts = cart.metadata.cart_products.map { product ->
                 if (product.productId == productId) {
                     product.copy(quantity = newQuantity)
+                } else {
+                    product
+                }
+            }
+            val updatedCart = cart.copy(
+                metadata = cart.metadata.copy(
+                    cart_products = updatedProducts
+                )
+            )
+            _cartState.value = Response.success(updatedCart)
+        }
+    }
+
+    // Update isSelected status for cart item
+    fun updateIsSelected(
+        productId: String,
+        detailsVariantId: String?,
+        isSelected: Boolean,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = cartRepository.updateIsSelected(
+                    token = token ?: "",
+                    userId = userId ?: "",
+                    productId = productId,
+                    detailsVariantId = detailsVariantId?:"",
+                    isSelected = isSelected
+                )
+
+
+                if (response.isSuccessful) {
+                    // Update the local cart state with the new isSelected value
+                    _updateIsSelectedState.value = response
+                    updateLocalCartItemSelection(productId, detailsVariantId, isSelected)
+//                    fetchCart()
+                    onSuccess()
+                    Log.d("CartViewModel", "Update isSelected success")
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                    Log.e("CartViewModel", "Update isSelected failed: $errorMsg")
+                    onError(errorMsg)
+                }
+            } catch (e: UnknownHostException) {
+                val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: SocketTimeoutException) {
+                val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: HttpException) {
+                val errorMsg = "Lỗi HTTP: ${e.message()}"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: JsonSyntaxException) {
+                val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "Lỗi không xác định"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            }
+        }
+    }
+
+    // Helper method to update the local cart state with new isSelected value
+    private fun updateLocalCartItemSelection(productId: String, variantId: String?, isSelected: Boolean) {
+        val currentCart = _cartState.value?.body()
+        currentCart?.let { cart ->
+            val updatedProducts = cart.metadata.cart_products.map { product ->
+                if (product.productId == productId && (variantId == null || product.detailsVariantId == variantId)) {
+                    product.copy(isSelected = isSelected)
                 } else {
                     product
                 }

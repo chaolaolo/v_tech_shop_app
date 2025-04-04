@@ -73,6 +73,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -257,9 +258,10 @@ fun CartContent(
             items(cartProducts, key =  {it.detailsVariantId ?: it.productId}) { item ->
                 val itemKey = item.detailsVariantId ?: item.productId
                 CartItemTile(
-                    item,
-                    selectedItems.contains(itemKey),
+                    product = item,
+                    isSelected = item.isSelected,
                     onSelectionChange = { selected ->
+//                        item.isSelected = selected
                         if (selected) {
                             if (!selectedItems.contains(itemKey)) {
                                 selectedItems.add(itemKey)
@@ -341,6 +343,7 @@ fun CartItemTile(
     }
     Log.d("lol", "Loading image from URL: $imageUrl")
 
+    var localIsSelected by remember { mutableStateOf(isSelected) }
 
     Box(
         modifier = Modifier
@@ -423,8 +426,8 @@ fun CartItemTile(
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
+                Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 1.sp)
                 Text("VND ${product.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
-                Text("VND ${product.price}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
                 Row(
                     modifier = Modifier
                         .border(
@@ -478,7 +481,24 @@ fun CartItemTile(
             ) {
                 Checkbox(
                     checked = isSelected,
-                    onCheckedChange = { onSelectionChange(it) },
+                    onCheckedChange = { isChecked ->
+                        onSelectionChange(isChecked)
+                        cartViewModel.updateIsSelected(
+                            productId = product.productId,
+                            detailsVariantId = product.detailsVariantId,
+                            isSelected = isChecked,
+                            onSuccess = {
+                                onSelectionChange(isChecked)
+                                // Update local UI state via callback
+                                Log.d("CartItemTile", "Updated selection status: $isChecked for product: ${product.productId}")
+                            },
+                            onError = { error ->
+                                onSelectionChange(!isChecked)
+                                Log.e("CartItemTile", "Failed to update selection: $error")
+                                // You could show an error message here if needed
+                            }
+                        )
+                    },
                     colors = CheckboxDefaults.colors(
                         checkedColor = Color(0xFF21D4B4),
                         uncheckedColor = Color.Gray,
