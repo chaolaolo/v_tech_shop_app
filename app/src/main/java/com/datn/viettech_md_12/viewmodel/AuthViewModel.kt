@@ -21,26 +21,29 @@ class ForgotPasswordViewModel() : ViewModel() {
     var message by mutableStateOf("")
     var isLoading by mutableStateOf(false)
 
-    fun sendEmailForOtp(onSuccess: (String) -> Unit) {
+    fun sendEmailForOtp(
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             isLoading = true
             try {
                 val response = repository.sendEmail(email)
                 if (response.isSuccessful) {
-                    message = response.body()?.message ?: "Thành công"
-                    onSuccess(message) // Gửi message từ ViewModel
+                    val message = response.body()?.message ?: "Thành công"
+                    onSuccess(message)
                 } else {
-                    message = "Lỗi gửi email"
-                    onSuccess(message) // Gửi message từ ViewModel
+                    val errorMessage = response.errorBody()?.string() ?: "Lỗi gửi email"
+                    onError(errorMessage)
                 }
             } catch (e: Exception) {
-                message = "Lỗi: ${e.localizedMessage}"
-                onSuccess(message) // Gửi message từ ViewModel
+                onError("Lỗi: ${e.localizedMessage}")
             } finally {
                 isLoading = false
             }
         }
     }
+
 
     fun resetPassword(onSuccess: (String) -> Unit) {
         // Kiểm tra mật khẩu và mật khẩu xác nhận

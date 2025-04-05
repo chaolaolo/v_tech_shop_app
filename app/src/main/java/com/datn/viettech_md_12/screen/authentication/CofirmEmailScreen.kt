@@ -84,6 +84,7 @@ class ConfirmEmailScreen : ComponentActivity() {
 fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
+    var showNotFoundDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier
@@ -170,6 +171,10 @@ fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
                                 }
                                 context.startActivity(intent)
                             },
+                            onError = {
+                                showDialog = false
+                                showNotFoundDialog = true
+                            }
                         )
                     },
                     backgroundColor = Color.Black,
@@ -180,6 +185,19 @@ fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
     }
 
     LoadingDialog(showDialog = showDialog)
+    if (showNotFoundDialog) {
+        NotFoundDialog(
+            onDismiss = { showNotFoundDialog = false },
+            onCreateAccount = {
+                showNotFoundDialog = false
+                val intent = Intent(context, RegisterScreen::class.java)
+                context.startActivity(intent)
+            },
+            onTryAgain = {
+                showNotFoundDialog = false
+            }
+        )
+    }
 }
 
 @Composable
@@ -195,7 +213,7 @@ fun LoadingDialog(
                 elevation = CardDefaults.cardElevation(8.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(300.dp)
                     .padding(16.dp)
             ) {
                 Column(
@@ -231,6 +249,52 @@ fun LoadingDialog(
         }
     }
 }
+@Composable
+fun NotFoundDialog(
+    onDismiss: () -> Unit,
+    onCreateAccount: () -> Unit,
+    onTryAgain: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            modifier = Modifier.width(300.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = "Chúng tôi không tìm thấy tài khoản của bạn.",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Hãy kiểm tra tên người dùng hoặc email của bạn rồi thử lại.",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onCreateAccount) {
+                        Text("Tạo tài khoản mới")
+                    }
+                    TextButton(onClick = onTryAgain) {
+                        Text("Thử lại")
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Preview(showSystemUi = true)
 @Composable
