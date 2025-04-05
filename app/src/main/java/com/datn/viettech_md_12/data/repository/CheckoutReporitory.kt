@@ -2,7 +2,9 @@ package com.datn.viettech_md_12.data.repository
 
 import com.datn.viettech_md_12.data.interfaces.CheckoutService
 import com.datn.viettech_md_12.data.model.AddressModel
+import com.datn.viettech_md_12.data.model.BillResponse
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.CheckoutModel
 import com.datn.viettech_md_12.data.model.UpdateAddressRequest
 import com.datn.viettech_md_12.data.remote.ApiClient.cartService
 import retrofit2.Response
@@ -46,4 +48,19 @@ class CheckoutReporitory(
             userIdQuery = userIdQuery
         )
     }
+
+    //checkout
+    suspend fun checkout(
+        token: String,
+        clientId: String,
+        request: CheckoutModel,
+    ): Response<BillResponse> {
+        return checkoutService.checkout(
+            token = token,
+            clientId = clientId,
+            request = request
+        )
+
+    }
+
 }

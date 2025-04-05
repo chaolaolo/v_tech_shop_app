@@ -3,6 +3,8 @@ package com.datn.viettech_md_12.screen.checkout
 import MyButton
 import android.annotation.SuppressLint
 import android.app.Application
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -72,6 +74,12 @@ import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 
+data class PaymentMethod(
+    val displayName: String,
+    val imageRes: Int,
+    val apiValue: String,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -80,7 +88,7 @@ fun PaymentUI(
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
-
+    val context = LocalContext.current
     val checkoutState by checkoutViewModel.addressState.collectAsState()
     val isLoading by checkoutViewModel.isLoading.collectAsState()
     val selectedCartItems by checkoutViewModel.selectedCartItems.collectAsState()
@@ -91,8 +99,12 @@ fun PaymentUI(
     }
 
     val payOptions =
-        listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
-    var selectedPayOption by remember { mutableStateOf(payOptions[0].first) }
+//        listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
+        listOf(
+            PaymentMethod("Thanh toán khi nhận hàng", R.drawable.codpay_img, "tm"),
+            PaymentMethod("Thanh toán VNPay", R.drawable.vnpay_img, "ck")
+        )
+    var selectedPayOption by remember { mutableStateOf(payOptions[0]) }
 
     // Tính tổng giá trị đơn hàng
     val subtotal = remember(selectedCartItems) {
@@ -234,10 +246,10 @@ fun PaymentUI(
                     fontWeight = FontWeight.W500,
                     lineHeight = 15.sp
                 )
-                payOptions.forEach { (method, imageRes) ->
+                payOptions.forEach { method ->
                     PayMethodItem(
-                        text = method,
-                        imageRes = imageRes,
+                        text = method.displayName,
+                        imageRes = method.imageRes,
                         selected = (method == selectedPayOption),
                         onSelected = { selectedPayOption = method },
                     )
@@ -382,7 +394,25 @@ fun PaymentUI(
                 MyButton(
                     text = "Đặt hàng",
                     onClick = {
-                        navController.navigate("order_successfully")
+                        val addressData = checkoutState?.body()?.data
+                        val address = addressData?.address ?: ""
+                        val phone = addressData?.phone ?: ""
+                        val name = addressData?.full_name ?: ""
+                        Log.d("PaymentUI", "address: $address, phone: $phone, name:$name ")
+                        if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
+                            checkoutViewModel.checkout(
+                                address = address,
+                                phone_number = phone,
+                                receiver_name = name,
+                                payment_method = selectedPayOption.apiValue
+                            )
+                            Log.d("PaymentUI", "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}")
+                            navController.navigate("order_successfully")
+                        } else {
+                            Toast.makeText(
+                                context, "Vui lòng cung cấp đầy đủ thông tin!", Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     },
                     modifier = Modifier.padding(top = 6.dp),
                     backgroundColor = Color.Black,

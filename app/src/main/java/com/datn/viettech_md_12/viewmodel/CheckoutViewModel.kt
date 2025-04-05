@@ -167,6 +167,54 @@ class CheckoutViewModel(application: Application) : ViewModel(){
         }
     }
 
+    //checkout
+    fun checkout(address: String, phone_number: String, receiver_name: String, payment_method: String) {
+        viewModelScope.launch {
+            Log.d("CartViewModel", "clientId: $userId")
+            _isLoading.value = true
+            try {
+                val request = CheckoutModel(
+                    userId = userId ?: "",
+                    address = address,
+                    phone_number = phone_number,
+                    receiver_name = receiver_name,
+                    payment_method = payment_method
+                )
+                val response = checkoutRepository.checkout(
+                    token = token ?: "",
+                    clientId = userId ?: "",
+                    request = request,
+                )
+
+                Log.d("CartViewModel", "request: $request")
+                if (response.isSuccessful) {
+                    Log.d("CartViewModel", "Checkout Success - Raw: ${response.raw()}")
+                    Log.d("CartViewModel", "Checkout Success - Body: ${response.body()}")
+                    Log.d("CartViewModel", "Checkout Success - Headers: ${response.headers()}")
+                } else {
+                    Log.e("CartViewModel", "Checkout Failed: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: UnknownHostException) {
+                val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
+                Log.e("CartViewModel", errorMsg, e)
+            } catch (e: SocketTimeoutException) {
+                val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
+                Log.e("CartViewModel", errorMsg, e)
+            } catch (e: HttpException) {
+                val errorMsg = "Lỗi HTTP: ${e.message()}"
+                Log.e("CartViewModel", errorMsg, e)
+            } catch (e: JsonSyntaxException) {
+                val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
+                Log.e("CartViewModel", errorMsg, e)
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "Lỗi không xác định"
+                Log.e("CartViewModel", errorMsg, e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 }
 
 

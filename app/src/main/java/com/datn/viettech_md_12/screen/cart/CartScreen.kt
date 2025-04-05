@@ -86,6 +86,7 @@ import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.screen.checkout.formatCurrency
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import kotlinx.coroutines.launch
@@ -278,6 +279,13 @@ fun CartContent(
 @Composable
 fun OrderSummary(navController: NavController, selectedItems: List<CartModel.Metadata.CartProduct>) {
     val subtotal = selectedItems.filter { it.isSelected }.sumOf { it.price * it.quantity }
+    val shippingFee = remember(selectedItems) {
+        if (selectedItems.any { it.isSelected }) 35000.0 else 0.0
+    }
+    val discount = remember { 0.0 }
+    val total = remember(subtotal, shippingFee, discount) {
+        subtotal + shippingFee - discount
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,12 +298,12 @@ fun OrderSummary(navController: NavController, selectedItems: List<CartModel.Met
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Phí vận chuyển", fontSize = 12.sp, color = Color.Gray)
-            Text("VND 0.00", fontSize = 12.sp, color = Color.Gray)
+            Text("VND ${formatCurrency(shippingFee)}", fontSize = 12.sp, color = Color.Gray)
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 0.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng thanh toán", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
-            Text("VND ${"%.2f".format(subtotal)}", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
+            Text("VND ${formatCurrency(total)}", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
         }
         Spacer(Modifier.height(5.dp))
         MyButton(
@@ -556,6 +564,10 @@ fun EmptyCart() {
         )
     }
 }// end empty cart
+
+fun formatCurrency(amount: Double): String {
+    return "%,.0f".format(amount).replace(",", ".")
+}
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Preview(showSystemUi = true)
