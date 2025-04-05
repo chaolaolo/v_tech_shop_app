@@ -19,6 +19,7 @@ class CheckoutReporitory(
         )
     }
 
+    //Update Address
     suspend fun updateAddress(
         token: String,
         clientId: String,
@@ -30,6 +31,19 @@ class CheckoutReporitory(
             clientId = clientId,
             accountId = accountId,
             request = request
+        )
+    }
+
+    //Get checkout item by items selected in cart
+    suspend fun getIsSelectedItemInCart(
+        token: String,
+        userId: String,
+        userIdQuery: String,
+    ): Response<CartModel> {
+        return checkoutService.getIsSelectedItemInCart(
+            token = token,
+            userId = userId,
+            userIdQuery = userIdQuery
         )
     }
 }

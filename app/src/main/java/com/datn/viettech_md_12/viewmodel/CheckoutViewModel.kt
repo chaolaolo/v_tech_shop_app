@@ -25,6 +25,10 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     private val checkoutRepository = ApiClient.checkoutRepository
     private val _addressState = MutableStateFlow<Response<AddressModel>?>(null)
     val addressState: StateFlow<Response<AddressModel>?> get() = _addressState
+
+    private val _selectedCartItems = MutableStateFlow<List<CartModel.Metadata.CartProduct>?>(null)
+    val selectedCartItems: StateFlow<List<CartModel.Metadata.CartProduct>?> get() = _selectedCartItems
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -34,8 +38,10 @@ class CheckoutViewModel(application: Application) : ViewModel(){
 
     init {
         getAddress()
+        getIsSelectedItemInCart()
     }
 
+    //Get Address
     fun getAddress() {
         viewModelScope.launch {
             Log.d("CheckoutViewModel", "userId: $userId")
@@ -69,6 +75,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
         }
     }
 
+    //Update Address
     fun updateAddress(fullName: String, phone: String, address: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -118,6 +125,47 @@ class CheckoutViewModel(application: Application) : ViewModel(){
         }
     }
 
+    //Get checkout item by items selected in cart
+    fun getIsSelectedItemInCart() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = checkoutRepository.getIsSelectedItemInCart(
+                    token = token?:"",
+                    userId = userId?:"",
+                    userIdQuery = userId?:""
+                )
+                if (response.isSuccessful) {
+                    response.body()?.let {cartModel->
+                        val selectedItems = cartModel.metadata?.cart_products?.filter { it.isSelected == true } ?: emptyList()
+                        _selectedCartItems.value = selectedItems
+                        Log.d("dm", "Fetch Cart Success: ${selectedItems.size}")
+                    }
+                } else {
+                    Log.e("dm", "Fetch Cart Failed: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: UnknownHostException) {
+                Log.e("dm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
+            } catch (e: SocketTimeoutException) {
+                Log.e("dm_error", "Lỗi mạng: Đã hết thời gian chờ")
+            } catch (e: HttpException) {
+                Log.e("dm_error", "Lỗi HTTP: ${e.message()}")
+            } catch (e: JsonSyntaxException) {
+                Log.e("dm_error", "Lỗi dữ liệu: Invalid JSON response")
+            } catch (e: Exception) {
+                Log.e("dm_error", "Lỗi chung: ${e.message}", e)
+            } finally {
+                _isLoading.value = false // Kết thúc trạng thái loading
+            }
+        }
+    }
+
+    // refreshSelectedItems
+    fun refreshSelectedItems() {
+        viewModelScope.launch {
+            getIsSelectedItemInCart()
+        }
+    }
 
 }
 

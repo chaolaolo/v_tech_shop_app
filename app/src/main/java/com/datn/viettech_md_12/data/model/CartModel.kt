@@ -17,37 +17,38 @@ data class CartModel(
     @SerializedName("message") val message: String,
     @SerializedName("statusCode") val statusCode: Int,
     @SerializedName("metadata") val metadata: Metadata
-)
-
-data class Metadata(
-    @SerializedName("_id") val _id: String,
-    @SerializedName("cart_state") val cart_state: String,
-    @SerializedName("cart_products") val cart_products: List<CartProduct>,
-    @SerializedName("cart_count_product") val cart_count_product: Int,
-    @SerializedName("cart_userId") val cart_userId: String,
 ) {
-    data class CartProduct(
-        @SerializedName("productId") val productId: String,
-        @SerializedName("name") val name: String,
-        @SerializedName("price") val price: Double,
-        @SerializedName("image") val image: String,
-        @SerializedName("quantity") val quantity: Int,
-        @SerializedName("isSelected") var isSelected: Boolean,
-        @SerializedName("detailsVariantId") val detailsVariantId: String?,
-        @SerializedName("variant") val variant: ProductVariant?,
-    )
 
-    data class ProductVariant(
-        @SerializedName("variantId") val variantId: String,
-        @SerializedName("sku") val sku: String,
-        @SerializedName("values") val values: List<VariantValue>,
-    )
-
-    data class VariantValue(
-        @SerializedName("variantId") val variantId: String,
-        @SerializedName("value") val value: String,
+    data class Metadata(
         @SerializedName("_id") val _id: String,
-    )
+        @SerializedName("cart_state") val cart_state: String,
+        @SerializedName("cart_products") val cart_products: List<CartProduct>,
+        @SerializedName("cart_count_product") val cart_count_product: Int,
+        @SerializedName("cart_userId") val cart_userId: String,
+    ) {
+        data class CartProduct(
+            @SerializedName("productId") val productId: String,
+            @SerializedName("name") val name: String,
+            @SerializedName("price") val price: Double,
+            @SerializedName("image") val image: String,
+            @SerializedName("quantity") val quantity: Int,
+            @SerializedName("isSelected") var isSelected: Boolean,
+            @SerializedName("detailsVariantId") val detailsVariantId: String?,
+            @SerializedName("variant") val variant: ProductVariant?,
+        )
+
+        data class ProductVariant(
+            @SerializedName("variantId") val variantId: String,
+            @SerializedName("sku") val sku: String,
+            @SerializedName("values") val values: List<VariantValue>,
+        )
+
+        data class VariantValue(
+            @SerializedName("variantId") val variantId: String,
+            @SerializedName("value") val value: String,
+            @SerializedName("_id") val _id: String,
+        )
+    }
 }
 
 data class AddToCartRequest(

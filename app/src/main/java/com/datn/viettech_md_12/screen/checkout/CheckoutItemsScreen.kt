@@ -31,7 +31,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
 import com.datn.viettech_md_12.data.model.CartMode
-import com.datn.viettech_md_12.data.model.CartModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -112,21 +111,21 @@ fun CheckoutReviewItemsScreen(navController: NavController) {
                     .padding(horizontal = 10.dp)
             ) {
                 items(checkoutItems) { item ->
-                    CheckoutItemTile(
-                        item = item,
-                        onQuantityChange = { id, newQuantity ->
-                            val index = checkoutItems.indexOfFirst { it.id == id }
-                            if (index != -1) {
-                                checkoutItems[index] = checkoutItems[index].copy(
-                                    quantity = newQuantity,
-                                )
-                            }
-
-                        },
-                        onDelete = { id ->
-                            checkoutItems.removeAll() { it.id == id }
-                        }
-                    )
+//                    CheckoutItemTile(
+//                        product = item,
+//                        onQuantityChange = { id, newQuantity ->
+//                            val index = checkoutItems.indexOfFirst { it.id == id }
+//                            if (index != -1) {
+//                                checkoutItems[index] = checkoutItems[index].copy(
+//                                    quantity = newQuantity,
+//                                )
+//                            }
+//
+//                        },
+//                        onDelete = { id ->
+//                            checkoutItems.removeAll() { it.id == id }
+//                        }
+//                    )
                 }
             }
         }

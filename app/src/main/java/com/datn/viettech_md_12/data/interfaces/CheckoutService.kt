@@ -36,4 +36,15 @@ interface CheckoutService {
         @Body request: UpdateAddressRequest,
     ): Response<AddressModel>
 
+    //Get checkout item by items selected in cart
+    @Headers(
+        "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683",
+    )
+    @GET("cart/")
+    suspend fun getIsSelectedItemInCart(
+        @Header("authorization") token: String,
+        @Header("x-client-id") userId: String,
+        @Query("userId") userIdQuery: String
+    ): Response<CartModel>
+
 }

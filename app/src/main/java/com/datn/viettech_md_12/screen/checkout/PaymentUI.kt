@@ -3,7 +3,6 @@ package com.datn.viettech_md_12.screen.checkout
 import MyButton
 import android.annotation.SuppressLint
 import android.app.Application
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,19 +16,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -69,6 +67,8 @@ import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
 import com.datn.viettech_md_12.data.model.CartMode
+import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 
@@ -78,88 +78,41 @@ import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 fun PaymentUI(
     navController: NavController,
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
+    cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
 
     val checkoutState by checkoutViewModel.addressState.collectAsState()
     val isLoading by checkoutViewModel.isLoading.collectAsState()
+    val selectedCartItems by checkoutViewModel.selectedCartItems.collectAsState()
 
     LaunchedEffect(Unit) {
         checkoutViewModel.getAddress()
+        checkoutViewModel.getIsSelectedItemInCart()
     }
 
     val payOptions =
         listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
     var selectedPayOption by remember { mutableStateOf(payOptions[0].first) }
 
-    val checkoutItems = remember {
-        mutableStateListOf(
-            CartMode(
-                1,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                2,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartMode(
-                3,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                4,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-//            CartMode(
-//                5,
-//                "Loop Silicone Strong Magnetic Watch",
-//                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-//                15.25,
-//                20.00,
-//                1
-//            ),
-//            CartMode(
-//                6,
-//                "M6 Smart watch IP67 Waterproof",
-//                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-//                12.00,
-//                18.00,
-//                1
-//            ),
-//            CartMode(
-//                7,
-//                "Loop Silicone Strong Magnetic Watch",
-//                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-//                15.25,
-//                20.00,
-//                1
-//            ),
-//            CartMode(
-//                8,
-//                "M6 Smart watch IP67 Waterproof",
-//                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-//                12.00,
-//                18.00,
-//                1
-//            ),
-        )
+    // Tính tổng giá trị đơn hàng
+    val subtotal = remember(selectedCartItems) {
+        selectedCartItems?.sumOf { item ->
+            item.price * item.quantity
+        } ?: 0.0
     }
 
+// Phí vận chuyển cố định hoặc tính toán
+    val shippingFee = remember(selectedCartItems) {
+        if (selectedCartItems.isNullOrEmpty()) 0.0 else 35000.0
+    }
+
+// Giảm giá (nếu có)
+    val discount = remember { 0.0 }
+
+// Tổng thanh toán
+    val total = remember(subtotal, shippingFee, discount) {
+        subtotal + shippingFee - discount
+    }
 
     Scaffold(
         modifier = Modifier
@@ -178,7 +131,7 @@ fun PaymentUI(
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 modifier = Modifier.shadow(elevation = 2.dp),
@@ -208,7 +161,7 @@ fun PaymentUI(
                 Icon(
                     Icons.Outlined.LocationOn,
                     contentDescription = "icon địa chỉ",
-                    tint = Color.Black
+                    tint = Color.Red
                 )
                 Column(
                     modifier = Modifier
@@ -254,10 +207,10 @@ fun PaymentUI(
                     }
                 }
                 Icon(
-                    Icons.Default.ArrowForwardIos,
+                    Icons.AutoMirrored.Filled.ArrowForwardIos,
                     contentDescription = "icon xem địa chỉ",
                     tint = Color.Black,
-                    modifier = Modifier
+                    modifier = Modifier.size(20.dp)
                 )
             }
             Spacer(Modifier.height(1.dp))
@@ -305,22 +258,25 @@ fun PaymentUI(
 //                    .padding(horizontal = 16.dp)
                     .nestedScroll(rememberNestedScrollInteropConnection())
             ) {
-                items(checkoutItems) { item ->
-                    CheckoutItemTile(
-                        item = item,
-                        onQuantityChange = { id, newQuantity ->
-                            val index = checkoutItems.indexOfFirst { it.id == id }
-                            if (index != -1) {
-                                checkoutItems[index] = checkoutItems[index].copy(
-                                    quantity = newQuantity,
-                                )
-                            }
-
-                        },
-                        onDelete = { id ->
-                            checkoutItems.removeAll() { it.id == id }
+                if (selectedCartItems.isNullOrEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Không có sản phẩm nào được chọn")
                         }
+                    }
+                } else {
+                    items(selectedCartItems!!) { item ->
+                    CheckoutItemTile(
+                        product = item,
+                        cartViewModel = cartViewModel,
+                        checkoutViewModel = checkoutViewModel,
                     )
+                }
                 }
             }
             //Tóm tắt đơn hàng
@@ -329,12 +285,6 @@ fun PaymentUI(
                     .fillMaxHeight(1f)
                     .background(Color.Red)
             )
-//            Box(
-//                Modifier
-//                    .height(4.dp)
-//                    .fillMaxWidth()
-//                    .background(Color.LightGray)
-//            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -364,7 +314,7 @@ fun PaymentUI(
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "1.400.500 VND",
+                        "${formatCurrency(subtotal)} VND",
                         color = Color.Black,
                         fontSize = 14.sp,
                         lineHeight = 15.sp,
@@ -383,7 +333,7 @@ fun PaymentUI(
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "10.500 VND",
+                        "${formatCurrency(shippingFee)} VND",
                         color = Color(0xFFFF3333),
                         fontSize = 14.sp,
                         lineHeight = 15.sp,
@@ -402,7 +352,7 @@ fun PaymentUI(
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "- 89.000 VND",
+                        "- ${formatCurrency(discount)} VND",
                         color = Color(0xFFFF3333),
                         fontSize = 14.sp,
                         lineHeight = 15.sp,
@@ -416,13 +366,13 @@ fun PaymentUI(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "Tổng (${checkoutItems.size} mặt hàng)",
+                        "Tổng (${selectedCartItems?.size ?: 0} mặt hàng)",
                         color = Color.Black,
                         fontSize = 14.sp,
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "10 230 000 VND",
+                        "${formatCurrency(total)} VND",
                         color = Color.Black,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.W600,
@@ -437,12 +387,17 @@ fun PaymentUI(
                     modifier = Modifier.padding(top = 6.dp),
                     backgroundColor = Color.Black,
                     textColor = Color.White,
+                    enabled = selectedCartItems?.size != 0
                 )
                 Spacer(Modifier.height(4.dp))
             }
         }
     }
 //    }
+}
+
+fun formatCurrency(amount: Double): String {
+    return "%,.0f".format(amount).replace(",", ".")
 }
 
 @Composable

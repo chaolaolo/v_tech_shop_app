@@ -85,7 +85,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
-import com.datn.viettech_md_12.data.model.Metadata
+import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import kotlinx.coroutines.launch
@@ -231,7 +231,7 @@ fun CartScreen(
 @Composable
 fun CartContent(
     navController: NavController,
-    cartProducts: List<Metadata.CartProduct>,
+    cartProducts: List<CartModel.Metadata.CartProduct>,
     selectedItems: MutableList<String>,
     cartViewModel: CartViewModel,
 ) {
@@ -276,7 +276,7 @@ fun CartContent(
 }
 
 @Composable
-fun OrderSummary(navController: NavController, selectedItems: List<Metadata.CartProduct>) {
+fun OrderSummary(navController: NavController, selectedItems: List<CartModel.Metadata.CartProduct>) {
     val subtotal = selectedItems.filter { it.isSelected }.sumOf { it.price * it.quantity }
     Column(
         modifier = Modifier
@@ -310,7 +310,7 @@ fun OrderSummary(navController: NavController, selectedItems: List<Metadata.Cart
 
 @Composable
 fun CartItemTile(
-    product: Metadata.CartProduct,
+    product: CartModel.Metadata.CartProduct,
     isSelected: Boolean,
     onSelectionChange: (Boolean) -> Unit,
     onDelete: (String, String) -> Unit,

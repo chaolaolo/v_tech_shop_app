@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.component.checkout
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,43 +8,60 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import com.datn.viettech_md_12.data.model.CartMode
+import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun CheckoutItemTile(
-    item: CartMode,
-    onQuantityChange: (Int, Int) -> Unit,
-    onDelete: (Int) -> Unit,
+    product: CartModel.Metadata.CartProduct,
+    cartViewModel: CartViewModel,
+    checkoutViewModel: CheckoutViewModel,
 ) {
+    val imageUrl = if (product.image.startsWith("http")) {
+        product.image
+    } else {
+        "http://103.166.184.249:3056/${product.image.replace("\\", "/")}"
+    }
+    Log.d("lol", "Loading image from URL: $imageUrl")
+
+    val itemPrice = product.price
+    val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
+    val quantityState = remember { mutableStateOf(product.quantity) }
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -57,18 +75,21 @@ fun CheckoutItemTile(
             .padding(start = 16.dp, end = 16.dp, top = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(item.imageUrl),
+        AsyncImage(
+            model = imageUrl,
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
                 .background(Color.Transparent)
                 .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.ic_launcher_background),
+            error = painterResource(R.drawable.error_img),
+            onError = { Log.e("lol", "Failed to load image: $imageUrl") }
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(item.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
+            Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -76,8 +97,8 @@ fun CheckoutItemTile(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column() {
-                    Text("VND ${item.price}", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp)
-                    Text("VND ${item.originalPrice}", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
+                    Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
+                    Text("VND $itemPriceFormatted", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp)
                 }
                 Row(
                     modifier = Modifier
@@ -91,14 +112,39 @@ fun CheckoutItemTile(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
-                        onClick = { if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) },
+                        onClick = {
+//                            if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1)
+                            if (quantityState.value > 1) {
+                                quantityState.value -= 1
+                                coroutineScope.launch {
+                                    cartViewModel.updateProductQuantity(
+                                        productId = product.productId,
+                                        variantId = product.detailsVariantId ?: "",
+                                        newQuantity = quantityState.value,
+                                    )
+                                    // Sau khi cập nhật xong, refresh lại danh sách
+                                    checkoutViewModel.refreshSelectedItems()
+                                }
+                            }
+                        },
                         modifier = Modifier.size(16.dp)
                     ) {
                         Icon(Icons.Default.Remove, contentDescription = "Decrease")
                     }
-                    androidx.compose.material.Text("${item.quantity}", modifier = Modifier.padding(horizontal = 10.dp))
+                    androidx.compose.material.Text("${quantityState.value}", modifier = Modifier.padding(horizontal = 10.dp))
                     IconButton(
-                        onClick = { onQuantityChange(item.id, item.quantity + 1) },
+                        onClick = {
+//                            onQuantityChange(product.productId, product.quantity + 1)
+                            quantityState.value += 1
+                            coroutineScope.launch {
+                                cartViewModel.updateProductQuantity(
+                                    productId = product.productId,
+                                    variantId = product.detailsVariantId ?: "",
+                                    newQuantity = quantityState.value,
+                                )
+                                checkoutViewModel.refreshSelectedItems()
+                            }
+                        },
                         modifier = Modifier.size(16.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Increase")
@@ -115,14 +161,14 @@ fun CheckoutItemTile(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                "Số lượng ${item.quantity}, tổng cộng ",
+                "Số lượng ${quantityState.value}, tổng cộng ",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
                 lineHeight = 12.sp,
                 color = Color.Black
             )
             Text(
-                "${item.quantity * item.price} VND",
+                "${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(quantityState.value * itemPrice)} VND",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
                 lineHeight = 12.sp,
