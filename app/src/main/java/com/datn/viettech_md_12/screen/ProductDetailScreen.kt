@@ -2,7 +2,13 @@ package com.datn.viettech_md_12.screen
 
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Application
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
@@ -37,8 +44,11 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,6 +66,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,12 +94,17 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.data.model.Image
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -97,11 +113,13 @@ fun ProductDetailScreen(
     navController: NavController,
     productId: String,
     viewModel: ProductViewModel= viewModel(),
-    reviewViewModel: ReviewViewModel = viewModel()
-) {
+    reviewViewModel: ReviewViewModel = viewModel(
+        factory = ReviewViewModelFactory(application = LocalContext.current.applicationContext as Application)),
+    ) {
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
         reviewViewModel.getReviewsByProduct(productId)
+        reviewViewModel.getReviewStats(productId)
     }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -114,7 +132,10 @@ fun ProductDetailScreen(
     var showMoreVisible by remember { mutableStateOf(false) }
     val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
     val reviews by reviewViewModel.reviews.collectAsState()
+    val reviewStats by reviewViewModel.reviewStats.collectAsState()
+
     var showDialog by remember { mutableStateOf(false) }
+    var showAddReviewDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
@@ -289,11 +310,25 @@ fun ProductDetailScreen(
                                         contentDescription = "Star",
                                         tint = Color(0xFFFFD700)
                                     )
-                                    Text(
-                                        text = "4.5 (2,495 reviews)",
-                                        fontSize = 12.sp,
-                                        color = Color.Black
-                                    )
+
+                                    // Kiểm tra xem reviewStats có dữ liệu hay không
+                                    if (reviewStats != null) {
+                                        val totalReviews = reviewStats?.getOrNull()?.totalReviews ?: 0
+                                        val averageRating = reviewStats?.getOrNull()?.averageRating ?: 0f
+
+                                        Text(
+                                            text = "${averageRating} (${totalReviews} reviews)",
+                                            fontSize = 12.sp,
+                                            color = Color.Black
+                                        )
+                                    } else {
+                                        // Hiển thị thông báo hoặc xử lý khi không có dữ liệu
+                                        Text(
+                                            text = "Đang tải dữ liệu đánh giá...",
+                                            fontSize = 12.sp,
+                                            color = Color.Gray
+                                        )
+                                    }
                                 }
                                 // Description
                                 Spacer(Modifier.height(4.dp))
@@ -437,6 +472,20 @@ fun ProductDetailScreen(
                                         textColor = Color.White,
                                         vectorIcon = Icons.Default.AddShoppingCart
                                     )
+                                }
+                                //add review
+                                if (showAddReviewDialog) {
+                                    AddReviewDialog(
+                                        productId = productId,
+                                        reviewViewModel = reviewViewModel,
+                                        onDismiss = { showAddReviewDialog = false }
+                                    )
+                                }
+
+                                Button(onClick = { showAddReviewDialog = true }) {
+                                    Icon(Icons.Default.RateReview, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Thêm đánh giá")
                                 }
                                 // review màn
                                 if (reviews.isEmpty()) {
@@ -641,4 +690,230 @@ fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
             }
         }
     }
+}
+@Composable
+fun AddReviewDialog(
+    productId: String,
+    reviewViewModel: ReviewViewModel,
+    onDismiss: () -> Unit
+) {
+    var rating by remember { mutableStateOf(0) }
+    var content by remember { mutableStateOf("") }
+    val imageUris = remember { mutableStateListOf<Uri>() }
+    val showConfirmDialog = remember { mutableStateOf(false) } // Điều khiển hiển thị dialog xác nhận
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val imageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        imageUris.clear()
+        imageUris.addAll(uris)
+    }
+
+    // Dialog xác nhận
+    if (showConfirmDialog.value) {
+        ConfirmDialog(
+            onConfirm = {
+                scope.launch {
+                    // Convert Uri to MultipartBody.Part
+                    val imageList = mutableListOf<MultipartBody.Part>()
+                    if (imageUris.isEmpty()) {
+                        Toast.makeText(context, "Vui lòng chọn ít nhất 1 ảnh", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+
+                    for (uri in imageUris) {
+                        val part = uriToMultipart(context, uri)
+                        if (part != null) {
+                            imageList.add(part)
+                        }
+                    }
+
+                    // Upload multiple images at once
+                    reviewViewModel.uploadImages(imageList)
+
+                    // Gửi đánh giá sau khi upload ảnh thành công
+                    reviewViewModel.uploadImagesResult.collect { result ->
+                        if (result.isSuccess) {
+                            val uploadedImages = result.getOrThrow()
+
+                            // Gửi đánh giá
+                            reviewViewModel.addReview(
+                                productId = productId,
+                                contentsReview = content,
+                                images = uploadedImages,
+                                rating = rating
+                            )
+                            onDismiss()
+                        } else {
+                            // Xử lý lỗi khi tải ảnh lên
+                            Toast.makeText(context, "Lỗi khi tải ảnh lên", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                showConfirmDialog.value = false // Đóng dialog sau khi xác nhận
+            },
+            onDismiss = {
+                showConfirmDialog.value = false // Đóng dialog nếu người dùng chọn không
+            }
+        )
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Rating stars
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    repeat(5) { index ->
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Star ${index + 1}",
+                            tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clickable { rating = index + 1 }
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("$rating sao")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Nội dung đánh giá
+                OutlinedTextField(
+                    value = content,
+                    onValueChange = { content = it },
+                    label = { Text("Nội dung đánh giá") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 4
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Chọn ảnh
+                Button(onClick = { imageLauncher.launch("image/*") }) {
+                    Icon(Icons.Default.Image, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Chọn ảnh")
+                }
+
+                // Hiển thị ảnh đã chọn
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(imageUris) { uri ->
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Gửi hoặc hủy
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Hủy")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            if (content.isBlank() || rating == 0) {
+                                Toast.makeText(context, "Vui lòng nhập đầy đủ nội dung và đánh giá", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+
+                            // Hiển thị dialog xác nhận trước khi gửi
+                            showConfirmDialog.value = true
+                        },
+                        enabled = content.isNotBlank() && rating >= 1
+                    ) {
+                        Text("Gửi")
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Dialog xác nhận
+@Composable
+fun ConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Bạn có chắc chắn muốn gửi đánh giá này?", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Không")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(onClick = onConfirm) {
+                        Text("Có")
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
+    val contentResolver = context.contentResolver
+    val fileType = contentResolver.getType(uri) ?: return null
+    val inputStream = contentResolver.openInputStream(uri) ?: return null
+
+    val fileName = uri.lastPathSegment ?: "image_${System.currentTimeMillis()}.jpg"
+    val fileBytes = inputStream.readBytes()
+    val requestBody = RequestBody.create(fileType.toMediaTypeOrNull(), fileBytes)
+
+    return MultipartBody.Part.createFormData("file", fileName, requestBody)
 }
