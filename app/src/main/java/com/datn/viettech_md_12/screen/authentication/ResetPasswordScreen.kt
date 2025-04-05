@@ -175,10 +175,8 @@ fun ResetPassword(viewModel: ForgotPasswordViewModel) {
                     onClick = {
                         viewModel.resetPassword { message ->
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            if (message == "Đổi mật khẩu thành công") {
-                                val intent = Intent(context, LoginScreen::class.java)
+                                val intent = Intent(context, SuccessPasswordScreen::class.java)
                                 context.startActivity(intent)
-                            }
                         }
                     },
                     backgroundColor = Color.Black,
