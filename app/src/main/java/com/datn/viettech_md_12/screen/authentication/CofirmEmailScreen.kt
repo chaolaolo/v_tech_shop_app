@@ -22,9 +22,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,10 +52,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.component.authentication.VerificationCodeDigit
 import com.datn.viettech_md_12.viewmodel.ForgotPasswordViewModel
@@ -72,11 +83,13 @@ class ConfirmEmailScreen : ComponentActivity() {
 @Composable
 fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
     val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .systemBarsPadding(), topBar = {
+            .fillMaxSize()
+            .systemBarsPadding(),
+        topBar = {
             TopAppBar(
                 title = { Text(text = "Quên mật khẩu") },
                 colors = TopAppBarColors(
@@ -87,31 +100,30 @@ fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
                     actionIconContentColor = Color.Black
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { /* TODO: Handle back */ }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
             )
-
-        }) { innerPadding ->
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = Color.White)
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(Color.White)
+                .padding(innerPadding)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = Color.White)
-                    .padding(20.dp)
-                    .systemBarsPadding(),
+                    .padding(20.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "Xác thực qua email", fontSize = 28.sp, fontWeight = FontWeight.Bold
+                    text = "Xác thực qua email",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
@@ -120,7 +132,6 @@ fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
                     color = Color.Gray
                 )
                 Spacer(modifier = Modifier.height(15.dp))
-                // Resend Code Button
                 Row {
                     Text(
                         text = "Email",
@@ -142,20 +153,23 @@ fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
                     modifier = Modifier
                 )
                 Spacer(modifier = Modifier.height(20.dp))
-                // Proceed Button
                 MyButton(
                     text = "Gửi",
                     onClick = {
+                        showDialog = true
                         viewModel.sendEmailForOtp(
                             onSuccess = { message ->
+                                showDialog = false
                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
-                                // Truyền email vào Intent khi chuyển sang EmailVerificationScreen
-                                val intent = Intent(context, EmailVerticationScreen::class.java).apply {
-                                    putExtra("email", viewModel.email) // Truyền email qua Intent
+                                val intent = Intent(
+                                    context,
+                                    EmailVerticationScreen::class.java
+                                ).apply {
+                                    putExtra("email", viewModel.email)
                                 }
                                 context.startActivity(intent)
-                            }
+                            },
                         )
                     },
                     backgroundColor = Color.Black,
@@ -164,8 +178,59 @@ fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
             }
         }
     }
+
+    LoadingDialog(showDialog = showDialog)
 }
 
+@Composable
+fun LoadingDialog(
+    showDialog: Boolean,
+    message: String = "Đang gửi email, vui lòng đợi...",
+    onDismissRequest: () -> Unit = {}
+) {
+    if (showDialog) {
+        Dialog(onDismissRequest = onDismissRequest) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier
+                    .width(280.dp)
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Lottie Animation
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loadingmail))
+                    val progress by animateLottieCompositionAsState(
+                        composition = composition,
+//        iterations = LottieConstants.IterateForever // Lặp animation mãi mãi
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.size(100.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Loading Text
+                    Text(
+                        text = message,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Preview(showSystemUi = true)
 @Composable
