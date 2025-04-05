@@ -223,7 +223,7 @@ fun ItemFavorite(
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "${product.product_price} VND",
+                            text = "${product.product_price}₫",
                             color = Color(0xFF4CAF50),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp

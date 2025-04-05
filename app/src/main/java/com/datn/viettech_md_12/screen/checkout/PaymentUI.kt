@@ -326,7 +326,7 @@ fun PaymentUI(
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "${formatCurrency(subtotal)} VND",
+                        "${formatCurrency(subtotal)}₫",
                         color = Color.Black,
                         fontSize = 14.sp,
                         lineHeight = 15.sp,
@@ -345,7 +345,7 @@ fun PaymentUI(
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "${formatCurrency(shippingFee)} VND",
+                        "${formatCurrency(shippingFee)}₫",
                         color = Color(0xFFFF3333),
                         fontSize = 14.sp,
                         lineHeight = 15.sp,
@@ -364,7 +364,7 @@ fun PaymentUI(
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "- ${formatCurrency(discount)} VND",
+                        "- ${formatCurrency(discount)}₫",
                         color = Color(0xFFFF3333),
                         fontSize = 14.sp,
                         lineHeight = 15.sp,
@@ -384,7 +384,7 @@ fun PaymentUI(
                         lineHeight = 15.sp,
                     )
                     Text(
-                        "${formatCurrency(total)} VND",
+                        "${formatCurrency(total)}₫",
                         color = Color.Black,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.W600,

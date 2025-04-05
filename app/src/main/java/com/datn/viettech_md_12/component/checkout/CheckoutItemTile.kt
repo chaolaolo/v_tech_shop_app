@@ -168,7 +168,7 @@ fun CheckoutItemTile(
                 color = Color.Black
             )
             Text(
-                "${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(quantityState.value * itemPrice)} VND",
+                "${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(quantityState.value * itemPrice)}₫",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
                 lineHeight = 12.sp,

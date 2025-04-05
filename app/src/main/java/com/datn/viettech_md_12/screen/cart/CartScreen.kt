@@ -294,16 +294,16 @@ fun OrderSummary(navController: NavController, selectedItems: List<CartModel.Met
         Text("Thông tin đặt hàng", fontWeight = FontWeight.W600, fontSize = 14.sp, color = Color.Black)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng giá tiền", fontSize = 12.sp, color = Color.Gray)
-            Text("VND ${"%.2f".format(subtotal)}", fontSize = 12.sp, color = Color.Gray)
+            Text("${"%.2f".format(subtotal)}₫", fontSize = 12.sp, color = Color.Gray)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Phí vận chuyển", fontSize = 12.sp, color = Color.Gray)
-            Text("VND ${formatCurrency(shippingFee)}", fontSize = 12.sp, color = Color.Gray)
+            Text("${formatCurrency(shippingFee)}₫", fontSize = 12.sp, color = Color.Gray)
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 0.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng thanh toán", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
-            Text("VND ${formatCurrency(total)}", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
+            Text("${formatCurrency(total)}₫", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
         }
         Spacer(Modifier.height(5.dp))
         MyButton(
@@ -423,7 +423,7 @@ fun CartItemTile(
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
                 Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 1.sp)
-                Text("VND $itemPriceFormatted", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
+                Text("$itemPriceFormatted₫", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
                 Row(
                     modifier = Modifier
                         .border(
