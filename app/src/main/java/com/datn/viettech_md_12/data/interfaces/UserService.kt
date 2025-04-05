@@ -2,8 +2,10 @@ package com.datn.viettech_md_12.data.interfaces
 
 import ChangePasswordRequest
 import ChangePasswordResponse
+import ForgotPasswordRequest
 import LoginRequest
 import LoginResponse
+import MessageResponse
 import RegisterRequest
 import RegisterResponse
 import retrofit2.Response
@@ -35,4 +37,8 @@ interface UserService {
         @Header("authorization") token: String,
         @Body request: ChangePasswordRequest
     ): Response<ChangePasswordResponse>
+
+    @POST("account/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<MessageResponse>
+
 }

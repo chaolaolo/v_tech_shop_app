@@ -4,7 +4,14 @@ package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,19 +42,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.component.authentication.VerificationCodeDigit
+import com.datn.viettech_md_12.viewmodel.ForgotPasswordViewModel
 
+class EmailVerticationScreen : ComponentActivity() {
+    private val viewModel: ForgotPasswordViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            EmailVerification(viewModel)
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun EmailVerificationScreen(navController: NavController) {
+fun EmailVerification(viewModel: ForgotPasswordViewModel) {
+    val context = LocalContext.current
 
     var verificationCode by remember { mutableStateOf(List(6) { "" }) }
     val focusRequesters = remember { List(6) { FocusRequester() } }
@@ -68,7 +90,7 @@ fun EmailVerificationScreen(navController: NavController) {
                     actionIconContentColor = Color.Black
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
@@ -138,12 +160,25 @@ fun EmailVerificationScreen(navController: NavController) {
                 MyButton(
                     text = "Xác thực",
                     onClick = {
-                        verificationCode.joinToString("")
-                        Log.d("zzzz", "EmailVertificationUI: " + verificationCode.joinToString(""))
+                        val code = verificationCode.joinToString("")
+                        viewModel.otp = code // Gán OTP vào ViewModel
+
+                        // Lấy email từ Intent
+                        val email = (context as? Activity)?.intent?.getStringExtra("email") ?: "" // Lấy email từ Intent
+                        Log.d("zzzz", "OTP entered: $code")
+                        Log.d("zzzz", "Email to send: ${viewModel.email}")
+                        Log.d("zzzz", "Email to send: ${email}")
+                        // Truyền email và OTP sang màn ResetPasswordScreen
+                        val intent = Intent(context, ResetPasswordScreen::class.java).apply {
+                            putExtra("email", email) // Truyền email
+                            putExtra("otp", code)    // Truyền OTP
+                        }
+                        context.startActivity(intent)
                     },
                     backgroundColor = Color.Black,
                     textColor = Color.White,
                 )
+
             }
         }
     }
@@ -153,5 +188,5 @@ fun EmailVerificationScreen(navController: NavController) {
 @Preview(showSystemUi = true)
 @Composable
 fun EmailVerificationPreview() {
-    EmailVerificationScreen(rememberNavController())
+//    EmailVerificationScreen(rememberNavController())
 }

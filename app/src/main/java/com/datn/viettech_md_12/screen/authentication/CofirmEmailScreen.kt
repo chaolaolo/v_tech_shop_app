@@ -4,7 +4,14 @@ package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,22 +42,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.component.authentication.VerificationCodeDigit
+import com.datn.viettech_md_12.viewmodel.ForgotPasswordViewModel
+import com.datn.viettech_md_12.viewmodel.UserViewModel
 
+class ConfirmEmailScreen : ComponentActivity() {
+    private val viewModel: ForgotPasswordViewModel by viewModels()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            ConfirmEmail(viewModel)
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ConfirmEmail(navController: NavController) {
-
-
+fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
+    val context = LocalContext.current
     Scaffold(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,7 +87,7 @@ fun ConfirmEmail(navController: NavController) {
                     actionIconContentColor = Color.Black
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
@@ -116,8 +137,8 @@ fun ConfirmEmail(navController: NavController) {
                 Spacer(modifier = Modifier.height(4.dp))
                 MyTextField(
                     hint = "Nhập email để xác thực",
-                    value = "",
-                    onValueChange = { },
+                    value = viewModel.email,
+                    onValueChange = { viewModel.email = it },
                     modifier = Modifier
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -125,7 +146,17 @@ fun ConfirmEmail(navController: NavController) {
                 MyButton(
                     text = "Gửi",
                     onClick = {
+                        viewModel.sendEmailForOtp(
+                            onSuccess = { message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
+                                // Truyền email vào Intent khi chuyển sang EmailVerificationScreen
+                                val intent = Intent(context, EmailVerticationScreen::class.java).apply {
+                                    putExtra("email", viewModel.email) // Truyền email qua Intent
+                                }
+                                context.startActivity(intent)
+                            }
+                        )
                     },
                     backgroundColor = Color.Black,
                     textColor = Color.White,
@@ -139,5 +170,5 @@ fun ConfirmEmail(navController: NavController) {
 @Preview(showSystemUi = true)
 @Composable
 fun PreviewDefault() {
-    ConfirmEmail(rememberNavController())
+//    ConfirmEmail(rememberNavController())
 }

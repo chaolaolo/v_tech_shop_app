@@ -4,6 +4,10 @@ package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,11 +49,19 @@ import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 
-
+class SuccessPasswordScreen : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            SuccessPassword()
+        }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SuccessPassword(navController: NavController) {
+fun SuccessPassword() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -123,5 +135,4 @@ fun SuccessPassword(navController: NavController) {
 @Preview(showSystemUi = true)
 @Composable
 fun PreviewSuccessPassword() {
-    SuccessPassword(rememberNavController())
 }

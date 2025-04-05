@@ -4,6 +4,14 @@ package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,22 +33,46 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.component.MyTextField
+import com.datn.viettech_md_12.viewmodel.ForgotPasswordViewModel
 
+class ResetPasswordScreen : ComponentActivity() {
+    private val viewModel: ForgotPasswordViewModel by viewModels()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        val email = intent.getStringExtra("email") ?: ""
+        val otp = intent.getStringExtra("otp") ?: ""
+        Log.d("zzzz", "Received from Intent: email=$email, otp=$otp")
+        setContent {
+            LaunchedEffect(Unit) {
+                viewModel.email = email
+                viewModel.otp = otp
+                Log.d("zzzz", "Received email: $email, otp: $otp")
+            }
+            ResetPassword(viewModel)
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ResetPassword(navController: NavController) {
+fun ResetPassword(viewModel: ForgotPasswordViewModel) {
+    val context = LocalContext.current
 
 
     Scaffold(
@@ -58,7 +90,7 @@ fun ResetPassword(navController: NavController) {
                     actionIconContentColor = Color.Black
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
@@ -108,8 +140,8 @@ fun ResetPassword(navController: NavController) {
                 Spacer(modifier = Modifier.height(4.dp))
                 MyTextField(
                     hint = "Nhập mật khẩu của bạn",
-                    value = "",
-                    onValueChange = { },
+                    value = viewModel.newPassword,
+                    onValueChange = { viewModel.newPassword = it },
                     modifier = Modifier,
                     isPassword = true
                 )
@@ -131,8 +163,8 @@ fun ResetPassword(navController: NavController) {
                 Spacer(modifier = Modifier.height(4.dp))
                 MyTextField(
                     hint = "Nhập lại mật khẩu của bạn",
-                    value = "",
-                    onValueChange = { },
+                    value = viewModel.confirmPassword,
+                    onValueChange = { viewModel.confirmPassword = it },
                     modifier = Modifier,
                     isPassword = true
                 )
@@ -141,7 +173,13 @@ fun ResetPassword(navController: NavController) {
                 MyButton(
                     text = "Lưu",
                     onClick = {
-
+                        viewModel.resetPassword { message ->
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            if (message == "Đổi mật khẩu thành công") {
+                                val intent = Intent(context, LoginScreen::class.java)
+                                context.startActivity(intent)
+                            }
+                        }
                     },
                     backgroundColor = Color.Black,
                     textColor = Color.White,
@@ -155,5 +193,4 @@ fun ResetPassword(navController: NavController) {
 @Preview(showSystemUi = true)
 @Composable
 fun PreviewResetPassword() {
-    ResetPassword(rememberNavController())
 }

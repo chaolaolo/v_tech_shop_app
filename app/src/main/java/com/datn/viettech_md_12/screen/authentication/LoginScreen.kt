@@ -173,7 +173,10 @@ fun LoginUser(userViewModel: UserViewModel) {
         Spacer(modifier = Modifier.height(10.dp))
         TextButton(
             modifier = Modifier.align(Alignment.End),
-            onClick = {},
+            onClick = {
+                val intent = Intent(context, ConfirmEmailScreen::class.java)
+                context.startActivity(intent)
+            },
             contentPadding = PaddingValues(0.dp),
         ) {
             Text(
