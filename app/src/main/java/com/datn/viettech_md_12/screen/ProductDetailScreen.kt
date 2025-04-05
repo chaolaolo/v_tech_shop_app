@@ -2,6 +2,7 @@ package com.datn.viettech_md_12.screen
 
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -96,7 +97,7 @@ import kotlinx.coroutines.launch
 fun ProductDetailScreen(
     navController: NavController,
     productId: String,
-    viewModel: ProductViewModel= viewModel(),
+    viewModel: ProductViewModel = viewModel(),
     reviewViewModel: ReviewViewModel = viewModel()
 ) {
     LaunchedEffect(productId) {
@@ -108,7 +109,6 @@ fun ProductDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    var isFavorite by remember { mutableStateOf(false) }
 
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
@@ -116,6 +116,16 @@ fun ProductDetailScreen(
     val reviews by reviewViewModel.reviews.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
+
+    var isFavorite by remember { mutableStateOf(false) }
+    val sharedPreferences =
+        context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) //lay trang thai da luu tru
+    if (product != null) {
+        if (sharedPreferences != null) {
+            isFavorite = sharedPreferences.getBoolean(productId, false)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -128,7 +138,6 @@ fun ProductDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(),
-//            .systemBarsPadding(),
 
                     topBar = {
                         TopAppBar(
@@ -153,16 +162,32 @@ fun ProductDetailScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .background(color = Color.Black)
-                                        .size(30.dp)
+                                        .size(48.dp)
                                 ) {
-                                    IconButton(onClick = { isFavorite = !isFavorite }) {
+                                    IconButton(
+                                        onClick = {
+                                            isFavorite = !isFavorite
+                                            if (isFavorite) {
+                                                val productId = product?.id
+                                                if (productId != null) {
+                                                    viewModel.addToFavorites(productId, context)
+                                                }
+                                            } else {
+                                                val favoriteId = product?.id
+                                                if (favoriteId != null) {
+                                                    viewModel.removeFromFavorites(favoriteId, context)
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(8.dp)
+                                            .size(30.dp)
+                                    ) {
                                         Icon(
-                                            contentDescription = "favourite icon",
-                                            imageVector = if (!isFavorite) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
-                                            tint = if (!isFavorite) Color.White else Color.Red,
-                                            modifier = Modifier
-                                                .size(20.dp)
+                                            painter = painterResource(if (!isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_selected),
+                                            contentDescription = "Favorite",
+                                            tint = Color.Unspecified
                                         )
                                     }
                                 }
@@ -180,7 +205,7 @@ fun ProductDetailScreen(
                                 .background(Color(0xFFF4FDFA)),
                         ) {
                             AsyncImage(
-                            model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                model = "http://103.166.184.249:3056/${product?.productThumbnail}",
                                 contentDescription = "p detail image",
                                 modifier = Modifier
                                     .fillMaxSize(),
@@ -304,19 +329,21 @@ fun ProductDetailScreen(
 //                                    mainAxisAlignment = MainAxisAlignment.Center,
                                 ) {
                                     Text(
-                                    text = "${product?.productDescription}",
+                                        text = "${product?.productDescription}",
                                         fontSize = 12.sp,
-                                    color = Color.Gray,
+                                        color = Color.Gray,
                                         modifier = Modifier.padding(top = 8.dp),
                                         maxLines = if (isExpanded) Int.MAX_VALUE else 5,
                                         overflow = TextOverflow.Ellipsis,
                                         onTextLayout = { layoutResult ->
                                             textLayoutResult.value = layoutResult
-                                            showMoreVisible = layoutResult.hasVisualOverflow && !isExpanded
+                                            showMoreVisible =
+                                                layoutResult.hasVisualOverflow && !isExpanded
                                         }
-                                )
+                                    )
                                     if (showMoreVisible) {
-                                        Text(text = "... Xem thêm",
+                                        Text(
+                                            text = "... Xem thêm",
                                             fontSize = 12.sp,
                                             color = Color(0xFF21D4B4),
                                             fontWeight = FontWeight.Medium,
@@ -324,7 +351,8 @@ fun ProductDetailScreen(
                                                 .padding(top = 4.dp)
                                                 .clickable { isExpanded = true })
                                     } else if (isExpanded) {
-                                        Text(text = "Thu gọn",
+                                        Text(
+                                            text = "Thu gọn",
                                             fontSize = 12.sp,
                                             color = Color(0xFF21D4B4),
                                             fontWeight = FontWeight.Medium,
@@ -361,7 +389,9 @@ fun ProductDetailScreen(
                                 Row(
                                     modifier = Modifier
                                         .border(
-                                            width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(8.dp)
+                                            width = 1.dp,
+                                            brush = SolidColor(Color(0xFFF4F5FD)),
+                                            shape = RoundedCornerShape(8.dp)
                                         )
                                         .padding(horizontal = 6.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -396,7 +426,9 @@ fun ProductDetailScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .border(
-                                                width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(12.dp)
+                                                width = 1.dp,
+                                                brush = SolidColor(Color(0xFFF4F5FD)),
+                                                shape = RoundedCornerShape(12.dp)
                                             ),
                                         backgroundColor = Color.White,
                                         textColor = Color.Black,
@@ -407,7 +439,10 @@ fun ProductDetailScreen(
                                         onClick = {
                                             Log.d("ProductDetailScreen", "productId: " + productId)
                                             product?.let { product ->
-                                                Log.d("ProductDetailScreen", "product.id: " + product.id)
+                                                Log.d(
+                                                    "ProductDetailScreen",
+                                                    "product.id: " + product.id
+                                                )
                                                 viewModel.addProductToCart(
                                                     productId = product.id,
                                                     variantId = "",
@@ -568,7 +603,7 @@ fun ProductDetailScreen(
                         .padding(start = 16.dp, end = 16.dp)
                         .systemBarsPadding()
                         .background(Color.Transparent),
-                ) { data ->
+                ) {
                     // Custom Snackbar with white background and rounded corners
                     Box(
                         modifier = Modifier
@@ -576,7 +611,9 @@ fun ProductDetailScreen(
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.White)
                             .border(
-                                width = 1.dp, color = Color(0xFFEEEEEE), shape = RoundedCornerShape(12.dp)
+                                width = 1.dp,
+                                color = Color(0xFFEEEEEE),
+                                shape = RoundedCornerShape(12.dp)
                             )
                             .padding(16.dp)
                     ) {
@@ -616,6 +653,7 @@ fun ProductDetailScreen(
         }
     }
 }
+
 @Composable
 fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {

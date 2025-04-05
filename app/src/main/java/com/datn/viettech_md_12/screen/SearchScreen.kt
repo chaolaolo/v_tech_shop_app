@@ -17,6 +17,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,7 +98,7 @@ fun SearchScreen(
                                 if (it.isNotEmpty()) {
                                     searchViewModel.searchProducts(it)
                                 } else {
-                                    searchViewModel.clearSearchResults() // Hàm để làm rỗng danh sách kết quả
+                                    searchViewModel.clearSearchResults()
                                 }
                             },
                             textStyle = LocalTextStyle.current.copy(
@@ -105,11 +106,12 @@ fun SearchScreen(
                                 color = Color.Black
                             ),
                             modifier = Modifier
-                                .height(56.dp)
                                 .fillMaxWidth()
-                                .padding(start = 0.dp, top = 12.dp)
+                                .align(Alignment.CenterStart) // Căn thẳng hàng với placeholder
                                 .background(Color.Transparent),
+                            singleLine = true // giúp input không bị nhảy dòng
                         )
+
                         if (text.value.isEmpty()) {
                             Text(
                                 text = "Search",
@@ -143,8 +145,6 @@ fun SearchScreen(
 
                         CustomItemProducts(
                             product = product,
-                            context = context,
-                            viewModel = productViewModel,
                             onClick = {
                                 navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
                             }
