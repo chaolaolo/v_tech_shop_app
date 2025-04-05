@@ -1,9 +1,12 @@
 package com.datn.viettech_md_12.screen.authentication
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -73,8 +76,27 @@ fun Splash() {
     )
     LaunchedEffect(key1 = true) {
         delay(3000)
-        val intent = Intent(context, OnbroadingActivity::class.java)
+        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPreferences.getBoolean("IS_LOGGED_IN", false)
+        Log.d("SplashScreen", "isLoggedIn = $isLoggedIn")
+
+        val intent = if (isLoggedIn) {
+            Log.d("SplashScreen", "User đã đăng nhập, chuyển đến MainActivity")
+            Intent(context, MainActivity::class.java).apply {
+                putExtra("isLoggedIn", true) // BỔ SUNG DÒNG NÀY
+            }
+        } else {
+            Log.d("SplashScreen", "User chưa đăng nhập, chuyển đến OnbroadingActivity")
+            Intent(context, OnbroadingActivity::class.java)
+        }
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         context.startActivity(intent)
+
+        // Gọi finish để kết thúc SplashScreen (tránh back lại màn này)
+        if (context is Activity) {
+            (context as Activity).finish()
+        }
+
     }
 
     Column(

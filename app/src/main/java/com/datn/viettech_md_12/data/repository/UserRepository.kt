@@ -10,4 +10,11 @@ class UserRepository (
     suspend fun signIn(request: LoginRequest) : Response<LoginResponse>{
         return apiService.signIn(request)
     }
+    suspend fun changePassword(
+        token: String,
+        clientId: String,
+        request: ChangePasswordRequest
+    ): Response<ChangePasswordResponse> {
+        return apiService.changePassword(token, clientId, request)
+    }
 }

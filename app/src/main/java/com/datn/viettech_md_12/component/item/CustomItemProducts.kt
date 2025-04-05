@@ -59,7 +59,7 @@ fun CustomItemProductsBase(
     }
 
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .width(160.dp)
             .height(200.dp)
@@ -95,7 +95,7 @@ fun CustomItemProductsBase(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White, shape = RoundedCornerShape(8.dp))
+                        .background(Color.White, shape = RoundedCornerShape(5.dp))
                         .padding(8.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
@@ -125,7 +125,7 @@ fun CustomItemProductsBase(
 //                            }
                             Text(
                                 name ?: "",
-//                                    color = Color.Black,
+                                    color = Color.Black,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
@@ -133,8 +133,8 @@ fun CustomItemProductsBase(
                             )
 
                             Text(
-                                "${price ?: 0.0}$",
-                                color = Color(0xFF4CAF50),
+                                "${price ?: 0.0}VND",
+                                color = Color(0xFFF44336),
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium
                             )

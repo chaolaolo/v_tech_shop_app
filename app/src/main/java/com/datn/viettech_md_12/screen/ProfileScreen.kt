@@ -1,5 +1,7 @@
 package com.datn.viettech_md_12.screen
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.screen.authentication.OnbroadingActivity
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -43,12 +46,14 @@ fun ProfileScreen(navController: NavController) {
     //link policy
     val url = "https://sites.google.com/view/viet-tech-md-12/trang-ch%E1%BB%A7"
     //link Terms & Conditions
-    val url2 ="https://sites.google.com/view/term-conditions-md-12/trang-ch%E1%BB%A7"
+    val url2 = "https://sites.google.com/view/term-conditions-md-12/trang-ch%E1%BB%A7"
     //link faqs
-    val url3 ="https://sites.google.com/view/faqs-md-12/trang-ch%E1%BB%A7"
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color(0xff21D4B4)))
+    val url3 = "https://sites.google.com/view/faqs-md-12/trang-ch%E1%BB%A7"
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xff21D4B4))
+    )
     {
         Spacer(modifier = Modifier.height(20.dp))
         ProfileHeader()
@@ -140,8 +145,10 @@ fun ProfileScreen(navController: NavController) {
         }
     }
 }
+
 @Composable
 fun ProfileHeader() {
+    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -161,7 +168,7 @@ fun ProfileHeader() {
         }
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = {
-
+            logout(context)
         }) {
             Icon(
                 painter = painterResource(R.drawable.ic_logout_profile),
@@ -170,6 +177,26 @@ fun ProfileHeader() {
         }
     }
 }
+
+fun logout(context: Context) {
+    val sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+
+    // Đặt lại trạng thái đăng nhập = false
+    sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+
+    // Tạo Intent để chuyển đến màn hình Onboarding
+    val intent = Intent(context, OnbroadingActivity::class.java)
+
+    // Xóa hết backstack
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    context.startActivity(intent)
+
+    // Kết thúc Activity hiện tại
+    if (context is Activity) {
+        context.finish()
+    }
+}
+
 @Composable
 fun ProfileTitle(title: String) {
     Text(
@@ -182,6 +209,7 @@ fun ProfileTitle(title: String) {
             .padding(16.dp, 8.dp)
     )
 }
+
 @Composable
 fun ProfileItem(icon: Int, title: String, onClick: () -> Unit) {
     Row(
@@ -212,6 +240,7 @@ fun ProfileItem(icon: Int, title: String, onClick: () -> Unit) {
         )
     }
 }
+
 @Composable
 fun DividerItem() {
     Divider(
@@ -219,6 +248,7 @@ fun DividerItem() {
         thickness = 1.dp,
     )
 }
+
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 @Composable
 fun ProfileScreenPreview() {

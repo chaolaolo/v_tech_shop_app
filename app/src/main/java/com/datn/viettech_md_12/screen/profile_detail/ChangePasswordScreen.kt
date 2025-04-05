@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.screen.profile_detail
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,10 +50,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChangePasswordScreen(navController: NavController) {
+fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewModel) {
+    val context = LocalContext.current
     var step by remember { mutableStateOf(1) }
     var oldPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
@@ -184,7 +187,7 @@ fun ChangePasswordScreen(navController: NavController) {
                         modifier = Modifier.width(380.dp),
                         shape = RoundedCornerShape(12.dp),
                         visualTransformation = PasswordVisualTransformation(),
-                        placeholder = { Text(text = "Nhập mật khẩu của bạn") },
+                        placeholder = { Text(text = "Nhập mật khẩu mới của bạn") },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             containerColor = Color.Transparent, // Nền trong suốt
                             cursorColor = Color.Black, // Màu con trỏ nhập liệu
@@ -215,7 +218,7 @@ fun ChangePasswordScreen(navController: NavController) {
                         modifier = Modifier.width(380.dp),
                         shape = RoundedCornerShape(12.dp),
                         visualTransformation = PasswordVisualTransformation(),
-                        placeholder = { Text(text = "Nhập mật khẩu của bạn") },
+                        placeholder = { Text(text = "Xác nhận mật khẩu của bạn\n") },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             containerColor = Color.Transparent, // Nền trong suốt
                             cursorColor = Color.Black, // Màu con trỏ nhập liệu
@@ -239,7 +242,22 @@ fun ChangePasswordScreen(navController: NavController) {
                     } else {
                         // Xử lý đổi mật khẩu (nếu cần)
                         if (newPassword == confirmPassword) {
-                            navController.popBackStack() // Quay về sau khi đổi mật khẩu
+                            userViewModel.changePassword(
+                                context = context,
+                                oldPassword = oldPassword,
+                                newPassword = newPassword,
+                                onSuccess = {
+                                    message ->
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    navController.popBackStack() // Quay về sau khi đổi mật khẩu
+                                },
+                                onError = {
+                                    error ->
+                                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }else {
+                            Toast.makeText(context, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show()
                         }
                     }
                 },
@@ -269,5 +287,5 @@ fun DividerItem() {
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 @Composable
 fun ChangePasswordScreenPreview() {
-    ChangePasswordScreen(navController = NavController(context = LocalContext.current))
+//    ChangePasswordScreen(navController = NavController(context = LocalContext.current))
 }

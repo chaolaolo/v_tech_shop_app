@@ -4,7 +4,6 @@ package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,17 +22,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,16 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.datn.viettech_md_12.component.authentication.VerificationCodeDigit
+import com.datn.viettech_md_12.component.MyTextField
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun EmailVerificationScreen(navController: NavController) {
-
-    var verificationCode by remember { mutableStateOf(List(6) { "" }) }
-    val focusRequesters = remember { List(6) { FocusRequester() } }
+fun ResetPassword(navController: NavController) {
 
 
     Scaffold(
@@ -92,54 +82,66 @@ fun EmailVerificationScreen(navController: NavController) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "Nhập mã xác thực", fontSize = 28.sp, fontWeight = FontWeight.Bold
+                    text = "Xác thực qua email", fontSize = 28.sp, fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Nhập mã xác thực 6 chữ số được gửi về email của bạn.",
+                    text = "Nhập địa chỉ email đăng ký để xác thực.",
                     fontSize = 16.sp,
                     color = Color.Gray
                 )
-                Spacer(modifier = Modifier.height(32.dp))
-                // Verification Code Input Fields
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    verificationCode.forEachIndexed { index, digit ->
-                        VerificationCodeDigit(
-                            value = digit, onValueChange = { newValue ->
-                                if (newValue.length <= 1) {
-                                    val newCode = verificationCode.toMutableList()
-                                    newCode[index] = newValue
-                                    verificationCode = newCode
-
-                                    // Move focus to next field if available
-                                    if (newValue.isNotEmpty() && index < 5) {
-                                        focusRequesters[index + 1].requestFocus()
-                                    }
-                                }
-                            }, focusRequester = focusRequesters[index]
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(15.dp))
                 // Resend Code Button
-                TextButton(
-                    onClick = { /* khi bấm nút Resend Code */ },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
+                Row {
                     Text(
-                        text = "Gửi lại mã?", color = Color(0xFF00BFA5), fontSize = 16.sp
+                        text = "Mật khẩu",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = " *",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Red
                     )
                 }
+                Spacer(modifier = Modifier.height(4.dp))
+                MyTextField(
+                    hint = "Nhập mật khẩu của bạn",
+                    value = "",
+                    onValueChange = { },
+                    modifier = Modifier,
+                    isPassword = true
+                )
                 Spacer(modifier = Modifier.height(20.dp))
                 // Proceed Button
+                Row {
+                    Text(
+                        text = "Xác nhận mật khẩu",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = " *",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Red
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                MyTextField(
+                    hint = "Nhập lại mật khẩu của bạn",
+                    value = "",
+                    onValueChange = { },
+                    modifier = Modifier,
+                    isPassword = true
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
                 MyButton(
-                    text = "Xác thực",
+                    text = "Lưu",
                     onClick = {
-                        verificationCode.joinToString("")
-                        Log.d("zzzz", "EmailVertificationUI: " + verificationCode.joinToString(""))
+
                     },
                     backgroundColor = Color.Black,
                     textColor = Color.White,
@@ -152,6 +154,6 @@ fun EmailVerificationScreen(navController: NavController) {
 
 @Preview(showSystemUi = true)
 @Composable
-fun EmailVerificationPreview() {
-    EmailVerificationScreen(rememberNavController())
+fun PreviewResetPassword() {
+    ResetPassword(rememberNavController())
 }
