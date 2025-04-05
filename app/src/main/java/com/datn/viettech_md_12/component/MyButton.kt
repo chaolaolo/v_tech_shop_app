@@ -39,36 +39,35 @@ fun MyButton(
     enabled: Boolean? = null,
     isLoading: Boolean = false
 ) {
-    if (enabled != null) {
-        Card(
-            onClick = { if (!isLoading) onClick() }, //vo hieu hoa khi trang thai load
-            modifier = modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .clip(RoundedCornerShape(10.dp)),
-            colors = CardDefaults.cardColors(backgroundColor),
-            enabled =  enabled,
+    Card(
+        onClick = { if (!isLoading) onClick() }, //vo hieu hoa khi trang thai load
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clip(RoundedCornerShape(10.dp)),
+        colors = CardDefaults.cardColors(backgroundColor),
+        enabled = enabled ?: true,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        color = textColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                Text(
-                    text,
+            if (isLoading) {
+                CircularProgressIndicator(
                     color = textColor,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-//                modifier = Modifier
+                    modifier = Modifier.size(24.dp)
                 )
-                Spacer(Modifier.width(10.dp))
+            }
+            Text(
+                text,
+                color = textColor,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+//                modifier = Modifier
+            )
+            Spacer(Modifier.width(10.dp))
 //            painterIconResId?.let {
 //                Image(
 //                    modifier = Modifier.size(40.dp),
@@ -76,23 +75,21 @@ fun MyButton(
 //                    contentDescription = "Google Button Icon"
 //                )
 //            }
-                when {
-                    painterIconResId != null -> {
-                        Image(
-                            modifier = Modifier.size(24.dp),
-                            painter = painterResource(id = painterIconResId),
-                            contentDescription = "Button Icon"
-                        )
-                    }
-
-                    vectorIcon != null -> {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = vectorIcon,
-                            contentDescription = "Button Icon",
-                            tint = textColor
-                        )
-                    }
+            when {
+                painterIconResId != null -> {
+                    Image(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(id = painterIconResId),
+                        contentDescription = "Button Icon"
+                    )
+                }
+                vectorIcon != null -> {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = vectorIcon,
+                        contentDescription = "Button Icon",
+                        tint = textColor
+                    )
                 }
             }
         }
