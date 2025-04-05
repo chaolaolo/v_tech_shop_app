@@ -42,7 +42,7 @@ fun MyButton(
         onClick = { if (!isLoading) onClick() }, //vo hieu hoa khi trang thai load
         modifier = modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(50.dp)
             .clip(RoundedCornerShape(10.dp)),
         colors = CardDefaults.cardColors(backgroundColor)
     ) {
@@ -60,7 +60,7 @@ fun MyButton(
             Text(
                 text,
                 color = textColor,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
 //                modifier = Modifier

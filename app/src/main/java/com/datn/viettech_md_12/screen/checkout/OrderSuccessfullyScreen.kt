@@ -71,65 +71,63 @@ fun OrderSuccessfullyScreen(navController:NavController) {
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Color.White)
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = Color.White)
-                    .padding(20.dp)
+                    .padding(innerPadding)
                     .systemBarsPadding(),
-                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                //ảnh
-                Box(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp)
-                        .clip(shape = RoundedCornerShape(16.dp))
-                        .background(color = Color(0xFFF4FDFA)),
-                    contentAlignment = Alignment.Center,
-                    ) {
-                    Image(
+                        .fillMaxSize()
+                        .background(color = Color.White)
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    //ảnh
+                    Box(
                         modifier = Modifier
-                            .size(200.dp),
-                        painter = painterResource(R.drawable.order_successfully),
-                        contentDescription = "contentDescription"
+                            .size(340.dp)
+                            .clip(shape = RoundedCornerShape(16.dp))
+                            .background(color = Color(0xFFF4FDFA)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(200.dp),
+                            painter = painterResource(R.drawable.order_successfully),
+                            contentDescription = "contentDescription"
+                        )
+                    }
+                    Spacer(Modifier.height(20.dp))
+                    //Text
+                    androidx.compose.material.Text(
+                        "Đơn hàng của bạn đã được đặt thành công",
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    androidx.compose.material.Text(
+                        "Cảm ơn bạn đã lựa chọn chúng tôi! Hãy thoải mái tiếp tục mua sắm và khám phá nhiều sản phẩm của chúng tôi. Chúc bạn mua sắm vui vẻ!",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    //Button
+                    MyButton(
+                        text = "Tiếp tục mua sắm",
+                        onClick = { },
+                        modifier = Modifier,
+                        backgroundColor = Color.Black,
+                        textColor = Color.White,
                     )
                 }
-                Spacer(Modifier.height(40.dp))
-                //Text
-                androidx.compose.material.Text(
-                    "Đơn hàng của bạn đã được đặt thành công",
-                    color = Color.Black,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(Modifier.height(20.dp))
-                androidx.compose.material.Text(
-                    "Cảm ơn bạn đã lựa chọn chúng tôi! Hãy thoải mái tiếp tục mua sắm và khám phá nhiều sản phẩm của chúng tôi. Chúc bạn mua sắm vui vẻ!",
-                    color = Color.Gray,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(30.dp))
-                //Button
-                MyButton(
-                    text = "Tiếp tục mua sắm",
-                    onClick = { },
-                    modifier = Modifier,
-                    backgroundColor = Color.Black,
-                    textColor = Color.White,
-                )
             }
-        }
     }
 }
 

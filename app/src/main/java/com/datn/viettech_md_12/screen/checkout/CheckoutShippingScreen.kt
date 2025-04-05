@@ -4,10 +4,8 @@ import CheckoutPaymentUI
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
@@ -27,11 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.component.checkout.CheckoutReviewUI
-import com.datn.viettech_md_12.component.checkout.CheckoutShippingUI
+import com.datn.viettech_md_12.component.checkout.AddressScreen
 import com.datn.viettech_md_12.component.checkout.CheckoutTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,11 +67,11 @@ fun CheckoutScreen(navController: NavController) {
                 .fillMaxHeight()
         ) {
             //Checkout TopBar
-            Spacer(Modifier.height(10.dp))
+//            Spacer(Modifier.height(10.dp))
             CheckoutTopBar(selectedTab) { newTab -> selectedTab = newTab }
 
             when (selectedTab) {
-                "Shipping" -> CheckoutShippingUI()
+                "Shipping" -> AddressScreen(navController)
                 "Payment" -> CheckoutPaymentUI()
                 "Review" -> CheckoutReviewUI(
                     navController = navController
