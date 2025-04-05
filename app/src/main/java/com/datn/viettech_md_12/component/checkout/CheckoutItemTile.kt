@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,19 +44,25 @@ fun CheckoutItemTile(
     onQuantityChange: (Int, Int) -> Unit,
     onDelete: (Int) -> Unit,
 ) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xfff4f5fd))
+            .padding(bottom = 2.dp),
+    ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(vertical = 2.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = rememberAsyncImagePainter(item.imageUrl),
             contentDescription = null,
             modifier = Modifier
-                .size(80.dp)
-                .background(Color(0xFFF4FDFA))
+                .size(60.dp)
+                .background(Color.Transparent)
                 .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
@@ -77,43 +84,51 @@ fun CheckoutItemTile(
                         .border(
                             width = 1.dp,
                             brush = SolidColor(Color(0xFFF4F5FD)),
-                            shape = RoundedCornerShape(6.dp)
+                            shape = RoundedCornerShape(4.dp)
                         )
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                        .padding(horizontal = 3.dp, vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
                         onClick = { if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) },
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(16.dp)
                     ) {
                         Icon(Icons.Default.Remove, contentDescription = "Decrease")
                     }
-                    androidx.compose.material.Text("${item.quantity}", modifier = Modifier.padding(horizontal = 14.dp))
+                    androidx.compose.material.Text("${item.quantity}", modifier = Modifier.padding(horizontal = 10.dp))
                     IconButton(
                         onClick = { onQuantityChange(item.id, item.quantity + 1) },
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(16.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Increase")
                     }
                 }
         }
         }
-//        Column(
-//            modifier = Modifier
-//                .fillMaxHeight(),
-//            verticalArrangement = Arrangement.Top,
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            IconButton(
-//                onClick = { onDelete(item.id) }) {
-//                Icon(
-//                    Icons.Default.DeleteOutline,
-//                    contentDescription = "Delete",
-//                    tint = Color.Red,
-//                    modifier = Modifier.size(30.dp),
-//                )
-//            }
-//        }
+    }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(end = 16.dp, bottom = 2.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                "Số lượng ${item.quantity}, tổng cộng ",
+//             textAlign = TextAlign.End,
+                fontSize = 12.sp,
+                lineHeight = 12.sp,
+                color = Color.Black
+            )
+            Text(
+                "${item.quantity * item.price} VND",
+//             textAlign = TextAlign.End,
+                fontSize = 12.sp,
+                lineHeight = 12.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.W600
+            )
+        }
     }
 }

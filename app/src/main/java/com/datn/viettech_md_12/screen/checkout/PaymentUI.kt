@@ -2,6 +2,8 @@ package com.datn.viettech_md_12.screen.checkout
 
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Application
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,6 +41,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,9 +51,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,16 +63,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
 import com.datn.viettech_md_12.data.model.CartMode
+import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
+import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun PaymentUI(navController: NavController) {
+fun PaymentUI(
+    navController: NavController,
+    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
+) {
+
+    val checkoutState by checkoutViewModel.addressState.collectAsState()
+    val isLoading by checkoutViewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        checkoutViewModel.getAddress()
+    }
+
     val payOptions =
         listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
     var selectedPayOption by remember { mutableStateOf(payOptions[0].first) }
@@ -105,38 +125,38 @@ fun PaymentUI(navController: NavController) {
                 18.00,
                 1
             ),
-            CartMode(
-                5,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                6,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartMode(
-                7,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                8,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
+//            CartMode(
+//                5,
+//                "Loop Silicone Strong Magnetic Watch",
+//                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
+//                15.25,
+//                20.00,
+//                1
+//            ),
+//            CartMode(
+//                6,
+//                "M6 Smart watch IP67 Waterproof",
+//                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
+//                12.00,
+//                18.00,
+//                1
+//            ),
+//            CartMode(
+//                7,
+//                "Loop Silicone Strong Magnetic Watch",
+//                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
+//                15.25,
+//                20.00,
+//                1
+//            ),
+//            CartMode(
+//                8,
+//                "M6 Smart watch IP67 Waterproof",
+//                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
+//                12.00,
+//                18.00,
+//                1
+//            ),
         )
     }
 
@@ -161,6 +181,7 @@ fun PaymentUI(navController: NavController) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
+                modifier = Modifier.shadow(elevation = 2.dp),
             )
         },
     )
@@ -170,17 +191,19 @@ fun PaymentUI(navController: NavController) {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .clickable {
-                    navController.navigate("address_screen")
-                },
+                .background(Color.White),
             verticalArrangement = Arrangement.Top,
         ) {
             //Địa chỉ
+            Spacer(Modifier.height(4.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
                     .padding(horizontal = 16.dp)
+                    .clickable {
+                        navController.navigate("address_screen")
+                    },
             ) {
                 Icon(
                     Icons.Outlined.LocationOn,
@@ -192,44 +215,59 @@ fun PaymentUI(navController: NavController) {
                         .weight(1f)
                         .padding(horizontal = 2.dp)
                 ) {
-                    Row {
+                    if (isLoading) {
+                        // Hiển thị placeholder khi đang tải
                         Text(
-                            "Chao Lao Lo",
+                            "Đang tải thông tin...",
                             color = Color.Black,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.W500
+                            fontWeight = FontWeight.W600,
+                            lineHeight = 15.sp
+                        )
+                    } else {
+                        val addressData = checkoutState?.body()?.data
+                        Row {
+                            Text(
+                                if (addressData?.full_name.isNullOrEmpty()) "Chưa có tên" else addressData?.full_name ?: "Chưa có tên",
+                                color = Color.Black,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.W600,
+                                lineHeight = 15.sp
                         )
                         Spacer(Modifier.width(2.dp))
                         Text(
-                            "(0123****89)",
+                            "(${if (addressData?.phone.isNullOrEmpty()) "Chưa có số điện thoại" else addressData?.phone ?: "Chưa có số điện thoại"})",
                             color = Color.Black,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.W500
+                            fontWeight = FontWeight.W600,
+                            lineHeight = 15.sp
                         )
                     }
                     Text(
-                        "Số 1, ngách 2, ngõ 3, đường Trần Duy Hưng, Trung Hoà, Cầu Giấy, Hà Nội",
+                        if (addressData?.address.isNullOrEmpty()) "Chưa có địa chỉ" else addressData?.address ?: "Chưa có địa chỉ",
                         color = Color(0xFF1A1A1A),
                         fontSize = 13.sp,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 14.sp
                     )
+                    }
                 }
                 Icon(
                     Icons.Default.ArrowForwardIos,
-                    contentDescription = "icon địa chỉ",
+                    contentDescription = "icon xem địa chỉ",
                     tint = Color.Black,
                     modifier = Modifier
-
                 )
             }
+            Spacer(Modifier.height(1.dp))
             HorizontalDivider(
                 Modifier
-                    .height(1.dp)
-                    .padding(top = 2.dp)
+                    .height(2.dp)
+                    .background(Color(0xfff4f5fd)),
+                color = Color(0xfff4f5fd)
             )
             //Chọn phương thức thanh toán
-            Spacer(Modifier.height(8.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,7 +278,8 @@ fun PaymentUI(navController: NavController) {
                     "Phương thức thanh toán",
                     color = Color.Black,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
+                    fontWeight = FontWeight.W500,
+                    lineHeight = 15.sp
                 )
                 payOptions.forEach { (method, imageRes) ->
                     PayMethodItem(
@@ -251,14 +290,19 @@ fun PaymentUI(navController: NavController) {
                     )
                 }
             }
+            HorizontalDivider(
+                Modifier
+                    .height(1.dp),
+                color = Color(0xfff4f5fd)
+            )
             //Danh sách sản phẩm sẽ thanh toán
             LazyColumn(
                 modifier = Modifier
 //                        .height(400.dp)
                     .weight(1f)
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 16.dp)
+                    .fillMaxSize()
+                    .background(Color(0xfff4f5fd))
+//                    .padding(horizontal = 16.dp)
                     .nestedScroll(rememberNestedScrollInteropConnection())
             ) {
                 items(checkoutItems) { item ->
@@ -285,24 +329,25 @@ fun PaymentUI(navController: NavController) {
                     .fillMaxHeight(1f)
                     .background(Color.Red)
             )
-            Box(
-                Modifier
-                    .height(4.dp)
-                    .fillMaxWidth()
-                    .background(Color.LightGray)
-            )
+//            Box(
+//                Modifier
+//                    .height(4.dp)
+//                    .fillMaxWidth()
+//                    .background(Color.LightGray)
+//            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .background(Color.White)
             ) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))
                 Text(
                     "Tóm tắt đơn hàng",
                     color = Color.Black,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.W500,
+                    fontWeight = FontWeight.W600,
+                    lineHeight = 15.sp,
                     modifier = Modifier
                         .fillMaxWidth()
                 )
@@ -316,11 +361,13 @@ fun PaymentUI(navController: NavController) {
                         "Tổng phụ",
                         color = Color.Black,
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                     Text(
                         "1.400.500 VND",
                         color = Color.Black,
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                 }
                 Row(
@@ -333,11 +380,13 @@ fun PaymentUI(navController: NavController) {
                         "Vận chuyển",
                         color = Color.Black,
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                     Text(
                         "10.500 VND",
                         color = Color(0xFFFF3333),
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                 }
                 Row(
@@ -350,11 +399,13 @@ fun PaymentUI(navController: NavController) {
                         "Giảm giá",
                         color = Color.Black,
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                     Text(
                         "- 89.000 VND",
                         color = Color(0xFFFF3333),
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                 }
                 HorizontalDivider(Modifier.height(0.5.dp), color = Color.LightGray)
@@ -368,12 +419,14 @@ fun PaymentUI(navController: NavController) {
                         "Tổng (${checkoutItems.size} mặt hàng)",
                         color = Color.Black,
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                     Text(
                         "10 230 000 VND",
                         color = Color.Black,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.W500
+                        fontWeight = FontWeight.W600,
+                        lineHeight = 15.sp,
                     )
                 }
                 MyButton(
@@ -381,7 +434,7 @@ fun PaymentUI(navController: NavController) {
                     onClick = {
                         navController.navigate("order_successfully")
                     },
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = 6.dp),
                     backgroundColor = Color.Black,
                     textColor = Color.White,
                 )
