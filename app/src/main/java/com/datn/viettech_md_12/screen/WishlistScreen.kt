@@ -81,7 +81,7 @@ fun WishlistScreen(viewModel: ProductViewModel,navController: NavController) {
             .systemBarsPadding(),
         topBar = {
             TopAppBar(
-                title = {Text(text = "Yêu thích") },
+                title = {Text(text = "Yêu thích", fontSize = 20.sp) },
                 colors = TopAppBarColors(
                     containerColor = Color.White,
                     scrolledContainerColor = Color.Transparent,
@@ -127,8 +127,7 @@ fun ItemFavorite(favoriteItem: FavoriteItem, viewModel: ProductViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .shadow(4.dp, shape = RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(12.dp)),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
