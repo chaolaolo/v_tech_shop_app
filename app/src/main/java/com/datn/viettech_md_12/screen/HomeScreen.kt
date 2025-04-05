@@ -71,7 +71,6 @@ fun HomeScreen(
             }
 
             item {
-                Spacer(Modifier.height(24.dp))
                 Column(
                     modifier = Modifier
                         .height(112.dp)
