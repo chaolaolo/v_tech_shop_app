@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.AddressModel
+import com.datn.viettech_md_12.data.model.BillResponse
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.CheckoutModel
 import com.datn.viettech_md_12.data.model.UpdateAddressRequest
@@ -168,7 +169,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     }
 
     //checkout
-    fun checkout(address: String, phone_number: String, receiver_name: String, payment_method: String) {
+    fun checkout(address: String, phone_number: String, receiver_name: String, payment_method: String, discount_code:String) {
         viewModelScope.launch {
             Log.d("CartViewModel", "clientId: $userId")
             _isLoading.value = true
@@ -178,7 +179,8 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                     address = address,
                     phone_number = phone_number,
                     receiver_name = receiver_name,
-                    payment_method = payment_method
+                    payment_method = payment_method,
+                    discount_code = discount_code,
                 )
                 val response = checkoutRepository.checkout(
                     token = token ?: "",
@@ -186,8 +188,10 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                     request = request,
                 )
 
-                Log.d("CartViewModel", "request: $request")
                 if (response.isSuccessful) {
+                    val dc = response.body()?.metadata?.discountCode
+                    Log.d("CartViewModel", "request: $request")
+                    Log.d("CartViewModel", "discount_code: $dc")
                     Log.d("CartViewModel", "Checkout Success - Raw: ${response.raw()}")
                     Log.d("CartViewModel", "Checkout Success - Body: ${response.body()}")
                     Log.d("CartViewModel", "Checkout Success - Headers: ${response.headers()}")

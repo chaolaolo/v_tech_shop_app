@@ -404,7 +404,8 @@ fun PaymentUI(
                                 address = address,
                                 phone_number = phone,
                                 receiver_name = name,
-                                payment_method = selectedPayOption.apiValue
+                                payment_method = selectedPayOption.apiValue,
+                                discount_code = "",
                             )
                             Log.d("PaymentUI", "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}")
                             navController.navigate("order_successfully")

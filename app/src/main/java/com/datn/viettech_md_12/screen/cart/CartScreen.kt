@@ -34,12 +34,15 @@ import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -122,31 +125,83 @@ fun CartScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
-        sheetDragHandle = { BottomSheetDefaults.DragHandle() },
+        sheetDragHandle = { },
         sheetSwipeEnabled = true,
         sheetContent = {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 20.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 10.dp)
                     .fillMaxWidth()
                     .imePadding()
             ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                 Text(
                     "Voucher Code sheet",
                     color = Color.Black,
-                    fontSize = 20.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f)
                 )
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = "Thoát bottomsheet",
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable { /*đóng bottomsheet*/ }
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                HorizontalDivider()
                 Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                 MyTextField(
                     hint = "Nhập mã giảm giá",
                     value = voucherCode.value,
                     onValueChange = { voucherCode.value = it },
-                    isPassword = false
+                    isPassword = false,
+                    modifier = Modifier.weight(1f)
                 )
+                    Spacer(Modifier.width(4.dp))
+                    Card(
+                        onClick = { }, //vo hieu hoa khi trang thai load
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        colors = CardDefaults.cardColors(Color(0xFF21D4B4)),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Transparent),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                "Áp dụng",
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    } //Card
+                }
                 Spacer(Modifier.height(10.dp))
                 MyButton(
-                    text = "Áp dụng",
+                    text = "Xác nhận",
                     onClick = {
                         scope.launch { scaffoldState.bottomSheetState.hide() }
                     },
