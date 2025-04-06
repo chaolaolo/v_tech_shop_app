@@ -107,6 +107,8 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -147,6 +149,10 @@ fun ProductDetailScreen(
     var showDialog by remember { mutableStateOf(false) }
     var showAddReviewDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
+
+    val price = product?.productPrice ?:0.0
+    val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -280,34 +286,34 @@ fun ProductDetailScreen(
                                 //Tên/giá
                                 Spacer(Modifier.height(10.dp))
                                 Row(
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.Top
                                 ) {
-                                    Text(
+                                    Column(
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Text(
+                                            "${product!!.productStock} còn hàng",
+                                            fontSize = 12.sp,
+                                            color = Color.Gray,
+                                        )
+                                        Text(
                                         "${product?.productName}",
                                         maxLines = 2,
                                         fontSize = 16.sp,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
                                         overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f)
                                     )
-                                    Column(
-                                        horizontalAlignment = Alignment.End
-                                    ) {
+                                    }
                                         Text(
-                                            "${product?.productPrice}",
+                                            "$itemPriceFormatted₫",
                                             fontSize = 14.sp,
                                             color = Color.Black,
                                             fontWeight = FontWeight.Bold,
                                         )
-                                        Text(
-                                            "${product?.productPrice}",
-                                            fontSize = 14.sp,
-                                            color = Color.Gray,
-                                            textDecoration = TextDecoration.LineThrough
-                                        )
-                                    }
+
                                 }
                                 //Đánh giá
                                 Spacer(Modifier.height(4.dp))
@@ -384,7 +390,13 @@ fun ProductDetailScreen(
 
                                 // chọn màu
                                 Spacer(Modifier.height(4.dp))
-                                Text(
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Column {
+                                        Text(
                                     text = "Color",
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(top = 10.dp)
@@ -403,9 +415,10 @@ fun ProductDetailScreen(
                                         Spacer(modifier = Modifier.width(8.dp))
                                     }
                                 }
+                                    }
 
                                 // Số lượng
-                                Spacer(Modifier.height(10.dp))
+//                                Spacer(Modifier.height(10.dp))
                                 Row(
                                     modifier = Modifier
                                         .border(
@@ -431,8 +444,10 @@ fun ProductDetailScreen(
                                         Icon(Icons.Default.Add, contentDescription = "Increase")
                                     }
                                 }
+                                }
 
-                                Spacer(Modifier.height(4.dp))
+
+                                Spacer(Modifier.height(8.dp))
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -634,7 +649,7 @@ fun ProductDetailScreen(
                     hostState = snackbarHostState,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(start = 16.dp, end = 16.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 10.dp)
                         .systemBarsPadding()
                         .background(Color.Transparent),
                 ) { data ->
@@ -643,13 +658,11 @@ fun ProductDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
+                            .background(Color(0xFF464646))
                             .border(
-                                width = 1.dp,
-                                color = Color(0xFFEEEEEE),
-                                shape = RoundedCornerShape(12.dp)
+                                width = 1.dp, color = Color(0xFF00C4B4), shape = RoundedCornerShape(12.dp)
                             )
-                            .padding(16.dp)
+                            .padding(10.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -668,7 +681,7 @@ fun ProductDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "Đã thêm vào giỏ hàng!", color = Color.Black
+                                    "Đã thêm vào giỏ hàng!", color = Color.White, fontSize = 14.sp
                                 )
                             }
 
@@ -676,7 +689,8 @@ fun ProductDetailScreen(
                                 Text(
                                     "Xem giỏ hàng",
                                     color = Color(0xFF00C4B4),
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
                                 )
                             }
                         }
@@ -687,7 +701,6 @@ fun ProductDetailScreen(
         }
     }
 }
-
 @Composable
 fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {

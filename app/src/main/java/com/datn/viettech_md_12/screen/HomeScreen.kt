@@ -64,14 +64,15 @@ fun HomeScreen(
             item {
                 Spacer(Modifier.height(13.dp))
                 if (banners.isEmpty()) {
-                    CircularProgressIndicator()
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+                    }
                 } else {
                     CustomHorizontalPager(banners.map { painterResource(it) })
                 }
             }
 
             item {
-                Spacer(Modifier.height(24.dp))
                 Column(
                     modifier = Modifier
                         .height(112.dp)
@@ -103,7 +104,7 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                     if (categories.isEmpty()) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                        CircularProgressIndicator(color = Color(0xFF21D4B4),modifier = Modifier.align(Alignment.CenterHorizontally))
                     } else {
                         CustomLazyRow(categories, navController) // 🛠️ Fix thiếu tham số
                     }
@@ -136,7 +137,7 @@ fun HomeScreen(
                         .height(520.dp)
                 ) {
                     if (products.isEmpty()) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        CircularProgressIndicator(color = Color(0xFF21D4B4), modifier = Modifier.align(Alignment.Center))
                     } else {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),

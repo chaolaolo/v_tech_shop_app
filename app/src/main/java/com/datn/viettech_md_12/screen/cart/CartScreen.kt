@@ -85,7 +85,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
-import com.datn.viettech_md_12.data.model.Metadata
+import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.screen.checkout.formatCurrency
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import kotlinx.coroutines.launch
@@ -231,7 +232,7 @@ fun CartScreen(
 @Composable
 fun CartContent(
     navController: NavController,
-    cartProducts: List<Metadata.CartProduct>,
+    cartProducts: List<CartModel.Metadata.CartProduct>,
     selectedItems: MutableList<String>,
     cartViewModel: CartViewModel,
 ) {
@@ -276,8 +277,15 @@ fun CartContent(
 }
 
 @Composable
-fun OrderSummary(navController: NavController, selectedItems: List<Metadata.CartProduct>) {
+fun OrderSummary(navController: NavController, selectedItems: List<CartModel.Metadata.CartProduct>) {
     val subtotal = selectedItems.filter { it.isSelected }.sumOf { it.price * it.quantity }
+    val shippingFee = remember(selectedItems) {
+        if (selectedItems.any { it.isSelected }) 35000.0 else 0.0
+    }
+    val discount = remember { 0.0 }
+    val total = remember(subtotal, shippingFee, discount) {
+        subtotal + shippingFee - discount
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -286,16 +294,16 @@ fun OrderSummary(navController: NavController, selectedItems: List<Metadata.Cart
         Text("Thông tin đặt hàng", fontWeight = FontWeight.W600, fontSize = 14.sp, color = Color.Black)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng giá tiền", fontSize = 12.sp, color = Color.Gray)
-            Text("VND ${"%.2f".format(subtotal)}", fontSize = 12.sp, color = Color.Gray)
+            Text("${"%.2f".format(subtotal)}₫", fontSize = 12.sp, color = Color.Gray)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Phí vận chuyển", fontSize = 12.sp, color = Color.Gray)
-            Text("VND 0.00", fontSize = 12.sp, color = Color.Gray)
+            Text("${formatCurrency(shippingFee)}₫", fontSize = 12.sp, color = Color.Gray)
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 0.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng thanh toán", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
-            Text("VND ${"%.2f".format(subtotal)}", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
+            Text("${formatCurrency(total)}₫", fontSize = 16.sp, fontWeight = FontWeight.W500, color = Color.Black)
         }
         Spacer(Modifier.height(5.dp))
         MyButton(
@@ -310,7 +318,7 @@ fun OrderSummary(navController: NavController, selectedItems: List<Metadata.Cart
 
 @Composable
 fun CartItemTile(
-    product: Metadata.CartProduct,
+    product: CartModel.Metadata.CartProduct,
     isSelected: Boolean,
     onSelectionChange: (Boolean) -> Unit,
     onDelete: (String, String) -> Unit,
@@ -415,7 +423,7 @@ fun CartItemTile(
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
                 Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 1.sp)
-                Text("VND $itemPriceFormatted", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
+                Text("$itemPriceFormatted₫", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
                 Row(
                     modifier = Modifier
                         .border(
@@ -556,6 +564,10 @@ fun EmptyCart() {
         )
     }
 }// end empty cart
+
+fun formatCurrency(amount: Double): String {
+    return "%,.0f".format(amount).replace(",", ".")
+}
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Preview(showSystemUi = true)

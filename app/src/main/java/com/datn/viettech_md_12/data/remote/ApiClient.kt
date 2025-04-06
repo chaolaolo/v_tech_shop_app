@@ -3,11 +3,13 @@ package com.datn.viettech_md_12.data.remote
 import UserRepository
 import com.datn.viettech_md_12.data.interfaces.CartService
 import com.datn.viettech_md_12.data.interfaces.CategoryService
+import com.datn.viettech_md_12.data.interfaces.CheckoutService
 import com.datn.viettech_md_12.data.interfaces.ProductService
 import com.datn.viettech_md_12.data.interfaces.ReviewService
 import com.datn.viettech_md_12.data.interfaces.UserService
 import com.datn.viettech_md_12.data.repository.CartRepository
 import com.datn.viettech_md_12.data.repository.CategoryRepository
+import com.datn.viettech_md_12.data.repository.CheckoutReporitory
 import com.datn.viettech_md_12.data.repository.ProductRepository
 import com.datn.viettech_md_12.data.repository.ReviewRepository
 import retrofit2.Retrofit
@@ -33,6 +35,17 @@ object ApiClient {
     val cartService: CartService by lazy {
         retrofit.create(CartService::class.java)
     }
+    val cartRepository: CartRepository by lazy {
+        CartRepository(cartService)
+    }
+
+    val checkoutService:CheckoutService by lazy {
+        retrofit.create(CheckoutService::class.java)
+    }
+    val checkoutRepository: CheckoutReporitory by lazy {
+        CheckoutReporitory(checkoutService)
+    }
+
     // Khai báo reviewService
     val reviewService: ReviewService by lazy {
         retrofit.create(ReviewService::class.java)
@@ -43,9 +56,7 @@ object ApiClient {
     val userService: UserService by lazy {
         retrofit.create(UserService::class.java)
     }
-    val cartRepository: CartRepository by lazy {
-        CartRepository(cartService)
-    }
+
 
     val productRepository: ProductRepository by lazy {
         ProductRepository(productService)

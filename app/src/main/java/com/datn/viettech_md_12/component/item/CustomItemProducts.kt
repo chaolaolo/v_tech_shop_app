@@ -22,6 +22,8 @@ import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.ProductByCateModel
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, context: Context,  onClick: () -> Unit) {
@@ -47,6 +49,7 @@ fun CustomItemProductsBase(
     val imageUrl = product?.productThumbnail ?: productByCateModel?.productThumbnail
     val name = product?.productName ?: productByCateModel?.productName
     val price = product?.productPrice ?: productByCateModel?.productPrice
+    val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
 
     var isFavorite by remember { mutableStateOf(false) }
     val BASE_URL = "http://103.166.184.249:3056/"
@@ -133,7 +136,7 @@ fun CustomItemProductsBase(
                             )
 
                             Text(
-                                "${price ?: 0.0}VND",
+                                "$itemPriceFormatted₫",
                                 color = Color(0xFFF44336),
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium
