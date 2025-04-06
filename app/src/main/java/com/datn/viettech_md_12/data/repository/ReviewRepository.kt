@@ -36,24 +36,26 @@ class ReviewRepository(private val reviewService: ReviewService) {
         }
     }
 
-    // Thêm mới review (chỉ nhận List<Image> đã được upload thành công)
     suspend fun addReview(
         token: String,
-        clientId: String,  // 👈 Tách riêng clientId
+        clientId: String,
         accountId: String,
         productId: String,
         contentsReview: String,
-        uploadedImages: List<Image>,  // 👈 Ảnh đã được upload
+        uploadedImages: List<Image>,  // Có thể không cần nữa nếu dùng ảnh mặc định
         rating: Int
     ): Result<ReviewResponse> {
         return try {
+            // Dùng ID ảnh cố định
+            val fixedImageId = "67f2043a4c6573cb98bd844f"  // ID ảnh mặc định
             val request = AddReviewRequest(
                 account_id = accountId,
                 product_id = productId,
                 contents_review = contentsReview,
-                image_ids = uploadedImages.map { it.id }, // lấy ID ảnh
+                image_ids = listOf(fixedImageId),  // Dùng ảnh mặc định
                 rating = rating
             )
+
             val response = reviewService.addReview(request, token, clientId)
 
             if (response.isSuccessful) {

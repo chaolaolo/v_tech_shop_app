@@ -107,8 +107,6 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -121,7 +119,7 @@ fun ProductDetailScreen(
     navController: NavController,
     productId: String,
     viewModel: ProductViewModel = viewModel(),
-    ) {
+) {
     val context = LocalContext.current.applicationContext as Application
 
     // 🔧 Khởi tạo ReviewViewModel với factory
@@ -149,10 +147,6 @@ fun ProductDetailScreen(
     var showDialog by remember { mutableStateOf(false) }
     var showAddReviewDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
-
-    val price = product?.productPrice ?:0.0
-    val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
-
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -286,34 +280,34 @@ fun ProductDetailScreen(
                                 //Tên/giá
                                 Spacer(Modifier.height(10.dp))
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.Top
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.Start
-                                    ) {
-                                        Text(
-                                            "${product!!.productStock} còn hàng",
-                                            fontSize = 12.sp,
-                                            color = Color.Gray,
-                                        )
-                                        Text(
+                                    Text(
                                         "${product?.productName}",
                                         maxLines = 2,
                                         fontSize = 16.sp,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
                                         overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
-                                    }
+                                    Column(
+                                        horizontalAlignment = Alignment.End
+                                    ) {
                                         Text(
-                                            "$itemPriceFormatted₫",
+                                            "${product?.productPrice}",
                                             fontSize = 14.sp,
                                             color = Color.Black,
                                             fontWeight = FontWeight.Bold,
                                         )
-
+                                        Text(
+                                            "${product?.productPrice}",
+                                            fontSize = 14.sp,
+                                            color = Color.Gray,
+                                            textDecoration = TextDecoration.LineThrough
+                                        )
+                                    }
                                 }
                                 //Đánh giá
                                 Spacer(Modifier.height(4.dp))
@@ -390,13 +384,7 @@ fun ProductDetailScreen(
 
                                 // chọn màu
                                 Spacer(Modifier.height(4.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.Bottom
-                                ) {
-                                    Column {
-                                        Text(
+                                Text(
                                     text = "Color",
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(top = 10.dp)
@@ -415,10 +403,9 @@ fun ProductDetailScreen(
                                         Spacer(modifier = Modifier.width(8.dp))
                                     }
                                 }
-                                    }
 
                                 // Số lượng
-//                                Spacer(Modifier.height(10.dp))
+                                Spacer(Modifier.height(10.dp))
                                 Row(
                                     modifier = Modifier
                                         .border(
@@ -444,10 +431,8 @@ fun ProductDetailScreen(
                                         Icon(Icons.Default.Add, contentDescription = "Increase")
                                     }
                                 }
-                                }
 
-
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(4.dp))
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -649,7 +634,7 @@ fun ProductDetailScreen(
                     hostState = snackbarHostState,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(start = 16.dp, end = 16.dp, top = 10.dp)
+                        .padding(start = 16.dp, end = 16.dp)
                         .systemBarsPadding()
                         .background(Color.Transparent),
                 ) { data ->
@@ -658,11 +643,13 @@ fun ProductDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF464646))
+                            .background(Color.White)
                             .border(
-                                width = 1.dp, color = Color(0xFF00C4B4), shape = RoundedCornerShape(12.dp)
+                                width = 1.dp,
+                                color = Color(0xFFEEEEEE),
+                                shape = RoundedCornerShape(12.dp)
                             )
-                            .padding(10.dp)
+                            .padding(16.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -681,7 +668,7 @@ fun ProductDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "Đã thêm vào giỏ hàng!", color = Color.White, fontSize = 14.sp
+                                    "Đã thêm vào giỏ hàng!", color = Color.Black
                                 )
                             }
 
@@ -689,8 +676,7 @@ fun ProductDetailScreen(
                                 Text(
                                     "Xem giỏ hàng",
                                     color = Color(0xFF00C4B4),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
@@ -701,6 +687,7 @@ fun ProductDetailScreen(
         }
     }
 }
+
 @Composable
 fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
@@ -759,7 +746,8 @@ fun AddReviewDialog(
             Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
             onDismiss()
         }?.onFailure {
-            Toast.makeText(context, "Gửi đánh giá thất bại", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
+            onDismiss()
         }
     }
 
@@ -770,23 +758,31 @@ fun AddReviewDialog(
                 showConfirmDialog = false
 
                 coroutineScope.launch {
-                    if (imageUris.isEmpty()) {
-                        Toast.makeText(context, "Vui lòng chọn ít nhất 1 ảnh", Toast.LENGTH_SHORT).show()
+                    if (content.isBlank() || rating == 0) {
+                        Toast.makeText(context, "Vui lòng nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
                         return@launch
                     }
 
+                    // Kiểm tra ảnh đã chọn và chuyển thành Multipart
                     val imageParts = imageUris.mapNotNull { uriToMultipart(context, it) }
-                    if (imageParts.isEmpty()) {
-                        Toast.makeText(context, "Không thể xử lý ảnh", Toast.LENGTH_SHORT).show()
-                        return@launch
-                    }
 
-                    reviewViewModel.uploadImagesAndAddReview(
-                        imageParts = imageParts,
-                        productId = productId,
-                        contentsReview = content,
-                        rating = rating
-                    )
+                    // Chỉ gửi ảnh đã chọn nếu có, nếu không thì chỉ gửi nội dung review
+                    if (imageParts.isNotEmpty()) {
+                        reviewViewModel.uploadImagesAndAddReview(
+                            imageParts = imageParts,
+                            productId = productId,
+                            contentsReview = content,
+                            rating = rating
+                        )
+                    } else {
+                        // Nếu không có ảnh, chỉ gửi nội dung và đánh giá
+                        reviewViewModel.uploadImagesAndAddReview(
+                            imageParts = emptyList(),  // Không gửi ảnh
+                            productId = productId,
+                            contentsReview = content,
+                            rating = rating
+                        )
+                    }
                 }
             },
             onDismiss = { showConfirmDialog = false }

@@ -39,7 +39,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
 
     // ✅ Flow kết hợp: upload ảnh rồi mới thêm review
     fun uploadImagesAndAddReview(
-        imageParts: List<MultipartBody.Part>,
+        imageParts: List<MultipartBody.Part>,  // Không cần sử dụng nữa nếu không upload ảnh
         productId: String,
         contentsReview: String,
         rating: Int
@@ -52,30 +52,25 @@ class ReviewViewModel(application: Application) : ViewModel() {
             _isLoading.value = true
 
             try {
-                val uploadResult = _repository.uploadImages(imageParts)
-                _uploadImagesResult.value = uploadResult
+                // Không upload ảnh nữa, dùng ảnh mặc định
+                val fixedImageId = "67f2043a4c6573cb98bd844f"  // ID ảnh mặc định
 
-                if (uploadResult.isSuccess) {
-                    val uploadedImages = uploadResult.getOrThrow()
+                // Gửi review với ảnh mặc định
+                val addReviewResult = _repository.addReview(
+                    token = token,
+                    clientId = clientId,
+                    accountId = clientId,
+                    productId = productId,
+                    contentsReview = contentsReview,
+                    uploadedImages = emptyList(),  // Không gửi ảnh nữa
+                    rating = rating
+                )
 
-                    val addReviewResult = _repository.addReview(
-                        token = token,
-                        clientId = clientId,
-                        accountId = clientId,
-                        productId = productId,
-                        contentsReview = contentsReview,
-                        uploadedImages = uploadedImages,
-                        rating = rating
-                    )
-
-                    _addReviewResult.value = addReviewResult
-                } else {
-                    Log.e("UPLOAD_ADD_REVIEW", "Upload ảnh thất bại: ${uploadResult.exceptionOrNull()?.message}")
-                    _addReviewResult.value = Result.failure(Exception("Upload failed"))
-                }
+                _addReviewResult.value = addReviewResult
             } catch (e: Exception) {
                 Log.e("UPLOAD_ADD_REVIEW", "Lỗi: ${e.message}")
                 _addReviewResult.value = Result.failure(e)
+                _isLoading.value = false
             } finally {
                 _isUploading.value = false
                 _isLoading.value = false
