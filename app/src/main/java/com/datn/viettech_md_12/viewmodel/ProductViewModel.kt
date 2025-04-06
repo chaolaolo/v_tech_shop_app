@@ -178,6 +178,8 @@ class ProductViewModel : ViewModel() {
             val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
             val token = sharedPreferences.getString("accessToken", "")
             val userId = sharedPreferences.getString("clientId", "")
+            Log.d("CartViewModel", "token $token")
+            Log.d("CartViewModel", "token $userId")
             _isLoading.value = true
             try {
                 val response = cartRepository.addToCart(

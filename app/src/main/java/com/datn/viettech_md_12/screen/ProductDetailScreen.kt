@@ -445,8 +445,7 @@ fun ProductDetailScreen(
 
                                                 if (!isLoggedIn) {
                                                     showLoginDialog = true
-
-                                                }
+                                                }else{
                                                 Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(
                                                     productId = product.id,
@@ -464,6 +463,7 @@ fun ProductDetailScreen(
                                                         }
                                                     }
                                                 )
+                                            }
                                             }
 //                                            coroutineScope.launch {
 //                                                Log.d("SnackbarDebug", "Snackbar gọi showSnackbar()")

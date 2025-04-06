@@ -25,6 +25,8 @@ import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.ProductByCateModel
 import com.datn.viettech_md_12.data.model.ProductModel
+import com.datn.viettech_md_12.screen.authentication.LoginScreen
+import com.datn.viettech_md_12.screen.authentication.RegisterScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import java.text.NumberFormat
 import java.util.Locale
