@@ -56,7 +56,7 @@ fun CheckoutItemTile(
     } else {
         "http://103.166.184.249:3056/${product.image.replace("\\", "/")}"
     }
-    Log.d("lol", "Loading image from URL: $imageUrl")
+    Log.d("CheckoutItemTile", "Loading image from URL: $imageUrl")
 
     val itemPrice = product.price
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
@@ -85,7 +85,7 @@ fun CheckoutItemTile(
             contentScale = ContentScale.Crop,
             placeholder = painterResource(R.drawable.ic_launcher_background),
             error = painterResource(R.drawable.error_img),
-            onError = { Log.e("lol", "Failed to load image: $imageUrl") }
+            onError = { Log.e("CheckoutItemTile", "Failed to load image: $imageUrl") }
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {

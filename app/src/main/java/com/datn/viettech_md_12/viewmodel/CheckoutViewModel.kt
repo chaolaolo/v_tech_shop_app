@@ -46,8 +46,8 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     //Get Address
     fun getAddress() {
         viewModelScope.launch {
-            Log.d("CheckoutViewModel", "userId: $userId")
-            Log.d("CheckoutViewModel", "token: $token")
+            Log.d("getAddress", "userId: $userId")
+            Log.d("getAddress", "token: $token")
             _isLoading.value = true
             try {
                 val response = checkoutRepository.getAddress(
@@ -56,21 +56,21 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                 if (response.isSuccessful) {
                     _addressState.value = response
                     response.body()?.let {
-                        Log.d("dm", "Fetch Address Success: ${it}")
+                        Log.d("getAddress", "Fetch Address Success: ${it}")
                     }
                 } else {
-                    Log.e("dm", "Fetch Address Failed: ${response.code()} - ${response.message()}")
+                    Log.e("getAddress", "Fetch Address Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
-                Log.e("dm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
+                Log.e("getAddress", "Lỗi mạng: Không thể kết nối với máy chủ")
             } catch (e: SocketTimeoutException) {
-                Log.e("dm_error", "Lỗi mạng: Đã hết thời gian chờ")
+                Log.e("getAddress", "Lỗi mạng: Đã hết thời gian chờ")
             } catch (e: HttpException) {
-                Log.e("dm_error", "Lỗi HTTP: ${e.message()}")
+                Log.e("getAddress", "Lỗi HTTP: ${e.message()}")
             } catch (e: JsonSyntaxException) {
-                Log.e("dm_error", "Lỗi dữ liệu: Invalid JSON response")
+                Log.e("getAddress", "Lỗi dữ liệu: Invalid JSON response")
             } catch (e: Exception) {
-                Log.e("dm_error", "Lỗi chung: ${e.message}", e)
+                Log.e("getAddress", "Lỗi chung: ${e.message}", e)
             } finally {
                 _isLoading.value = false // Kết thúc trạng thái loading
             }
@@ -98,28 +98,28 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                 if (response.isSuccessful) {
                     _addressState.value = response
                     response.body()?.let {
-                        Log.d("CheckoutViewModel", "Update Address Success: $it")
+                        Log.d("updateAddress", "Update Address Success: $it")
                         // Cập nhật lại thông tin địa chỉ sau khi update thành công
                         getAddress()
                     }
                 } else {
-                    Log.e("CheckoutViewModel", "Update Address Failed: ${response.code()} - ${response.message()}")
+                    Log.e("updateAddress", "Update Address Failed: ${response.code()} - ${response.message()}")
                     _addressState.value = response
                 }
             } catch (e: UnknownHostException) {
-                Log.e("CheckoutViewModel", "Network error: Cannot connect to server")
+                Log.e("updateAddress", "Network error: Cannot connect to server")
                 _addressState.value = null
             } catch (e: SocketTimeoutException) {
-                Log.e("CheckoutViewModel", "Network error: Timeout")
+                Log.e("updateAddress", "Network error: Timeout")
                 _addressState.value = null
             } catch (e: HttpException) {
-                Log.e("CheckoutViewModel", "HTTP error: ${e.message()}")
+                Log.e("updateAddress", "HTTP error: ${e.message()}")
                 _addressState.value = null
             } catch (e: JsonSyntaxException) {
-                Log.e("CheckoutViewModel", "Data error: Invalid JSON response")
+                Log.e("updateAddress", "Data error: Invalid JSON response")
                 _addressState.value = null
             } catch (e: Exception) {
-                Log.e("CheckoutViewModel", "General error: ${e.message}", e)
+                Log.e("updateAddress", "General error: ${e.message}", e)
                 _addressState.value = null
             } finally {
                 _isLoading.value = false
@@ -141,21 +141,21 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                     response.body()?.let {cartModel->
                         val selectedItems = cartModel.metadata?.cart_products?.filter { it.isSelected == true } ?: emptyList()
                         _selectedCartItems.value = selectedItems
-                        Log.d("dm", "Fetch Cart Success: ${selectedItems.size}")
+                        Log.d("getIsSelectedItemInCart", "Fetch Cart Success: ${selectedItems.size}")
                     }
                 } else {
-                    Log.e("dm", "Fetch Cart Failed: ${response.code()} - ${response.message()}")
+                    Log.e("getIsSelectedItemInCart", "Fetch Cart Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
-                Log.e("dm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
+                Log.e("getIsSelectedItemInCart", "Lỗi mạng: Không thể kết nối với máy chủ")
             } catch (e: SocketTimeoutException) {
-                Log.e("dm_error", "Lỗi mạng: Đã hết thời gian chờ")
+                Log.e("getIsSelectedItemInCart", "Lỗi mạng: Đã hết thời gian chờ")
             } catch (e: HttpException) {
-                Log.e("dm_error", "Lỗi HTTP: ${e.message()}")
+                Log.e("getIsSelectedItemInCart", "Lỗi HTTP: ${e.message()}")
             } catch (e: JsonSyntaxException) {
-                Log.e("dm_error", "Lỗi dữ liệu: Invalid JSON response")
+                Log.e("getIsSelectedItemInCart", "Lỗi dữ liệu: Invalid JSON response")
             } catch (e: Exception) {
-                Log.e("dm_error", "Lỗi chung: ${e.message}", e)
+                Log.e("getIsSelectedItemInCart", "Lỗi chung: ${e.message}", e)
             } finally {
                 _isLoading.value = false // Kết thúc trạng thái loading
             }
@@ -172,7 +172,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     //checkout
     fun checkout(address: String, phone_number: String, receiver_name: String, payment_method: String, discount_code:String) {
         viewModelScope.launch {
-            Log.d("CartViewModel", "clientId: $userId")
+            Log.d("checkout", "clientId: $userId")
             _isLoading.value = true
             try {
                 val request = CheckoutModel(
@@ -197,29 +197,29 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                         userIdQuery = userId?:""
                     )
                     val dc = response.body()?.metadata?.discountCode
-                    Log.d("CartViewModel", "request: $request")
-                    Log.d("CartViewModel", "discount_code: $dc")
-                    Log.d("CartViewModel", "Checkout Success - Raw: ${response.raw()}")
-                    Log.d("CartViewModel", "Checkout Success - Body: ${response.body()}")
-                    Log.d("CartViewModel", "Checkout Success - Headers: ${response.headers()}")
+                    Log.d("checkout", "request: $request")
+                    Log.d("checkout", "discount_code: $dc")
+                    Log.d("checkout", "Checkout Success - Raw: ${response.raw()}")
+                    Log.d("checkout", "Checkout Success - Body: ${response.body()}")
+                    Log.d("checkout", "Checkout Success - Headers: ${response.headers()}")
                 } else {
-                    Log.e("CartViewModel", "Checkout Failed: ${response.code()} - ${response.message()}")
+                    Log.e("checkout", "Checkout Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
                 val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("checkout", errorMsg, e)
             } catch (e: SocketTimeoutException) {
                 val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("checkout", errorMsg, e)
             } catch (e: HttpException) {
                 val errorMsg = "Lỗi HTTP: ${e.message()}"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("checkout", errorMsg, e)
             } catch (e: JsonSyntaxException) {
                 val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("checkout", errorMsg, e)
             } catch (e: Exception) {
                 val errorMsg = e.message ?: "Lỗi không xác định"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("checkout", errorMsg, e)
             } finally {
                 _isLoading.value = false
             }

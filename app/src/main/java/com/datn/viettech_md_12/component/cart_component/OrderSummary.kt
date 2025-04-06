@@ -51,7 +51,7 @@ fun OrderSummary(
         Text("Thông tin đặt hàng", fontWeight = FontWeight.W600, fontSize = 14.sp, color = Color.Black)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tổng giá tiền", fontSize = 12.sp, color = Color.Gray)
-            Text("${"%.2f".format(subtotal)}₫", fontSize = 12.sp, color = Color.Gray)
+            Text("${formatCurrency(subtotal)}₫", fontSize = 12.sp, color = Color.Gray)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Phí vận chuyển", fontSize = 12.sp, color = Color.Gray)

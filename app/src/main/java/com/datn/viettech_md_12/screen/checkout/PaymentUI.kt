@@ -109,15 +109,17 @@ fun PaymentUI(
 
 
     val discountState by cartViewModel.discountState.collectAsState()
-    val listDiscount = discountState?.body()?.metadata ?: emptyList()
+    val listDiscount = discountState?.body()?.data ?: emptyList()
     val selectedVoucher = remember(discount, listDiscount) {
         listDiscount.firstOrNull { it.code.trim() == discount.trim() }
     }
-    val subtotal = remember(selectedCartItems) {
-        selectedCartItems?.sumOf { item ->
-            item.price * item.quantity
-        } ?: 0.0
-    }
+//    val subtotal = remember(selectedCartItems) {
+//        selectedCartItems?.sumOf { item ->
+//            item.price * item.quantity
+//        } ?: 0.0
+//    }
+    val subtotal = remember(selectedCartItems) {selectedCartItems?.sumOf { it.price * it.quantity } ?: 0.0}
+
     val shippingFee = remember(selectedCartItems) {
         if (selectedCartItems.isNullOrEmpty()) 0.0 else 35000.0
     }

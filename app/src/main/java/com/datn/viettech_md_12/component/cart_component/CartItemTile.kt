@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.viewmodel.CartViewModel
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -71,6 +73,7 @@ fun CartItemTile(
     val swipeThreshold = 250f
     val anchors = mapOf(0f to 0, -swipeThreshold to 1)
     val quantityState = remember { mutableStateOf(product.quantity) }
+    val coroutineScope = rememberCoroutineScope()
     // Xử lý khi detailsVariantId null thì dùng productId
     val variantIdToUse = product.detailsVariantId ?: product.productId
     val imageUrl = if (product.image.startsWith("http")) {
@@ -93,7 +96,12 @@ fun CartItemTile(
                 thresholds = { _, _ -> FractionalThreshold(0.5f) },
                 orientation = Orientation.Horizontal
             )
-            .background(if (swipeableState.offset.value < -swipeThreshold / 2) Color.Red else Color.White)
+            .background(
+                if (swipeableState.offset.value < -swipeThreshold / 2) Color.Red else Color.Transparent, shape = RoundedCornerShape(
+                    topStart = 20.dp, bottomStart = 20.dp, topEnd = 10.dp, bottomEnd = 10.dp
+                )
+            )
+            .clip(RoundedCornerShape(10.dp))
     ) {
         //nút xóa sp khỏi giỏ hàng
         Box(
@@ -115,7 +123,7 @@ fun CartItemTile(
                             // Có thể hiển thị Snackbar thông báo lỗi
                         }
                     )
-                    Log.d("CartScreen", "ondelete: clicked")
+                    Log.d("CartItemTile", "ondelete: clicked")
                 },
             contentAlignment = Alignment.CenterEnd
         ) {
@@ -144,6 +152,7 @@ fun CartItemTile(
                 .fillMaxWidth()
                 .offset { IntOffset(swipeableState.offset.value.toInt(), 0) }
                 .background(Color.White)
+                .padding(horizontal = 4.dp)
                 .clickable {
                     navController.navigate("product_detail/${product.productId}") // Chuyển đến chi tiết sản phẩm
                 },
@@ -159,7 +168,7 @@ fun CartItemTile(
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.ic_launcher_background),
                 error = painterResource(R.drawable.error_img),
-                onError = { Log.e("lol", "Failed to load image: $imageUrl") }
+                onError = { Log.e("CartItemTile", "Failed to load image: $imageUrl") }
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -181,11 +190,13 @@ fun CartItemTile(
                         onClick = {
                             if (quantityState.value > 1) {
                                 quantityState.value -= 1
-                                cartViewModel.updateProductQuantity(
-                                    productId = product.productId,
-                                    variantId = product.detailsVariantId ?: "",
-                                    newQuantity = quantityState.value,
-                                )
+                                coroutineScope.launch {
+                                    cartViewModel.updateProductQuantity(
+                                        productId = product.productId,
+                                        variantId = product.detailsVariantId ?: "",
+                                        newQuantity = quantityState.value,
+                                    )
+                                }
                             }
                         },
                         modifier = Modifier.size(16.dp)
@@ -196,11 +207,13 @@ fun CartItemTile(
                     IconButton(
                         onClick = {
                             quantityState.value += 1
-                            cartViewModel.updateProductQuantity(
-                                productId = product.productId,
-                                variantId =  product.detailsVariantId ?: "",
-                                newQuantity = quantityState.value,
-                            )
+                            coroutineScope.launch {
+                                cartViewModel.updateProductQuantity(
+                                    productId = product.productId,
+                                    variantId = product.detailsVariantId ?: "",
+                                    newQuantity = quantityState.value,
+                                )
+                            }
                         },
                         modifier = Modifier.size(16.dp)
                     ) {

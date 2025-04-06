@@ -25,11 +25,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 
 
 @Composable
-fun EmptyCart() {
+fun EmptyCart(
+    navController: NavController,
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -76,7 +79,7 @@ fun EmptyCart() {
         //Button
         MyButton(
             text = "Khám phá",
-            onClick = { },
+            onClick = {navController.navigate("home") },
             modifier = Modifier,
             backgroundColor = Color.Black,
             textColor = Color.White,

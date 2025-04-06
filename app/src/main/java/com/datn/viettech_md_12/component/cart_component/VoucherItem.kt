@@ -120,7 +120,7 @@ fun VoucherItem(
                     colorFilter = ColorFilter.tint(Color.White)
                 )
                 Text(
-                    text = " Voucher",
+                    text = " ${voucher.discountType ?: ""}",
                     color = Color.White,
                     fontSize = 8.sp,
                     fontWeight = FontWeight.Bold,
