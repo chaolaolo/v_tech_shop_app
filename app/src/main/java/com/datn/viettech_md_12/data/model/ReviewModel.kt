@@ -13,11 +13,13 @@ data class Review(
     val images: List<Image>,  // Danh sách ảnh đi kèm đánh giá
     val rating: Int  // Đánh giá sao
 )
+
 // Thông tin thống kê đánh giá sản phẩm (tổng số đánh giá và điểm trung bình)
 data class ReviewStats(
     val totalReviews: Int,     // Tổng số đánh giá
     val averageRating: Float  // Điểm đánh giá trung bình
 )
+
 // Thông tin ảnh với các thuộc tính như ID, tên tệp, đường dẫn tệp,...
 data class Image(
     val id: String,
@@ -40,11 +42,19 @@ data class ReviewResponse(
     val success: Boolean,
     val data: List<Review>  // Danh sách các đánh giá
 )
+
+// Phản hồi từ API chứa thông tin các đánh giá
+data class ReviewResponseAddUp(
+    val success: Boolean,
+    val data: Review
+)
+
 // Phản hồi từ API chứa thông tin các đánh giá
 data class ReviewStatsResponse(
     val success: Boolean,
     val data: ReviewStats  // Danh sách các đánh giá
 )
+
 // Yêu cầu thêm review, chỉ truyền vào ID của ảnh và rating
 data class AddReviewRequest(
     val account_id: String,          // ID của tài khoản

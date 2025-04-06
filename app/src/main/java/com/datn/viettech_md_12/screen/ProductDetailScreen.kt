@@ -726,27 +726,32 @@ fun AddReviewDialog(
 
     var rating by remember { mutableStateOf(0) }
     var content by remember { mutableStateOf("") }
-    val imageUris = remember { mutableStateListOf<Uri>() }
 
-    val isUploading by reviewViewModel.isUploading.collectAsState()
     val addReviewResult by reviewViewModel.addReviewResult.collectAsState()
+    val userReviewStatus by reviewViewModel.userReviewStatus.collectAsState()
 
     var showConfirmDialog by remember { mutableStateOf(false) }
 
-    val imageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetMultipleContents()
-    ) { uris ->
-        imageUris.clear()
-        imageUris.addAll(uris)
+    // Kiểm tra xem người dùng đã đánh giá sản phẩm chưa
+    LaunchedEffect(productId) {
+        reviewViewModel.checkUserReviewStatus(productId)
+    }
+
+    // Nếu người dùng đã có đánh giá, hiển thị thông báo và không cho phép thêm review
+    if (userReviewStatus) {
+        Toast.makeText(context, "Bạn đã thêm đánh giá cho sản phẩm này!", Toast.LENGTH_SHORT).show()
+        return
     }
 
     // Sau khi submit review thành công
     LaunchedEffect(addReviewResult) {
         addReviewResult?.onSuccess {
             Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
+            reviewViewModel.getReviewsByProduct(productId)
             onDismiss()
         }?.onFailure {
-            Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
+            Log.e("ADD_REVIEW", "Error: ${it.message}")
+            Toast.makeText(context, "Gửi đánh giá thất bại!", Toast.LENGTH_SHORT).show()
             onDismiss()
         }
     }
@@ -763,26 +768,12 @@ fun AddReviewDialog(
                         return@launch
                     }
 
-                    // Kiểm tra ảnh đã chọn và chuyển thành Multipart
-                    val imageParts = imageUris.mapNotNull { uriToMultipart(context, it) }
-
-                    // Chỉ gửi ảnh đã chọn nếu có, nếu không thì chỉ gửi nội dung review
-                    if (imageParts.isNotEmpty()) {
-                        reviewViewModel.uploadImagesAndAddReview(
-                            imageParts = imageParts,
-                            productId = productId,
-                            contentsReview = content,
-                            rating = rating
-                        )
-                    } else {
-                        // Nếu không có ảnh, chỉ gửi nội dung và đánh giá
-                        reviewViewModel.uploadImagesAndAddReview(
-                            imageParts = emptyList(),  // Không gửi ảnh
-                            productId = productId,
-                            contentsReview = content,
-                            rating = rating
-                        )
-                    }
+                    // Gửi review với ảnh ID cố định
+                    reviewViewModel.addReviewWithFixedImageId(
+                        productId = productId,
+                        contentsReview = content,
+                        rating = rating
+                    )
                 }
             },
             onDismiss = { showConfirmDialog = false }
@@ -827,32 +818,6 @@ fun AddReviewDialog(
                     maxLines = 4
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Button(onClick = { imageLauncher.launch("image/*") }) {
-                    Icon(Icons.Default.Image, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Chọn ảnh")
-                }
-
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(imageUris) { uri ->
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
@@ -865,7 +830,7 @@ fun AddReviewDialog(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Button(
+                    TextButton(
                         onClick = {
                             if (content.isBlank() || rating == 0) {
                                 Toast.makeText(context, "Nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
@@ -873,9 +838,8 @@ fun AddReviewDialog(
                                 showConfirmDialog = true
                             }
                         },
-                        enabled = !isUploading
                     ) {
-                        Text(if (isUploading) "Đang gửi..." else "Gửi")
+                        Text("Gửi")
                     }
                 }
             }
@@ -906,29 +870,4 @@ fun ConfirmDialog(
     )
 }
 
-// Function to handle URI to Multipart conversion
-fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
-    return try {
-        val contentResolver = context.contentResolver
-        val fileType = contentResolver.getType(uri) ?: return null
-        val inputStream = contentResolver.openInputStream(uri) ?: return null
 
-        val fileName = uri.lastPathSegment ?: "image_${System.currentTimeMillis()}.jpg"
-        val fileBytes = inputStream.readBytes()
-
-        // Check image size limit (e.g., 10MB)
-        if (fileBytes.size > 10 * 1024 * 1024) {
-            Log.e("URI_TO_MULTIPART", "Ảnh quá lớn")
-            return null
-        }
-
-        // Create RequestBody
-        val requestBody = fileBytes.toRequestBody(fileType.toMediaTypeOrNull())
-        Log.d("URI_TO_MULTIPART", "Tạo multipart thành công: $fileName")
-
-        MultipartBody.Part.createFormData("file", fileName, requestBody)
-    } catch (e: Exception) {
-        Log.e("URI_TO_MULTIPART", "Lỗi chuyển Uri thành Multipart: ${e.message}")
-        null
-    }
-}

@@ -4,12 +4,14 @@ import UserRepository
 import com.datn.viettech_md_12.data.interfaces.CartService
 import com.datn.viettech_md_12.data.interfaces.CategoryService
 import com.datn.viettech_md_12.data.interfaces.CheckoutService
+import com.datn.viettech_md_12.data.interfaces.ImageService
 import com.datn.viettech_md_12.data.interfaces.ProductService
 import com.datn.viettech_md_12.data.interfaces.ReviewService
 import com.datn.viettech_md_12.data.interfaces.UserService
 import com.datn.viettech_md_12.data.repository.CartRepository
 import com.datn.viettech_md_12.data.repository.CategoryRepository
 import com.datn.viettech_md_12.data.repository.CheckoutReporitory
+import com.datn.viettech_md_12.data.repository.ImageRepository
 import com.datn.viettech_md_12.data.repository.ProductRepository
 import com.datn.viettech_md_12.data.repository.ReviewRepository
 import retrofit2.Retrofit
@@ -27,7 +29,9 @@ object ApiClient {
     val categoryService: CategoryService by lazy {
         retrofit.create(CategoryService::class.java)
     }
-
+    val imageService: ImageService by lazy {
+        retrofit.create(ImageService::class.java)
+    }
     val categoryRepository: CategoryRepository by lazy {
         CategoryRepository(categoryService)
     }
@@ -66,5 +70,8 @@ object ApiClient {
     }
     val reviewRepository: ReviewRepository by lazy {
         ReviewRepository(reviewService)
+    }
+    val imageRepository: ImageRepository by lazy {
+        ImageRepository(imageService)
     }
 }
