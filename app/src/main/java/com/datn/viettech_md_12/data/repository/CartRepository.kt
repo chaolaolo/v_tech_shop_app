@@ -4,6 +4,7 @@ import com.datn.viettech_md_12.data.interfaces.CartService
 import com.datn.viettech_md_12.data.model.AddToCartRequest
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
+import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
 import com.datn.viettech_md_12.data.model.UpdateIsSelectedRequest
 import com.datn.viettech_md_12.data.remote.ApiClient
@@ -110,6 +111,17 @@ class CartRepository(
             token = token,
             userId = userId,
             request = request
+        )
+    }
+
+    //Get list DisCount
+    suspend fun getDiscount(
+        token: String,
+        userId: String,
+    ): Response<DiscountResponse> {
+        return cartService.getDiscount(
+            token = token,
+            userId = userId,
         )
     }
 }

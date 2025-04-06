@@ -3,6 +3,7 @@ package com.datn.viettech_md_12.data.interfaces
 import com.datn.viettech_md_12.data.model.AddToCartRequest
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DeleteCartItemRequest
+import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
 import com.datn.viettech_md_12.data.model.UpdateIsSelectedRequest
 import retrofit2.Response
@@ -74,5 +75,15 @@ interface CartService {
         @Header("x-client-id") userId: String,
         @Body request: DeleteCartItemRequest
     ): Response<Unit>
+
+    //Get list DisCount
+    @Headers(
+        "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683",
+    )
+    @GET("disscount/")
+    suspend fun getDiscount(
+        @Header("authorization") token: String,
+        @Header("x-client-id") userId: String,
+    ): Response<DiscountResponse>
 
 }

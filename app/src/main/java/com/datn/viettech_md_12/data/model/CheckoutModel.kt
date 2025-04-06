@@ -36,13 +36,11 @@ data class UpdateAddressRequest(
 
 )
 
-
 data class BillResponse(
     @SerializedName("message") val message: String,
     @SerializedName("statusCode") val statusCode: Int,
     @SerializedName("metadata") val metadata: BillMetadata
 ) {
-
     data class BillMetadata(
         @SerializedName("user_id") val userId: String,
         @SerializedName("products") val products: List<BillProduct>,

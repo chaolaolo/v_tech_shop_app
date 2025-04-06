@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,12 +34,22 @@ class CartViewModel(application: Application) : ViewModel() {
     private val _deleteCartItemState = MutableStateFlow<Response<Unit>?>(null)
     val deleteCartItemState: StateFlow<Response<Unit>?> get() = _deleteCartItemState
 
+    private val _discountState = MutableStateFlow<Response<DiscountResponse>?>(null)
+    val discountState: StateFlow<Response<DiscountResponse>?> get() = _discountState
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val _isDiscountLoading = MutableStateFlow(true)
+    val isDiscountLoading: StateFlow<Boolean> = _isDiscountLoading
 
     private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val token: String? = sharedPreferences.getString("accessToken", null)
     private val userId: String? = sharedPreferences.getString("clientId", null)
+
+    init {
+        fetchCart()
+        getListDisCount()
+    }
 
     //Get cart
     fun fetchCart() {
@@ -254,6 +265,39 @@ class CartViewModel(application: Application) : ViewModel() {
                 onError(errorMsg)
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    //Get list DisCount
+    fun getListDisCount() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = cartRepository.getDiscount(
+                    token = token?:"",
+                    userId = userId?:"",
+                )
+                if (response.isSuccessful) {
+                    _discountState.value = response
+                    response.body()?.let {
+                        Log.d("dm", "Fetch Discount Success: ${it}")
+                    }
+                } else {
+                    Log.e("dm", "Fetch Discount Failed: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: UnknownHostException) {
+                Log.e("dm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
+            } catch (e: SocketTimeoutException) {
+                Log.e("dm_error", "Lỗi mạng: Đã hết thời gian chờ")
+            } catch (e: HttpException) {
+                Log.e("dm_error", "Lỗi HTTP: ${e.message()}")
+            } catch (e: JsonSyntaxException) {
+                Log.e("dm_error", "Lỗi dữ liệu: Invalid JSON response")
+            } catch (e: Exception) {
+                Log.e("dm_error", "Lỗi chung: ${e.message}", e)
+            } finally {
+                _isLoading.value = false // Kết thúc trạng thái loading
             }
         }
     }

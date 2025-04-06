@@ -85,6 +85,7 @@ data class PaymentMethod(
 @Composable
 fun PaymentUI(
     navController: NavController,
+    discount:String,
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
@@ -106,24 +107,31 @@ fun PaymentUI(
         )
     var selectedPayOption by remember { mutableStateOf(payOptions[0]) }
 
-    // Tính tổng giá trị đơn hàng
+
+    val discountState by cartViewModel.discountState.collectAsState()
+    val listDiscount = discountState?.body()?.metadata ?: emptyList()
+    val selectedVoucher = remember(discount, listDiscount) {
+        listDiscount.firstOrNull { it.code.trim() == discount.trim() }
+    }
     val subtotal = remember(selectedCartItems) {
         selectedCartItems?.sumOf { item ->
             item.price * item.quantity
         } ?: 0.0
     }
-
-// Phí vận chuyển cố định hoặc tính toán
     val shippingFee = remember(selectedCartItems) {
         if (selectedCartItems.isNullOrEmpty()) 0.0 else 35000.0
     }
-
-// Giảm giá (nếu có)
-    val discount = remember { 0.0 }
-
+    val discountPercentage = selectedVoucher?.discountValue ?: 0.0
+    val discountAmount = remember(subtotal, discountPercentage) {
+        (subtotal * discountPercentage / 100)
+    }
+    val maxDiscountAmount = selectedVoucher?.maxDiscountAmount ?: Double.MAX_VALUE
+    val finalDiscountAmount = remember(discountAmount, maxDiscountAmount) {
+        minOf(discountAmount, maxDiscountAmount)
+    }
 // Tổng thanh toán
-    val total = remember(subtotal, shippingFee, discount) {
-        subtotal + shippingFee - discount
+    val total = remember(subtotal, shippingFee, finalDiscountAmount) {
+        subtotal + shippingFee - finalDiscountAmount
     }
 
     Scaffold(
@@ -151,6 +159,16 @@ fun PaymentUI(
         },
     )
     { innerPadding ->
+        Log.d("discount", "discount: $discount")
+        Log.d("discount", "selectedVoucher: $selectedVoucher")
+        Log.d("discount", "Available vouchers: ${listDiscount.map { it.code }}")
+        Log.d("discount", "subtotal: $subtotal")
+        Log.d("discount", "discountPercentage: $discountPercentage")
+        Log.d("discount", "discountAmount: $discountAmount")
+        Log.d("discount", "maxDiscountAmount: $maxDiscountAmount")
+        Log.d("discount", "finalDiscountAmount: $finalDiscountAmount")
+        Log.d("discount", "total: $total")
+        Log.d("discount", "Discount State: $discountState")
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -313,68 +331,46 @@ fun PaymentUI(
                     modifier = Modifier
                         .fillMaxWidth()
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         "Tổng phụ",
                         color = Color.Black,
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                     Text(
                         "${formatCurrency(subtotal)}₫",
                         color = Color.Black,
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         "Vận chuyển",
                         color = Color.Black,
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                     Text(
                         "${formatCurrency(shippingFee)}₫",
-                        color = Color(0xFFFF3333),
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
+                        color = Color(0xFF00C2A8),
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 2.dp, start = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Giảm giá",
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
-                    )
-                    Text(
-                        "- ${formatCurrency(discount)}₫",
-                        color = Color(0xFFFF3333),
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
-                    )
+                if (finalDiscountAmount > 0) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Giảm giá (${discountPercentage.toInt()}%)", fontSize = 12.sp, color = Color(0xFF00C2A8),lineHeight = 14.sp)
+                        Text("-${formatCurrency(finalDiscountAmount)}₫", fontSize = 12.sp, color = Color(0xFF00C2A8),lineHeight = 14.sp)
+                    }
                 }
+                Spacer(Modifier.height(3.dp))
                 HorizontalDivider(Modifier.height(0.5.dp), color = Color.LightGray)
+                Spacer(Modifier.height(3.dp))
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -405,7 +401,7 @@ fun PaymentUI(
                                 phone_number = phone,
                                 receiver_name = name,
                                 payment_method = selectedPayOption.apiValue,
-                                discount_code = "",
+                                discount_code = discount,
                             )
                             Log.d("PaymentUI", "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}")
                             navController.navigate("order_successfully")
@@ -479,5 +475,5 @@ fun PayMethodItem(
 @Composable
 @Preview(showSystemUi = true)
 fun PreviewPayScreen() {
-    PaymentUI(rememberNavController())
+//    PaymentUI(rememberNavController())
 }
