@@ -20,19 +20,20 @@ data class ReviewStats(
 )
 // Thông tin ảnh với các thuộc tính như ID, tên tệp, đường dẫn tệp,...
 data class Image(
-    val id: String,  // ID của ảnh
+    val id: String,
     val fileName: String,
     val filePath: String,
     val url: String,
     val fileSize: Long,
-    val fileType: String
+    val fileType: String,
 )
 
 // Phản hồi sau khi upload ảnh, trả về ảnh vừa tải lên
 data class ImageUploadResponse(
     val success: Boolean,
-    val data: List<Image>  // Cần thay đổi thành danh sách ảnh nếu API trả về nhiều ảnh
+    val data: Image  // Vì mỗi lần chỉ trả về một ảnh
 )
+
 
 // Phản hồi từ API chứa thông tin các đánh giá
 data class ReviewResponse(
@@ -46,11 +47,13 @@ data class ReviewStatsResponse(
 )
 // Yêu cầu thêm review, chỉ truyền vào ID của ảnh và rating
 data class AddReviewRequest(
-    val product_id: String,  // ID của sản phẩm
-    val contents_review: String,  // Nội dung đánh giá
-    val imageIds: List<String>,  // Danh sách ID của ảnh
-    val rating: Int  // Đánh giá sao
+    val account_id: String,          // ID của tài khoản
+    val product_id: String,          // ID của sản phẩm
+    val contents_review: String,     // Nội dung đánh giá
+    val image_ids: List<String>,     // Danh sách ID của ảnh
+    val rating: Int                  // Đánh giá sao
 )
+
 
 // Yêu cầu cập nhật review, chỉ truyền vào nội dung và danh sách ảnh mới
 data class UpdateReviewRequest(

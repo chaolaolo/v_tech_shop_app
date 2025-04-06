@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -89,6 +90,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -96,15 +99,18 @@ import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.Image
 import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -112,16 +118,20 @@ import okhttp3.RequestBody
 fun ProductDetailScreen(
     navController: NavController,
     productId: String,
-    viewModel: ProductViewModel= viewModel(),
-    reviewViewModel: ReviewViewModel = viewModel(
-        factory = ReviewViewModelFactory(application = LocalContext.current.applicationContext as Application)),
+    viewModel: ProductViewModel = viewModel(),
     ) {
+    val context = LocalContext.current.applicationContext as Application
+
+    // 🔧 Khởi tạo ReviewViewModel với factory
+    val reviewViewModel: ReviewViewModel = viewModel(
+        factory = ReviewViewModelFactory(context)
+    )
+
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
         reviewViewModel.getReviewsByProduct(productId)
         reviewViewModel.getReviewStats(productId)
     }
-    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
@@ -201,7 +211,7 @@ fun ProductDetailScreen(
                                 .background(Color(0xFFF4FDFA)),
                         ) {
                             AsyncImage(
-                            model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                model = "http://103.166.184.249:3056/${product?.productThumbnail}",
                                 contentDescription = "p detail image",
                                 modifier = Modifier
                                     .fillMaxSize(),
@@ -313,8 +323,10 @@ fun ProductDetailScreen(
 
                                     // Kiểm tra xem reviewStats có dữ liệu hay không
                                     if (reviewStats != null) {
-                                        val totalReviews = reviewStats?.getOrNull()?.totalReviews ?: 0
-                                        val averageRating = reviewStats?.getOrNull()?.averageRating ?: 0f
+                                        val totalReviews =
+                                            reviewStats?.getOrNull()?.totalReviews ?: 0
+                                        val averageRating =
+                                            reviewStats?.getOrNull()?.averageRating ?: 0f
 
                                         Text(
                                             text = "${averageRating} (${totalReviews} reviews)",
@@ -339,17 +351,18 @@ fun ProductDetailScreen(
 //                                    mainAxisAlignment = MainAxisAlignment.Center,
                                 ) {
                                     Text(
-                                    text = "${product?.productDescription}",
+                                        text = "${product?.productDescription}",
                                         fontSize = 12.sp,
-                                    color = Color.Gray,
+                                        color = Color.Gray,
                                         modifier = Modifier.padding(top = 8.dp),
                                         maxLines = if (isExpanded) Int.MAX_VALUE else 5,
                                         overflow = TextOverflow.Ellipsis,
                                         onTextLayout = { layoutResult ->
                                             textLayoutResult.value = layoutResult
-                                            showMoreVisible = layoutResult.hasVisualOverflow && !isExpanded
+                                            showMoreVisible =
+                                                layoutResult.hasVisualOverflow && !isExpanded
                                         }
-                                )
+                                    )
                                     if (showMoreVisible) {
                                         Text(text = "... Xem thêm",
                                             fontSize = 12.sp,
@@ -396,7 +409,9 @@ fun ProductDetailScreen(
                                 Row(
                                     modifier = Modifier
                                         .border(
-                                            width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(8.dp)
+                                            width = 1.dp,
+                                            brush = SolidColor(Color(0xFFF4F5FD)),
+                                            shape = RoundedCornerShape(8.dp)
                                         )
                                         .padding(horizontal = 6.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -431,7 +446,9 @@ fun ProductDetailScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .border(
-                                                width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(12.dp)
+                                                width = 1.dp,
+                                                brush = SolidColor(Color(0xFFF4F5FD)),
+                                                shape = RoundedCornerShape(12.dp)
                                             ),
                                         backgroundColor = Color.White,
                                         textColor = Color.Black,
@@ -442,7 +459,10 @@ fun ProductDetailScreen(
                                         onClick = {
                                             Log.d("ProductDetailScreen", "productId: " + productId)
                                             product?.let { product ->
-                                                Log.d("ProductDetailScreen", "product.id: " + product.id)
+                                                Log.d(
+                                                    "ProductDetailScreen",
+                                                    "product.id: " + product.id
+                                                )
                                                 viewModel.addProductToCart(
                                                     productId = product.id,
                                                     variantId = "",
@@ -625,7 +645,9 @@ fun ProductDetailScreen(
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.White)
                             .border(
-                                width = 1.dp, color = Color(0xFFEEEEEE), shape = RoundedCornerShape(12.dp)
+                                width = 1.dp,
+                                color = Color(0xFFEEEEEE),
+                                shape = RoundedCornerShape(12.dp)
                             )
                             .padding(16.dp)
                     ) {
@@ -665,6 +687,7 @@ fun ProductDetailScreen(
         }
     }
 }
+
 @Composable
 fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
@@ -691,19 +714,24 @@ fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
         }
     }
 }
+
 @Composable
 fun AddReviewDialog(
     productId: String,
     reviewViewModel: ReviewViewModel,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     var rating by remember { mutableStateOf(0) }
     var content by remember { mutableStateOf("") }
     val imageUris = remember { mutableStateListOf<Uri>() }
-    val showConfirmDialog = remember { mutableStateOf(false) } // Điều khiển hiển thị dialog xác nhận
 
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val isUploading by reviewViewModel.isUploading.collectAsState()
+    val addReviewResult by reviewViewModel.addReviewResult.collectAsState()
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -712,77 +740,64 @@ fun AddReviewDialog(
         imageUris.addAll(uris)
     }
 
-    // Dialog xác nhận
-    if (showConfirmDialog.value) {
+    // Sau khi submit review thành công
+    LaunchedEffect(addReviewResult) {
+        addReviewResult?.onSuccess {
+            Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
+            onDismiss()
+        }?.onFailure {
+            Toast.makeText(context, "Gửi đánh giá thất bại", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Dialog xác nhận gửi
+    if (showConfirmDialog) {
         ConfirmDialog(
             onConfirm = {
-                scope.launch {
-                    // Convert Uri to MultipartBody.Part
-                    val imageList = mutableListOf<MultipartBody.Part>()
+                showConfirmDialog = false
+
+                coroutineScope.launch {
                     if (imageUris.isEmpty()) {
                         Toast.makeText(context, "Vui lòng chọn ít nhất 1 ảnh", Toast.LENGTH_SHORT).show()
                         return@launch
                     }
 
-                    for (uri in imageUris) {
-                        val part = uriToMultipart(context, uri)
-                        if (part != null) {
-                            imageList.add(part)
-                        }
+                    val imageParts = imageUris.mapNotNull { uriToMultipart(context, it) }
+                    if (imageParts.isEmpty()) {
+                        Toast.makeText(context, "Không thể xử lý ảnh", Toast.LENGTH_SHORT).show()
+                        return@launch
                     }
 
-                    // Upload multiple images at once
-                    reviewViewModel.uploadImages(imageList)
-
-                    // Gửi đánh giá sau khi upload ảnh thành công
-                    reviewViewModel.uploadImagesResult.collect { result ->
-                        if (result.isSuccess) {
-                            val uploadedImages = result.getOrThrow()
-
-                            // Gửi đánh giá
-                            reviewViewModel.addReview(
-                                productId = productId,
-                                contentsReview = content,
-                                images = uploadedImages,
-                                rating = rating
-                            )
-                            onDismiss()
-                        } else {
-                            // Xử lý lỗi khi tải ảnh lên
-                            Toast.makeText(context, "Lỗi khi tải ảnh lên", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    reviewViewModel.uploadImagesAndAddReview(
+                        imageParts = imageParts,
+                        productId = productId,
+                        contentsReview = content,
+                        rating = rating
+                    )
                 }
-                showConfirmDialog.value = false // Đóng dialog sau khi xác nhận
             },
-            onDismiss = {
-                showConfirmDialog.value = false // Đóng dialog nếu người dùng chọn không
-            }
+            onDismiss = { showConfirmDialog = false }
         )
     }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = Color.White,
             tonalElevation = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Rating stars
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     repeat(5) { index ->
                         Icon(
                             imageVector = Icons.Default.Star,
-                            contentDescription = "Star ${index + 1}",
+                            contentDescription = null,
                             tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
                             modifier = Modifier
                                 .size(32.dp)
@@ -795,7 +810,6 @@ fun AddReviewDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Nội dung đánh giá
                 OutlinedTextField(
                     value = content,
                     onValueChange = { content = it },
@@ -806,14 +820,12 @@ fun AddReviewDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Chọn ảnh
                 Button(onClick = { imageLauncher.launch("image/*") }) {
                     Icon(Icons.Default.Image, contentDescription = null)
-                    Spacer(Modifier.width(6.dp))
+                    Spacer(Modifier.width(8.dp))
                     Text("Chọn ảnh")
                 }
 
-                // Hiển thị ảnh đã chọn
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -834,7 +846,6 @@ fun AddReviewDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Gửi hoặc hủy
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -848,16 +859,14 @@ fun AddReviewDialog(
                     Button(
                         onClick = {
                             if (content.isBlank() || rating == 0) {
-                                Toast.makeText(context, "Vui lòng nhập đầy đủ nội dung và đánh giá", Toast.LENGTH_SHORT).show()
-                                return@Button
+                                Toast.makeText(context, "Nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
+                            } else {
+                                showConfirmDialog = true
                             }
-
-                            // Hiển thị dialog xác nhận trước khi gửi
-                            showConfirmDialog.value = true
                         },
-                        enabled = content.isNotBlank() && rating >= 1
+                        enabled = !isUploading
                     ) {
-                        Text("Gửi")
+                        Text(if (isUploading) "Đang gửi..." else "Gửi")
                     }
                 }
             }
@@ -871,49 +880,46 @@ fun ConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-            tonalElevation = 8.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text("Bạn có chắc chắn muốn gửi đánh giá này?", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Không")
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(onClick = onConfirm) {
-                        Text("Có")
-                    }
-                }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Xác nhận gửi đánh giá") },
+        text = { Text("Bạn có chắc chắn muốn gửi đánh giá này không?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Đồng ý")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
             }
         }
-    }
+    )
 }
 
+// Function to handle URI to Multipart conversion
 fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
-    val contentResolver = context.contentResolver
-    val fileType = contentResolver.getType(uri) ?: return null
-    val inputStream = contentResolver.openInputStream(uri) ?: return null
+    return try {
+        val contentResolver = context.contentResolver
+        val fileType = contentResolver.getType(uri) ?: return null
+        val inputStream = contentResolver.openInputStream(uri) ?: return null
 
-    val fileName = uri.lastPathSegment ?: "image_${System.currentTimeMillis()}.jpg"
-    val fileBytes = inputStream.readBytes()
-    val requestBody = RequestBody.create(fileType.toMediaTypeOrNull(), fileBytes)
+        val fileName = uri.lastPathSegment ?: "image_${System.currentTimeMillis()}.jpg"
+        val fileBytes = inputStream.readBytes()
 
-    return MultipartBody.Part.createFormData("file", fileName, requestBody)
+        // Check image size limit (e.g., 10MB)
+        if (fileBytes.size > 10 * 1024 * 1024) {
+            Log.e("URI_TO_MULTIPART", "Ảnh quá lớn")
+            return null
+        }
+
+        // Create RequestBody
+        val requestBody = fileBytes.toRequestBody(fileType.toMediaTypeOrNull())
+        Log.d("URI_TO_MULTIPART", "Tạo multipart thành công: $fileName")
+
+        MultipartBody.Part.createFormData("file", fileName, requestBody)
+    } catch (e: Exception) {
+        Log.e("URI_TO_MULTIPART", "Lỗi chuyển Uri thành Multipart: ${e.message}")
+        null
+    }
 }

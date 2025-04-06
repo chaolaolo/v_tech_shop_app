@@ -2,29 +2,28 @@ package com.datn.viettech_md_12.viewmodel
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import android.util.Log
+import androidx.lifecycle.*
 import com.datn.viettech_md_12.data.model.*
 import com.datn.viettech_md_12.data.remote.ApiClient
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 
-class ReviewViewModel(application: Application) : AndroidViewModel(application) {
+class ReviewViewModel(application: Application) : ViewModel() {
 
     private val _repository = ApiClient.reviewRepository
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isUploading = MutableStateFlow(false)
+    val isUploading: StateFlow<Boolean> get() = _isUploading
+
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
-    val reviews: StateFlow<List<Review>> = _reviews
+    val reviews: StateFlow<List<Review>> = _reviews.asStateFlow()
+
     private val _reviewStats = MutableStateFlow<Result<ReviewStats>?>(null)
     val reviewStats: StateFlow<Result<ReviewStats>?> = _reviewStats.asStateFlow()
-
 
     private val _addReviewResult = MutableStateFlow<Result<ReviewResponse>?>(null)
     val addReviewResult: StateFlow<Result<ReviewResponse>?> = _addReviewResult.asStateFlow()
@@ -32,104 +31,128 @@ class ReviewViewModel(application: Application) : AndroidViewModel(application) 
     private val _updateReviewResult = MutableStateFlow<Result<ReviewResponse>?>(null)
     val updateReviewResult: StateFlow<Result<ReviewResponse>?> = _updateReviewResult.asStateFlow()
 
-    private val _uploadImagesResult =
-        MutableStateFlow<Result<List<Image>>>(Result.success(emptyList()))
+    private val _uploadImagesResult = MutableStateFlow(Result.success(emptyList<Image>()))
     val uploadImagesResult: StateFlow<Result<List<Image>>> = _uploadImagesResult.asStateFlow()
-
-    private val _reviewsByProductResult = MutableStateFlow<Result<ReviewResponse>?>(null)
-    val reviewsByProductResult: StateFlow<Result<ReviewResponse>?> =
-        _reviewsByProductResult.asStateFlow()
 
     private val sharedPreferences =
         application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-    private val token: String? = sharedPreferences.getString("accessToken", null)
-    private val userId: String? = sharedPreferences.getString("clientId", null)
 
-    // Add review
-    fun addReview(
+    // ✅ Flow kết hợp: upload ảnh rồi mới thêm review
+    fun uploadImagesAndAddReview(
+        imageParts: List<MultipartBody.Part>,
         productId: String,
         contentsReview: String,
-        images: List<Image>,
         rating: Int
     ) {
+        val token = sharedPreferences.getString("accessToken", "") ?: ""
+        val clientId = sharedPreferences.getString("clientId", "") ?: ""
+
         viewModelScope.launch {
+            _isUploading.value = true
             _isLoading.value = true
-            val result = _repository.addReview(
-                token ?: "",
-                userId ?: "",
-                productId,
-                contentsReview,
-                images,
-                rating
-            )
-            _addReviewResult.value = result
-            _isLoading.value = false
+
+            try {
+                val uploadResult = _repository.uploadImages(imageParts)
+                _uploadImagesResult.value = uploadResult
+
+                if (uploadResult.isSuccess) {
+                    val uploadedImages = uploadResult.getOrThrow()
+
+                    val addReviewResult = _repository.addReview(
+                        token = token,
+                        clientId = clientId,
+                        accountId = clientId,
+                        productId = productId,
+                        contentsReview = contentsReview,
+                        uploadedImages = uploadedImages,
+                        rating = rating
+                    )
+
+                    _addReviewResult.value = addReviewResult
+                } else {
+                    Log.e("UPLOAD_ADD_REVIEW", "Upload ảnh thất bại: ${uploadResult.exceptionOrNull()?.message}")
+                    _addReviewResult.value = Result.failure(Exception("Upload failed"))
+                }
+            } catch (e: Exception) {
+                Log.e("UPLOAD_ADD_REVIEW", "Lỗi: ${e.message}")
+                _addReviewResult.value = Result.failure(e)
+            } finally {
+                _isUploading.value = false
+                _isLoading.value = false
+            }
         }
     }
 
-    // Update review
-    fun updateReview(
-        reviewId: String,
-        contentsReview: String,
-        images: List<Image>
-    ) {
+    // ✅ Dùng nếu chỉ cập nhật review (ảnh đã được upload sẵn)
+    fun updateReview(reviewId: String, contentsReview: String, images: List<Image>) {
+        val token = sharedPreferences.getString("accessToken", "") ?: ""
+        val clientId = sharedPreferences.getString("clientId", "") ?: ""
+
         viewModelScope.launch {
             _isLoading.value = true
-            val result = _repository.updateReview(
-                token ?: "",
-                userId ?: "",
-                reviewId,
-                contentsReview,
-                images
-            )
-            _updateReviewResult.value = result
-            _isLoading.value = false
+            try {
+                val result = _repository.updateReview(token, clientId, reviewId, contentsReview, images)
+                _updateReviewResult.value = result
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
-    // Upload images
+    // ✅ Dùng nếu bạn chỉ muốn upload ảnh riêng
     fun uploadImages(files: List<MultipartBody.Part>) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = _repository.uploadImages(files)
-            _uploadImagesResult.value = result
-            _isLoading.value = false
+            _isUploading.value = true
+            try {
+                val result = _repository.uploadImages(files)
+                _uploadImagesResult.value = result
+                if (result.isSuccess) {
+                    Log.d("UPLOAD_IMAGES", "Upload thành công: ${result.getOrNull()}")
+                } else {
+                    Log.e("UPLOAD_IMAGES", "Upload thất bại: ${result.exceptionOrNull()?.message}")
+                }
+            } catch (e: Exception) {
+                Log.e("UPLOAD_IMAGES", "Lỗi upload: ${e.message}")
+                _uploadImagesResult.value = Result.failure(e)
+            } finally {
+                _isUploading.value = false
+            }
         }
     }
 
-    // Get reviews by product
     fun getReviewsByProduct(productId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = _repository.getReviewsByProduct(productId)
-
-            if (result.isSuccess) {
-                val reviewResponse = result.getOrNull()
-                _reviews.value = reviewResponse?.data ?: emptyList() // Cập nhật danh sách đánh giá
+            try {
+                val result = _repository.getReviewsByProduct(productId)
+                if (result.isSuccess) {
+                    _reviews.value = result.getOrNull()?.data ?: emptyList()
+                } else {
+                    Log.e("GET_REVIEWS", "Lỗi: ${result.exceptionOrNull()?.message}")
+                }
+            } finally {
+                _isLoading.value = false
             }
-
-            _isLoading.value = false
         }
     }
 
     fun getReviewStats(productId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-
-            val result = _repository.getReviewStats(productId)
-
-            // map từ Result<ReviewStatsResponse> → Result<ReviewStats>
-            val mappedResult = result.map { it.data }
-
-            _reviewStats.value = mappedResult
-
-            _isLoading.value = false
+            try {
+                val result = _repository.getReviewStats(productId)
+                _reviewStats.value = result.map { it.data }
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }
 
-
-    class ReviewViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+class ReviewViewModelFactory(
+    private val application: Application
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ReviewViewModel::class.java)) {
             return ReviewViewModel(application) as T

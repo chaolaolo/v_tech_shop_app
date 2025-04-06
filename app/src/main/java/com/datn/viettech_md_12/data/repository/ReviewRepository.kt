@@ -7,19 +7,55 @@ import java.io.IOException
 
 class ReviewRepository(private val reviewService: ReviewService) {
 
-    // Thêm một review mới
+    suspend fun uploadImages(files: List<MultipartBody.Part>): Result<List<Image>> {
+        val uploadedImages = mutableListOf<Image>()
+        val failedUploads = mutableListOf<String>()
+
+        for (filePart in files) {
+            try {
+                val response = reviewService.uploadImage(filePart)
+                if (response.isSuccessful) {
+                    val result = response.body()
+                    if (result != null && result.success) {
+                        uploadedImages.add(result.data)
+                    } else {
+                        failedUploads.add("Failed to upload image")
+                    }
+                } else {
+                    failedUploads.add("Upload failed: ${response.code()} ${response.message()}")
+                }
+            } catch (e: Exception) {
+                failedUploads.add("Failed to upload image: ${e.localizedMessage}")
+            }
+        }
+
+        return if (uploadedImages.isNotEmpty()) {
+            Result.success(uploadedImages)
+        } else {
+            Result.failure(IOException("Failed to upload some or all images: ${failedUploads.joinToString(", ")}"))
+        }
+    }
+
+    // Thêm mới review (chỉ nhận List<Image> đã được upload thành công)
     suspend fun addReview(
         token: String,
-        clientId: String,
+        clientId: String,  // 👈 Tách riêng clientId
+        accountId: String,
         productId: String,
         contentsReview: String,
-        images: List<Image>, // Danh sách ảnh đầy đủ
+        uploadedImages: List<Image>,  // 👈 Ảnh đã được upload
         rating: Int
     ): Result<ReviewResponse> {
         return try {
-            // Chỉ truyền vào các ID của ảnh thay vì toàn bộ ảnh
-            val request = AddReviewRequest(productId, contentsReview, images.map { it.id }, rating)
+            val request = AddReviewRequest(
+                account_id = accountId,
+                product_id = productId,
+                contents_review = contentsReview,
+                image_ids = uploadedImages.map { it.id }, // lấy ID ảnh
+                rating = rating
+            )
             val response = reviewService.addReview(request, token, clientId)
+
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
@@ -38,13 +74,11 @@ class ReviewRepository(private val reviewService: ReviewService) {
         clientId: String,
         reviewId: String,
         contentsReview: String,
-        images: List<Image> // Danh sách ảnh đầy đủ
+        uploadedImages: List<Image> // ảnh đã upload
     ): Result<ReviewResponse> {
         return try {
-            // Chuyển List<Image> thành List<String> chỉ chứa ID của ảnh
-            val imageIds = images.map { it.id } // Lấy ID của ảnh
-
-            val request = UpdateReviewRequest(contentsReview, imageIds) // Truyền vào ID ảnh
+            val imageIds = uploadedImages.map { it.id }
+            val request = UpdateReviewRequest(contents_review = contentsReview, imageIds = imageIds)
             val response = reviewService.updateReview(reviewId, request, token, clientId)
 
             if (response.isSuccessful) {
@@ -59,34 +93,7 @@ class ReviewRepository(private val reviewService: ReviewService) {
         }
     }
 
-    // Upload multiple images
-    suspend fun uploadImages(files: List<MultipartBody.Part>): Result<List<Image>> {
-        val images = mutableListOf<Image>()
-
-        for (file in files) {
-            try {
-                val result = reviewService.uploadImage(file)
-
-                // Kiểm tra nếu upload thành công
-                if (result.isSuccessful) {
-                    result.body()?.let {
-                        images.addAll(it.data) // Thêm tất cả các ảnh vào danh sách nếu upload thành công
-                    } ?: return Result.failure(IOException("Empty response body"))
-                } else {
-                    // Trả về lỗi nếu phản hồi từ server không thành công
-                    return Result.failure(IOException("Error: ${result.code()} ${result.message()}"))
-                }
-            } catch (e: Exception) {
-                // Bắt các ngoại lệ có thể xảy ra trong quá trình upload ảnh
-                return Result.failure(IOException("Failed to upload image: ${e.localizedMessage}", e))
-            }
-        }
-
-        // Trả về kết quả thành công với danh sách các ảnh đã upload
-        return Result.success(images)
-    }
-
-    // Lấy danh sách review cho sản phẩm
+    // Lấy danh sách review
     suspend fun getReviewsByProduct(productId: String): Result<ReviewResponse> {
         return try {
             val response = reviewService.getReviewsByProduct(productId)
@@ -100,8 +107,9 @@ class ReviewRepository(private val reviewService: ReviewService) {
         } catch (e: Exception) {
             Result.failure(IOException("Failed to fetch reviews: ${e.localizedMessage}", e))
         }
+    }
 
-    }    // Lấy danh sách review cho sản phẩm
+    // Lấy thống kê review
     suspend fun getReviewStats(productId: String): Result<ReviewStatsResponse> {
         return try {
             val response = reviewService.getReviewStats(productId)
@@ -113,8 +121,7 @@ class ReviewRepository(private val reviewService: ReviewService) {
                 Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
             }
         } catch (e: Exception) {
-            Result.failure(IOException("Failed to thong ke reviews: ${e.localizedMessage}", e))
+            Result.failure(IOException("Failed to fetch review stats: ${e.localizedMessage}", e))
         }
-
     }
 }
