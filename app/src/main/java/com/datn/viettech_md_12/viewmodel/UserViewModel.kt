@@ -101,6 +101,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
                                 .putString("clientId", userId)
+                                .putString("fullname",body.result?.metadata?.account?.full_name)
+                                .putString("email",body.result?.metadata?.account?.email)
                                 .apply()
 
                             // Kiểm tra lại token sau khi lưu
