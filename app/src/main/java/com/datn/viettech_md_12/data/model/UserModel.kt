@@ -60,3 +60,15 @@ data class ChangePasswordResponse(
     val message: String,
     val status: String
 )
+//Forgot Password
+data class ForgotPasswordRequest(
+    val email: String,
+    val otp: String? = null,
+    val newPassword: String? = null
+)
+
+data class MessageResponse(
+    val message: String
+)
+
+

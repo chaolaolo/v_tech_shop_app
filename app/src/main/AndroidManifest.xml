@@ -57,9 +57,20 @@
             android:label="@string/title_activity_sign_up_screen"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
-            android:name=".screen.authentication.EmailVertificationScreen"
+            android:name=".screen.authentication.EmailVerticationScreen"
             android:exported="false"
-            android:label="@string/title_activity_sign_up_screen"
+            android:theme="@style/Theme.VietTech_MD_12" />
+        <activity
+            android:name=".screen.authentication.ConfirmEmailScreen"
+            android:exported="false"
+            android:theme="@style/Theme.VietTech_MD_12" />
+        <activity
+            android:name=".screen.authentication.ResetPasswordScreen"
+            android:exported="false"
+            android:theme="@style/Theme.VietTech_MD_12" />
+        <activity
+            android:name=".screen.authentication.SuccessPasswordScreen"
+            android:exported="false"
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
             android:name=".screen.authentication.SplashScreen"

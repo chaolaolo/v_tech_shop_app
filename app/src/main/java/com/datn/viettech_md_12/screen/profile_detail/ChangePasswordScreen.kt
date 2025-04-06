@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -258,8 +259,8 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            MyButton(
-                text = "Tiếp tục",
+
+            Button(
                 onClick = {
                     if (step == 1) {
                         step = 2 // Chuyển sang bước nhập mật khẩu mới
@@ -271,12 +272,12 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                                 oldPassword = oldPassword,
                                 newPassword = newPassword,
                                 onSuccess = {
-                                        message ->
+                                    message ->
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     navController.popBackStack() // Quay về sau khi đổi mật khẩu
                                 },
                                 onError = {
-                                        error ->
+                                    error ->
                                     Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                                 }
                             )
@@ -285,47 +286,17 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                         }
                     }
                 },
-                modifier = Modifier.padding(horizontal = 16.dp),
-                backgroundColor = Color.Black,
-                textColor = Color.White,
+                modifier = Modifier
+                    .width(380.dp)
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(2.dp)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black
+                ),
                 enabled = if (step == 1) oldPassword.isNotEmpty() else newPassword.isNotEmpty() && confirmPassword == newPassword
-            )
-//            Button(
-//                onClick = {
-//                    if (step == 1) {
-//                        step = 2 // Chuyển sang bước nhập mật khẩu mới
-//                    } else {
-//                        // Xử lý đổi mật khẩu (nếu cần)
-//                        if (newPassword == confirmPassword) {
-//                            userViewModel.changePassword(
-//                                context = context,
-//                                oldPassword = oldPassword,
-//                                newPassword = newPassword,
-//                                onSuccess = {
-//                                    message ->
-//                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-//                                    navController.popBackStack() // Quay về sau khi đổi mật khẩu
-//                                },
-//                                onError = {
-//                                    error ->
-//                                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-//                                }
-//                            )
-//                        }else {
-//                            Toast.makeText(context, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show()
-//                        }
-//                    }
-//                },
-//                modifier = Modifier
-//                    .width(380.dp)
-//                    .height(60.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = Color.Black
-//                ),
-//                enabled = if (step == 1) oldPassword.isNotEmpty() else newPassword.isNotEmpty() && confirmPassword == newPassword
-//            ) {
-//                Text("Tiếp tục", color = Color.White)
-//            }
+            ) {
+                Text("Tiếp tục", color = Color.White)
+            }
         }
     }
 }

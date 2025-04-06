@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.component.item
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,8 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.ProductByCateModel
@@ -52,9 +56,11 @@ fun CustomItemProductsBase(
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
 
     var isFavorite by remember { mutableStateOf(false) }
+    var showLoginDialog by remember { mutableStateOf(false) }
+
     val BASE_URL = "http://103.166.184.249:3056/"
     val sharedPreferences =
-        context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) //lay trang thai da luu tru
+        context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     if (product != null) {
         if (sharedPreferences != null) {
             isFavorite = sharedPreferences.getBoolean(product.id, false)
@@ -65,16 +71,17 @@ fun CustomItemProductsBase(
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .width(160.dp)
-            .height(200.dp)
-            .clickable {},
+            .height(200.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF8F8F8)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .clickable {onClick()}) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable { onClick() }
+        ) {
             Column(
                 modifier = Modifier.padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -108,27 +115,9 @@ fun CustomItemProductsBase(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-//                            if (product != null) {
-//                                Text(
-//                                    name ?: "",
-//                                    color = Color.Black,
-//                                    style = MaterialTheme.typography.bodyMedium,
-//                                    fontWeight = FontWeight.Bold,
-//                                    maxLines = 1,
-//                                    overflow = TextOverflow.Ellipsis
-//                                )
-//                            }
-//                            if (product != null) {
-//                                Text(
-//                                    "${price ?: 0.0}VND",
-//                                    color = Color(0xFF4CAF50),
-//                                    fontWeight = FontWeight.Bold,
-//                                    style = MaterialTheme.typography.bodySmall
-//                                )
-//                            }
                             Text(
                                 name ?: "",
-                                    color = Color.Black,
+                                color = Color.Black,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
@@ -147,23 +136,28 @@ fun CustomItemProductsBase(
                 }
             }
 
+            // Favorite button
             IconButton(
                 onClick = {
+                    val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                        ?.getString("accessToken", "")
+                    val isLoggedIn = !token.isNullOrEmpty()
+
+                    if (!isLoggedIn) {
+                        showLoginDialog = true
+                        return@IconButton
+                    }
+
                     isFavorite = !isFavorite
+                    val productId = product?.id
+
                     if (isFavorite) {
-//                        viewModel.addToFavorites(product.id, context)
-                        val productId = product?.id
-                        if (productId != null) {
-                            if (context != null) {
-                                viewModel?.addToFavorites(productId, context)
-                            }
+                        if (productId != null && context != null) {
+                            viewModel?.addToFavorites(productId, context)
                         }
                     } else {
-                        val favoriteId = product?.id
-                        if (context != null) {
-                            if (favoriteId != null) {
-                                viewModel?.removeFromFavorites(favoriteId, context)
-                            }
+                        if (productId != null && context != null) {
+                            viewModel?.removeFromFavorites(productId, context)
                         }
                     }
                 },
@@ -180,7 +174,58 @@ fun CustomItemProductsBase(
             }
         }
     }
+
+    // Custom Dialog yêu cầu đăng nhập
+    if (showLoginDialog) {
+        Dialog(onDismissRequest = { showLoginDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.width(300.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Bạn cần đăng nhập",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Vui lòng đăng nhập hoặc tạo tài khoản để thực hiện hành động này.",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = {
+                            showLoginDialog = false
+                            val intent = Intent(context, RegisterScreen::class.java)
+                            context?.startActivity(intent)
+                        }) {
+                            Text("Tạo tài khoản mới")
+                        }
+                        TextButton(onClick = {
+                            showLoginDialog = false
+                            val intent = Intent(context, LoginScreen::class.java)
+                            context?.startActivity(intent)
+                        }) {
+                            Text("Đăng nhập")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
+
 
 //@Composable
 //fun CustomItemProductsBase(

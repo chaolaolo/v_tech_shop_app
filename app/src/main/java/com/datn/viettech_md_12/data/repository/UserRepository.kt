@@ -17,4 +17,16 @@ class UserRepository (
     ): Response<ChangePasswordResponse> {
         return apiService.changePassword(token, clientId, request)
     }
+    suspend fun sendEmail(email: String): Response<MessageResponse> {
+        return apiService.forgotPassword(ForgotPasswordRequest(email = email))
+    }
+    suspend fun resetPassword(email: String, otp: String, newPassword: String): Response<MessageResponse> {
+        return apiService.forgotPassword(
+            ForgotPasswordRequest(
+                email = email,
+                otp = otp,
+                newPassword = newPassword
+            )
+        )
+    }
 }

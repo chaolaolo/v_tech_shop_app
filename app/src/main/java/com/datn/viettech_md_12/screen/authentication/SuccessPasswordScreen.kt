@@ -4,6 +4,11 @@ package com.datn.viettech_md_12.screen.authentication
 
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,9 +36,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,14 +50,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 
+class SuccessPasswordScreen : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            Column (
+                modifier = Modifier.fillMaxSize()
+            ){
+                Spacer(modifier = Modifier.height(20.dp))
+                SuccessPassword()
+            }
 
+        }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SuccessPassword(navController: NavController) {
+fun SuccessPassword() {
+    val context = LocalContext.current
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.locksuccess))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+//        iterations = LottieConstants.IterateForever // Lặp animation mãi mãi
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -65,27 +99,20 @@ fun SuccessPassword(navController: NavController) {
                 .fillMaxWidth()
                 .height(400.dp)
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.successpass),
-                        contentDescription = null,
-                        modifier = Modifier.size(250.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
+                LottieAnimation(
+                    composition = composition,
+                    progress = progress,
+                    modifier = Modifier.size(250.dp)
+                )
             }
         }
+
 
         Box(
             modifier = Modifier
@@ -105,13 +132,23 @@ fun SuccessPassword(navController: NavController) {
                     color = Color.Black
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(15.dp))
 
                 Text(
                     text = "Chúc mừng! Bạn đã đặt lại mật khẩu thành công.",
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center,
                     color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                MyButton(
+                    "Đăng nhập",
+                    onClick = {
+                        val intent = Intent(context,LoginScreen::class.java)
+                        context.startActivity(intent)
+                    },
+                    backgroundColor = Color.Black,
+                    textColor = Color.White,
                 )
             }
         }
@@ -120,8 +157,8 @@ fun SuccessPassword(navController: NavController) {
 }
 
 
-@Preview(showSystemUi = true)
+@Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun PreviewSuccessPassword() {
-    SuccessPassword(rememberNavController())
+    SuccessPassword()
 }

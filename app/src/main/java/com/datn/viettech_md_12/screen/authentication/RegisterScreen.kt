@@ -228,29 +228,63 @@ fun SignUpUser( userViewModel: UserViewModel) {
         MyButton(
             text = if (isLoading) "Đang đăng ký..." else "Đăng Ký",
             onClick = {
-                isLoading = true
-                val request = RegisterRequest(username, fullName, phone, email, password)
-                userViewModel.signUp(
-                    request,
-                    context,
-                    onSuccess = {
-                        isLoading = false
-                        Toast.makeText(context, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(context, LoginScreen::class.java)
-                        context.startActivity(intent)
-                    },
-                    onError = { error ->
-                        isLoading = false
-                        Log.e("dcm_error_signup", error)
-                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                val regexName = "^[a-zA-ZÀ-ỹ\\s]+\$".toRegex()
+                val regexUsername = "^[a-zA-Z0-9_]+\$".toRegex()
+                val regexEmail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$".toRegex()
+                val hasSpace = password.contains(" ")
+                val isLengthValid = password.length >= 6
+                val hasLetter = password.any { it.isLetter() }
+                val hasDigit = password.any { it.isDigit() }
+
+                when {
+                    username.isBlank() || fullName.isBlank() || phone.isBlank() || email.isBlank() || password.isBlank() -> {
+                        Toast.makeText(context, "Vui lòng điền đầy đủ thông tin.", Toast.LENGTH_SHORT).show()
                     }
-                )
+                    !regexUsername.matches(username) -> {
+                        Toast.makeText(context, "Tên đăng nhập không được chứa ký tự đặc biệt.", Toast.LENGTH_SHORT).show()
+                    }
+                    !regexName.matches(fullName) -> {
+                        Toast.makeText(context, "Họ tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng).", Toast.LENGTH_SHORT).show()
+                    }
+                    !regexEmail.matches(email) -> {
+                        Toast.makeText(context, "Email không đúng định dạng.", Toast.LENGTH_SHORT).show()
+                    }
+                    hasSpace -> {
+                        Toast.makeText(context, "Mật khẩu không được chứa khoảng trắng.", Toast.LENGTH_SHORT).show()
+                    }
+                    !isLengthValid -> {
+                        Toast.makeText(context, "Mật khẩu phải có ít nhất 6 ký tự.", Toast.LENGTH_SHORT).show()
+                    }
+                    !hasLetter || !hasDigit -> {
+                        Toast.makeText(context, "Mật khẩu phải bao gồm cả chữ cái và số.", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        isLoading = true
+                        val request = RegisterRequest(username, fullName, phone, email, password)
+                        userViewModel.signUp(
+                            request,
+                            context,
+                            onSuccess = {
+                                isLoading = false
+                                Toast.makeText(context, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
+                                val intent = Intent(context, LoginScreen::class.java)
+                                context.startActivity(intent)
+                            },
+                            onError = { error ->
+                                isLoading = false
+                                Log.e("dcm_error_signup", error)
+                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                }
             },
             modifier = Modifier,
             backgroundColor = if (isLoading) Color.Gray else Color.Black,
             textColor = Color.White,
             isLoading = isLoading
         )
+
 
         Spacer(modifier = Modifier.height(10.dp))
     }

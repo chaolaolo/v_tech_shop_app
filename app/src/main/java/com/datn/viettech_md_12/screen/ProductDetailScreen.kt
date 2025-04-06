@@ -2,6 +2,8 @@ package com.datn.viettech_md_12.screen
 
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,6 +42,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -83,6 +86,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.screen.authentication.LoginScreen
+import com.datn.viettech_md_12.screen.authentication.RegisterScreen
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
@@ -118,6 +123,7 @@ fun ProductDetailScreen(
     val reviews by reviewViewModel.reviews.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
+    var showLoginDialog by remember { mutableStateOf(false) }
 
     val price = product?.productPrice ?:0.0
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
@@ -407,7 +413,17 @@ fun ProductDetailScreen(
                                 ) {
                                     MyButton(
                                         text = "Mua ngay",
-                                        onClick = { },
+                                        onClick = {
+                                            //check bat dang nhap hoac dang ki moi cho su dung
+                                            val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                                ?.getString("accessToken", "")
+                                            val isLoggedIn = !token.isNullOrEmpty()
+
+                                            if (!isLoggedIn) {
+                                                showLoginDialog = true
+
+                                            }
+                                        },
                                         modifier = Modifier
                                             .weight(1f)
                                             .border(
@@ -422,6 +438,15 @@ fun ProductDetailScreen(
                                         onClick = {
                                             Log.d("ProductDetailScreen", "productId: " + productId)
                                             product?.let { product ->
+                                                //check bat dang nhap hoac dang ki moi cho su dung
+                                                val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                                    ?.getString("accessToken", "")
+                                                val isLoggedIn = !token.isNullOrEmpty()
+
+                                                if (!isLoggedIn) {
+                                                    showLoginDialog = true
+
+                                                }
                                                 Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(
                                                     productId = product.id,
@@ -452,6 +477,55 @@ fun ProductDetailScreen(
                                         textColor = Color.White,
                                         vectorIcon = Icons.Default.AddShoppingCart
                                     )
+                                    // Custom Dialog yêu cầu đăng nhập
+                                    if (showLoginDialog) {
+                                        Dialog(onDismissRequest = { showLoginDialog = false }) {
+                                            Card(
+                                                shape = RoundedCornerShape(16.dp),
+                                                elevation = CardDefaults.cardElevation(8.dp),
+                                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                                modifier = Modifier.width(300.dp)
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier.padding(20.dp),
+                                                    horizontalAlignment = Alignment.Start
+                                                ) {
+                                                    Text(
+                                                        text = "Bạn cần đăng nhập",
+                                                        fontSize = 18.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.Black
+                                                    )
+                                                    Spacer(modifier = Modifier.height(10.dp))
+                                                    Text(
+                                                        text = "Vui lòng đăng nhập hoặc tạo tài khoản để thực hiện hành động này.",
+                                                        fontSize = 14.sp,
+                                                        color = Color.Gray
+                                                    )
+                                                    Spacer(modifier = Modifier.height(20.dp))
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.End
+                                                    ) {
+                                                        TextButton(onClick = {
+                                                            showLoginDialog = false
+                                                            val intent = Intent(context, RegisterScreen::class.java)
+                                                            context?.startActivity(intent)
+                                                        }) {
+                                                            Text("Tạo tài khoản mới")
+                                                        }
+                                                        TextButton(onClick = {
+                                                            showLoginDialog = false
+                                                            val intent = Intent(context, LoginScreen::class.java)
+                                                            context?.startActivity(intent)
+                                                        }) {
+                                                            Text("Đăng nhập")
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                                 // review màn
                                 if (reviews.isEmpty()) {
