@@ -17,6 +17,8 @@ import retrofit2.HttpException
 import retrofit2.Response
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 class CartViewModel(application: Application) : ViewModel() {
@@ -279,9 +281,26 @@ class CartViewModel(application: Application) : ViewModel() {
                     userId = userId?:"",
                 )
                 if (response.isSuccessful) {
-                    _discountState.value = response
+                    val body = response.body()
+                    val currentDate = LocalDate.now()
+                    val formatter = DateTimeFormatter.ISO_DATE
+
+                    val filteredMetadata = body?.metadata?.filter { discount ->
+                        val endDateStr = discount.endDate ?: discount.expirationDate
+                        endDateStr?.let {
+                            try {
+                                val endDate = LocalDate.parse(it.substring(0, 10), formatter)
+                                !endDate.isBefore(currentDate) // Chưa hết hạn
+                            } catch (e: Exception) {
+                                true // Nếu không parse được thì vẫn giữ lại
+                            }
+                        } ?: true // Nếu không có ngày thì giữ lại (giả định là chưa hết hạn)
+                    } ?: emptyList()
+                    val filteredResponse = body?.copy(metadata = filteredMetadata)
+                    _discountState.value = Response.success(filteredResponse)
+
                     response.body()?.let {
-                        Log.d("dm", "Fetch Discount Success: ${it}")
+                        Log.d("dm", "Fetch Discount Success: $filteredMetadata")
                     }
                 } else {
                     Log.e("dm", "Fetch Discount Failed: ${response.code()} - ${response.message()}")

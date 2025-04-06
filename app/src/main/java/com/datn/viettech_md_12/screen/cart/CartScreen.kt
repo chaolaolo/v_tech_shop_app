@@ -57,6 +57,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -107,6 +109,7 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.component.cart_component.CartItemTile
 import com.datn.viettech_md_12.component.cart_component.EmptyCart
 import com.datn.viettech_md_12.component.cart_component.OrderSummary
+import com.datn.viettech_md_12.component.cart_component.VoucherItem
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.screen.checkout.formatCurrency
@@ -149,6 +152,7 @@ fun CartScreen(
     val isShowVoucherSheet = remember { mutableStateOf(false) }
     val voucherCode = remember { mutableStateOf("") }
 
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
         cartViewModel.fetchCart()
         cartViewModel.getListDisCount()
@@ -156,6 +160,9 @@ fun CartScreen(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         sheetPeekHeight = 0.dp,
         sheetDragHandle = { },
         sheetSwipeEnabled = false,
@@ -217,9 +224,16 @@ fun CartScreen(
                         onClick = {
                             val enteredCode = voucherCode.value
                             val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
-                            matchingVoucher?.let {
-                                selectedVoucherId.value = it.id
-                                selectedVoucher.value = it
+                            if (matchingVoucher != null) {
+                                selectedVoucherId.value = matchingVoucher.id
+                                selectedVoucher.value = matchingVoucher
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Áp dụng mã thành công!")
+                                }
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Mã không hợp lệ.")
+                                }
                             }
                         },
                         modifier = Modifier
@@ -245,6 +259,13 @@ fun CartScreen(
                         }
                     } //Card
                 }
+//                Text(
+//                    "Thông báo thành công hoặc thất bại khi bấm nút \"áp dụng\"",
+//                    color = Color.Black,
+//                    fontSize = 12.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.padding(start = 5.dp, top = 2.dp)
+//                )
                 Spacer(Modifier.height(10.dp))
                 Text("Voucher dành cho bạn", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 //danh sách mã giảm giá
@@ -364,161 +385,6 @@ fun CartScreen(
         }
     }//end scaffold
 }// end cart UI
-
-@Composable
-fun VoucherItem(
-    voucher: DiscountResponse.DiscountModel,
-    selectedVoucher: Boolean,
-    onSelectedVoucher: (DiscountResponse.DiscountModel) -> Unit,
-) {
-    val endDate = remember { voucher.endDate?.let { Instant.parse(it) } }
-    val remainingTime = remember { mutableStateOf("") }
-
-    val maxDiscountAmountFormatted = remember(voucher.maxDiscountAmount) {
-        try {
-            val amount = voucher.maxDiscountAmount?.toDouble() ?: 0.0
-            "%,.0f".format(amount).replace(",", ".")
-        } catch (e: Exception) {
-            "0"
-        }
-    }
-
-    // Safe formatting for minOrderValue
-    val minOrderValueFormatted = remember(voucher.minOrderValue) {
-        try {
-            val amount = voucher.minOrderValue?.toDouble() ?: 0.0
-            "%,.0f".format(amount).replace(",", ".")
-        } catch (e: Exception) {
-            "0"
-        }
-    }
-
-    LaunchedEffect(endDate) {
-        while (true) {
-            endDate?.let {
-                val now = Instant.now()
-                val duration = Duration.between(now, it)
-                if (!duration.isNegative) {
-                    val days = duration.toDays()
-                    val hours = duration.toHours() % 24
-                    val minutes = duration.toMinutes() % 60
-                    val seconds = duration.seconds % 60
-                    remainingTime.value = if (days > 0)
-                        "$days ngày $hours giờ $minutes phút"
-                    else if (hours > 0)
-                        "$hours giờ $minutes phút"
-                    else if (minutes > 0)
-                        "$minutes phút $seconds giây"
-                    else
-                        "$seconds giây"
-                } else {
-                    remainingTime.value = "Đã hết hạn"
-//                    break
-                }
-            }
-            delay(1000)
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .padding(vertical = 4.dp) //padding bên ngoài
-            .fillMaxWidth()
-            .background(Color(0xFFE9FDFB), RoundedCornerShape(10.dp))
-            .border(0.2.dp, Color(0xFF00C2A8), RoundedCornerShape(10.dp))
-            .padding(start = 12.dp, end = 12.dp, bottom = 4.dp, top = 0.dp) //padding bên trong
-            .clickable { onSelectedVoucher(voucher) }
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .background(Color(0xFF00C2A8), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painterResource(R.drawable.logo),
-                    contentDescription = "logo",
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(20.dp),
-                    contentScale = ContentScale.Fit,
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-                Text(
-                    text = " Voucher",
-                    color = Color.White,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            RadioButton(
-                selected = selectedVoucher,
-                onClick = { onSelectedVoucher(voucher) },
-                modifier = Modifier,
-                colors = RadioButtonColors(
-                    selectedColor = Color(0xFF21D4B4),
-                    unselectedColor = Color.Black,
-                    disabledSelectedColor = Color.Transparent,
-                    disabledUnselectedColor = Color.Transparent
-                ),
-            )
-        }
-        Text(
-            text = "${voucher.code} - ${voucher.name ?: ""} ",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            lineHeight = 16.sp
-        )
-        Text(
-            text = "Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên",
-            fontSize = 12.sp,
-            color = Color.Black,
-            lineHeight = 15.sp
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        DashedDivider(
-            color = Color(0xFF00C2A8),  // Có thể thay đổi màu
-            thickness = 0.5.dp,   // Độ dày đường kẻ
-            dashWidth = 5.dp,  // Độ dài mỗi đoạn gạch
-            gapWidth = 3.dp,    // Khoảng cách giữa các đoạn
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        when {
-            remainingTime.value == "Đã hết hạn" -> {
-                Text(
-                    text = remainingTime.value,
-                    fontSize = 12.sp,
-                    color = Color.Red,
-                    fontWeight = FontWeight.Medium,
-                    lineHeight = 15.sp
-                )
-            }
-
-            !remainingTime.value.isNullOrEmpty() -> {
-                Text(
-                    text = "Hết hạn sau: ${remainingTime.value}",
-                    fontSize = 12.sp,
-                    color = Color.Red,
-                    fontWeight = FontWeight.Medium,
-                    lineHeight = 15.sp
-                )
-            }
-            // Trường hợp null hoặc "" thì không hiển thị gì cả
-        }
-    }
-}
-
 
 @Composable
 fun CartContent(

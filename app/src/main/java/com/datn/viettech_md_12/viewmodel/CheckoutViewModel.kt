@@ -13,6 +13,7 @@ import com.datn.viettech_md_12.data.model.CheckoutModel
 import com.datn.viettech_md_12.data.model.UpdateAddressRequest
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.remote.ApiClient.cartRepository
+import com.datn.viettech_md_12.data.remote.ApiClient.cartService
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -189,6 +190,12 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                 )
 
                 if (response.isSuccessful) {
+                    getIsSelectedItemInCart()
+                    cartService.getCart(
+                        token = token?:"",
+                        userId = userId?:"",
+                        userIdQuery = userId?:""
+                    )
                     val dc = response.body()?.metadata?.discountCode
                     Log.d("CartViewModel", "request: $request")
                     Log.d("CartViewModel", "discount_code: $dc")
