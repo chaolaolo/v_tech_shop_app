@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.screen.authentication
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -121,9 +122,13 @@ fun OnboardingScreen(navController: NavController) {
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
-            TextButton(onClick = { navController.navigate("home") }) {
+            TextButton(onClick = {
+                skipLogin(context) // gọi hàm xoá token + đánh dấu là guest
+                navController.navigate("home")
+            }) {
                 Text("Bỏ qua ngay", color = Color(0xFF00C853))
             }
+
         }
 
         HorizontalPager(
@@ -161,7 +166,10 @@ fun OnboardingScreen(navController: NavController) {
                 }
 
                 Button(
-                    onClick = { navController.navigate("home") },
+                    onClick = {
+                        skipLogin(context) // gọi hàm xoá token + đánh dấu là guest
+                        navController.navigate("home")
+                              },
                     modifier = Modifier
                         .weight(1f)
                         .height(60.dp),
@@ -216,6 +224,13 @@ fun OnboardingScreen(navController: NavController) {
 }
 
 data class OnboardingPage(val image: Int, val title: String, val description: String)
+fun skipLogin(context: Context) {
+    val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    sharedPreferences.edit()
+        .remove("accessToken")
+        .remove("clientId")
+        .apply()
+}
 
 @Composable
 fun OnbroadingPager(page: OnboardingPage) {
