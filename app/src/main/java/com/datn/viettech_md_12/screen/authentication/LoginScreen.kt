@@ -3,6 +3,7 @@ package com.datn.viettech_md_12.screen.authentication
 import LoginRequest
 import MyButton
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -51,6 +52,8 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
+import android.content.SharedPreferences
+
 class LoginScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +62,13 @@ class LoginScreen : ComponentActivity() {
         setContent {
             LoginUser(userViewModel)
         }
+    }
+}
+fun saveLoginState(context: Context, isLoggedIn: Boolean) {
+    val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+    with(sharedPreferences.edit()) {
+        putBoolean("IS_LOGGED_IN", isLoggedIn)
+        apply()
     }
 }
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -163,7 +173,10 @@ fun LoginUser(userViewModel: UserViewModel) {
         Spacer(modifier = Modifier.height(10.dp))
         TextButton(
             modifier = Modifier.align(Alignment.End),
-            onClick = {},
+            onClick = {
+                val intent = Intent(context, ConfirmEmailScreen::class.java)
+                context.startActivity(intent)
+            },
             contentPadding = PaddingValues(0.dp),
         ) {
             Text(
@@ -178,32 +191,46 @@ fun LoginUser(userViewModel: UserViewModel) {
         MyButton(
             text = if (isLoading) "Đang đăng nhập..." else "Đăng nhập ",
             onClick = {
-                isLoading = true
-                val request = LoginRequest(username,password)
-                userViewModel.signIn(
-                    request,
-                    context,
-                    onSuccess = {
-                        isLoading = false
-                        Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(context, MainActivity::class.java).apply {
-                            putExtra("isLoggedIn", true)
+                // Kiểm tra đầu vào
+                if (username.isBlank() || password.isBlank()) {
+                    Toast.makeText(context, "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.", Toast.LENGTH_SHORT).show()
+                } else if (!username.matches(Regex("^[a-zA-Z0-9]+$"))) {
+                    Toast.makeText(context, "Tên đăng nhập không hợp lệ.", Toast.LENGTH_SHORT).show()
+                } else if (password.length < 6) {
+                    Toast.makeText(context, "Mật khẩu phải có ít nhất 6 ký tự.", Toast.LENGTH_SHORT).show()
+                }  else {
+                    // Nếu tất cả kiểm tra hợp lệ, thực hiện đăng nhập
+                    isLoading = true
+                    val request = LoginRequest(username, password)
+                    userViewModel.signIn(
+                        request,
+                        context,
+                        onSuccess = {
+                            isLoading = false
+                            Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(context, MainActivity::class.java).apply {
+                                putExtra("isLoggedIn", true)
+                            }
+                            saveLoginState(context, true)
+
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong không quay lại màn này
+                            context.startActivity(intent)
+                        },
+                        onError = { error ->
+                            isLoading = false
+                            Log.e("dcm_error_signin", error)
+                            Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu.", Toast.LENGTH_SHORT).show()  // Mật khẩu sai
                         }
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong kh được back lại màn này
-                        context.startActivity(intent)
-                    },
-                    onError = { error ->
-                        isLoading = false
-                        Log.e("dcm_error_signin", error)
-                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                    }
-                )
+                    )
+                }
             },
             modifier = Modifier,
             backgroundColor = if (isLoading) Color.Gray else Color.Black,
             textColor = Color.White,
             isLoading = isLoading
         )
+
+
         //login with google button
         Spacer(modifier = Modifier.height(10.dp))
 

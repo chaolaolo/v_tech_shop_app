@@ -8,8 +8,10 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.data.remote.ApiClient.cartRepository
 import com.datn.viettech_md_12.data.remote.ApiClient.productRepository
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.delay
@@ -35,6 +37,10 @@ class ProductViewModel : ViewModel() {
 
     private val _favoriteProducts = MutableStateFlow<List<FavoriteItem>>(emptyList())
     val favoriteProducts: StateFlow<List<FavoriteItem>> = _favoriteProducts
+
+    //hien thi don hang
+    private val _orders = MutableStateFlow<List<OrderModel>>(emptyList())
+    val orders: StateFlow<List<OrderModel>> = _orders
     init {
         loadCategories()
         getAllProduct()
@@ -165,6 +171,65 @@ class ProductViewModel : ViewModel() {
         }
     }
 
+    fun addProductToCart(
+        productId: String,
+        variantId: String,
+        quantity: Int,
+        context:Context,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            val token = sharedPreferences.getString("accessToken", "")
+            val userId = sharedPreferences.getString("clientId", "")
+            Log.d("CartViewModel", "token $token")
+            Log.d("CartViewModel", "token $userId")
+//            _isLoading.value = true
+            try {
+                val response = cartRepository.addToCart(
+                    token = token ?: "",
+                    userId = userId ?: "",
+                    productId = productId,
+                    detailsVariantId = variantId,
+                    quantity = quantity
+                )
+
+                if (response.isSuccessful) {
+                    // Cập nhật lại giỏ hàng sau khi thêm sản phẩm thành công
+                    onSuccess()
+                    Log.d("CartViewModel", "Add to cart success")
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                    Log.e("CartViewModel", "Add to cart failed: $errorMsg")
+                    onError(errorMsg)
+                }
+            } catch (e: UnknownHostException) {
+                val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: SocketTimeoutException) {
+                val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: HttpException) {
+                val errorMsg = "Lỗi HTTP: ${e.message()}"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: JsonSyntaxException) {
+                val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "Lỗi không xác định"
+                Log.e("CartViewModel", errorMsg, e)
+                onError(errorMsg)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun getFavoriteProducts(context: Context) {
         viewModelScope.launch {
             val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
@@ -226,5 +291,47 @@ class ProductViewModel : ViewModel() {
             }
         }
     }
+    //hien thi don hang
+    fun getUserOrders(context: Context) {
+        viewModelScope.launch {
+            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            val token = sharedPreferences.getString("accessToken", "")
+            val clientId = sharedPreferences.getString("clientId", "")
+            val userId = sharedPreferences.getString("userId", "")  // bạn cần lưu userId sau khi login
+            Log.d("dcm_debug_order", "Token:$token")
+            Log.d("dcm_debug_order", "ClientId: $clientId")
+            if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
+                try {
+                    val response = _repository.getUserOrders(userId.toString(),token, clientId)
+                    if (response.isSuccessful) {
+                        response.body()?.let {
+                            _orders.value = it.metadata.bills
+                            Log.d("dcm_order", "Đơn hàng: ${it.metadata.bills}")
+                        }
+                    } else {
+                        // Log chi tiết lỗi từ response.errorBody()
+                        Log.e("dcm_order", "Lỗi lấy danh sách đơn hàng: ${response.code()} - ${response.message()}")
+                        response.errorBody()?.let {
+                            Log.e("dcm_order", "Chi tiết lỗi: ${it.string()}")
+                        }
+                    }
+                } catch (e: UnknownHostException) {
+                    Log.e("dcm_order", "Lỗi mạng: Không thể kết nối với máy chủ")
+                } catch (e: SocketTimeoutException) {
+                    Log.e("dcm_order", "Lỗi mạng: Đã hết thời gian chờ")
+                } catch (e: HttpException) {
+                    Log.e("dcm_order", "Lỗi HTTP: ${e.message}")
+                    e.response()?.errorBody()?.let {
+                        Log.e("dcm_order", "Chi tiết lỗi HTTP: ${it.string()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("dcm_order", "Lỗi chung: ${e.message}")
+                }
+            } else {
+                Log.e("dcm_order", "Token hoặc ClientId không tồn tại")
+            }
+        }
+    }
+
 
 }

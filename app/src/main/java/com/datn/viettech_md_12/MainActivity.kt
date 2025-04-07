@@ -3,6 +3,7 @@ package com.datn.viettech_md_12
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -28,13 +29,21 @@ class MainActivity : ComponentActivity() {
         controller.hide(android.view.WindowInsets.Type.systemBars()) // Ẩn cả thanh trạng thái và thanh điều hướng
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
-        val isLoggedIn = intent.getBooleanExtra("isLoggedIn", false)
+        // Lấy thông tin đăng nhập từ SharedPreferences
+        val sharedPrefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPrefs.getBoolean("IS_LOGGED_IN", false)
+        val hasSeenOnboarding = sharedPrefs.getBoolean("HAS_SEEN_ONBOARDING", false)
+
         setContent {
-//            VietTech_MD_12Theme {
-//                NavigationGraph()
-//            }
-            val hasSeenOnboarding = remember { mutableStateOf(false) }
-            NavigationGraph(startDestination = if (isLoggedIn) "home" else if (hasSeenOnboarding.value) "home" else "onb_screen")
+            VietTech_MD_12Theme {
+                // Điều hướng dựa trên trạng thái đăng nhập và đã xem onboarding
+                val startDestination = when {
+                    isLoggedIn -> "home" // Nếu đã đăng nhập, đi đến màn Home
+                    hasSeenOnboarding -> "home" // Nếu đã xem onboarding nhưng chưa đăng nhập, đi đến Home
+                    else -> "onb_screen" // Nếu chưa xem onboarding, đi đến Onboarding
+                }
+                NavigationGraph(startDestination = startDestination)
+            }
         }
     }
 }
@@ -42,5 +51,5 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 @Composable
 fun PreviewCustomBanner() {
-    NavigationGraph()
+    NavigationGraph(startDestination = "home")
 }

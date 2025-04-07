@@ -6,8 +6,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -65,7 +68,7 @@ fun OrderSuccessfullyScreen(navController:NavController) {
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
             )
@@ -120,8 +123,22 @@ fun OrderSuccessfullyScreen(navController:NavController) {
                     Spacer(Modifier.height(10.dp))
                     //Button
                     MyButton(
+                        text = "Xem đơn hàng",
+                        onClick = { navController.navigate("order_history_screen")},
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(
+                                BorderStroke(width = 1.dp, color = Color(0xFF21D4B4)),
+                                shape = RoundedCornerShape(10.dp)
+                            ),
+                        backgroundColor = Color.White,
+                        textColor = Color.Black,
+                    )
+                    //Button
+                    Spacer(Modifier.height(10.dp))
+                    MyButton(
                         text = "Tiếp tục mua sắm",
-                        onClick = { },
+                        onClick = { navController.navigate("home")},
                         modifier = Modifier,
                         backgroundColor = Color.Black,
                         textColor = Color.White,

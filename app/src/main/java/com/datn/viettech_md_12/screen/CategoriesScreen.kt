@@ -32,8 +32,6 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoryViewModel 
             CustomTopAppBar2(
                 title = "Categories",
                 icon1 = R.drawable.ic_arrow_left,
-                icon2 = null,
-                icon3 = null,
                 navController = navController,
             )
         },

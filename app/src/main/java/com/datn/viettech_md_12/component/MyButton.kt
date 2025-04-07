@@ -36,6 +36,7 @@ fun MyButton(
     textColor: Color = Color.White,
     painterIconResId: Int? = null,
     vectorIcon: ImageVector? = null,
+    enabled: Boolean? = null,
     isLoading: Boolean = false
 ) {
     Card(
@@ -44,7 +45,8 @@ fun MyButton(
             .fillMaxWidth()
             .height(50.dp)
             .clip(RoundedCornerShape(10.dp)),
-        colors = CardDefaults.cardColors(backgroundColor)
+        colors = CardDefaults.cardColors(backgroundColor),
+        enabled = enabled ?: true,
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),

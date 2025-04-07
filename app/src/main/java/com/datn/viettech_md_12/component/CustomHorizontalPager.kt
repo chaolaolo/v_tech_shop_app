@@ -84,24 +84,34 @@ fun CustomHorizontalPager(logoTopics: List<Painter>) {
 
 @Composable
 fun PagerIndicator(pageCount: Int, currentPageIndex: Int, modifier: Modifier = Modifier) {
-    Row(
+    Box(
         modifier = Modifier
             .wrapContentHeight()
-            .wrapContentWidth(),
-        horizontalArrangement = Arrangement.Center
+            .wrapContentWidth()
+            .clip(RoundedCornerShape(50.dp)) // Bo tròn góc
+            .background(Color(0xfff4f5fd)) // Màu nền với độ trong suốt
+            .padding(horizontal = 8.dp, vertical = 4.dp) // Khoảng cách bên trong
     ) {
-        repeat(pageCount) { iteration ->
-            val color = if (currentPageIndex == iteration) Color.DarkGray else Color.LightGray
-            Box(
-                modifier = modifier
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .size(12.dp)
-            )
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .wrapContentWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(pageCount) { iteration ->
+                val color = if (currentPageIndex == iteration) Color(0xFF1ABC9C) else Color.Gray
+                Box(
+                    modifier = modifier
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .size(10.dp)
+                )
+            }
         }
     }
 }
+
 
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 @Composable

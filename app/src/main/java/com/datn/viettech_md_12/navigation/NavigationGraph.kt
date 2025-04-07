@@ -34,6 +34,7 @@ import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
 import com.datn.viettech_md_12.screen.profile_detail.ShippingScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import com.datn.viettech_md_12.viewmodel.UserViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -43,6 +44,8 @@ fun NavigationGraph(startDestination: String = "home") {
 
     val productViewModel: ProductViewModel =
         (LocalContext.current.applicationContext as MyApplication).productViewModel
+    val userViewModel: UserViewModel =
+        (LocalContext.current.applicationContext as MyApplication).userViewModel
 
     val selectedRoute = when {
         currentBackStackEntry.value?.destination?.route == "categories" -> "categories"
@@ -77,10 +80,10 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("home") { HomeScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
             composable("cart") { CartScreen(navController) }
-            composable("wishlist") { WishlistScreen(viewModel = productViewModel) }
+            composable("wishlist") { WishlistScreen(viewModel = productViewModel,navController) }
             composable("profile") { ProfileScreen(navController) }
-            composable("change_password_screen") { ChangePasswordScreen(navController) }
-            composable("order_history_screen") { OrderHistoryScreen(navController) }
+            composable("change_password_screen") { ChangePasswordScreen(navController,userViewModel = userViewModel) }
+            composable("order_history_screen") { OrderHistoryScreen(navController, viewModel = productViewModel) }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
@@ -89,7 +92,11 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("address_screen") { AddressScreen(navController) }
-            composable("payment_ui") { PaymentUI(navController) }
+//            composable("payment_ui") { PaymentUI(navController) }
+            composable("payment_ui/{discount}") { backStackEntry ->
+                val discount = backStackEntry.arguments?.getString("discount") ?: ""
+                PaymentUI(navController, discount)
+            }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
                 ProductDetailScreen(navController, productId)

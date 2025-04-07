@@ -2,6 +2,9 @@ package com.datn.viettech_md_12.screen.checkout
 
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Application
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,19 +18,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,6 +41,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,9 +51,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,89 +63,78 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
 import com.datn.viettech_md_12.data.model.CartMode
+import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
+import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
+import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
+
+data class PaymentMethod(
+    val displayName: String,
+    val imageRes: Int,
+    val apiValue: String,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun PaymentUI(navController: NavController) {
-    val payOptions =
-        listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
-    var selectedPayOption by remember { mutableStateOf(payOptions[0].first) }
+fun PaymentUI(
+    navController: NavController,
+    discount:String,
+    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
+    cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
+) {
+    val context = LocalContext.current
+    val checkoutState by checkoutViewModel.addressState.collectAsState()
+    val isLoading by checkoutViewModel.isLoading.collectAsState()
+    val selectedCartItems by checkoutViewModel.selectedCartItems.collectAsState()
 
-    val checkoutItems = remember {
-        mutableStateListOf(
-            CartMode(
-                1,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                2,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartMode(
-                3,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                4,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartMode(
-                5,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                6,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-            CartMode(
-                7,
-                "Loop Silicone Strong Magnetic Watch",
-                "https://i5.walmartimages.com/seo/YuiYuKa-Magnetic-Loop-Strap-Silicone-Band-Compatible-Apple-watch-band-45mm-44mm-Ultra-49mm-40mm-41mm-38mm-42mm-Women-Men-Strong-Magnet-Closure-Bracel_c0c1391f-6af4-4b66-8cca-a77c27428b5a.db0a2fbc84d23aebf027a6dd56bab110.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
-                15.25,
-                20.00,
-                1
-            ),
-            CartMode(
-                8,
-                "M6 Smart watch IP67 Waterproof",
-                "https://gomhang.vn/wp-content/uploads/2022/01/m6-138.webp",
-                12.00,
-                18.00,
-                1
-            ),
-        )
+    LaunchedEffect(Unit) {
+        checkoutViewModel.getAddress()
+        checkoutViewModel.getIsSelectedItemInCart()
     }
 
+    val payOptions =
+//        listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
+        listOf(
+            PaymentMethod("Thanh toán khi nhận hàng", R.drawable.codpay_img, "tm"),
+            PaymentMethod("Thanh toán VNPay", R.drawable.vnpay_img, "ck")
+        )
+    var selectedPayOption by remember { mutableStateOf(payOptions[0]) }
+
+
+    val discountState by cartViewModel.discountState.collectAsState()
+    val listDiscount = discountState?.body()?.data ?: emptyList()
+    val selectedVoucher = remember(discount, listDiscount) {
+        listDiscount.firstOrNull { it.code.trim() == discount.trim() }
+    }
+//    val subtotal = remember(selectedCartItems) {
+//        selectedCartItems?.sumOf { item ->
+//            item.price * item.quantity
+//        } ?: 0.0
+//    }
+    val subtotal = remember(selectedCartItems) {selectedCartItems?.sumOf { it.price * it.quantity } ?: 0.0}
+
+    val shippingFee = remember(selectedCartItems) {
+        if (selectedCartItems.isNullOrEmpty()) 0.0 else 35000.0
+    }
+    val discountPercentage = selectedVoucher?.discountValue ?: 0.0
+    val discountAmount = remember(subtotal, discountPercentage) {
+        (subtotal * discountPercentage / 100)
+    }
+    val maxDiscountAmount = selectedVoucher?.maxDiscountAmount ?: Double.MAX_VALUE
+    val finalDiscountAmount = remember(discountAmount, maxDiscountAmount) {
+        minOf(discountAmount, maxDiscountAmount)
+    }
+// Tổng thanh toán
+    val total = remember(subtotal, shippingFee, finalDiscountAmount) {
+        subtotal + shippingFee - finalDiscountAmount
+    }
 
     Scaffold(
         modifier = Modifier
@@ -158,78 +153,106 @@ fun PaymentUI(navController: NavController) {
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                modifier = Modifier.shadow(elevation = 2.dp),
             )
         },
     )
     { innerPadding ->
+        Log.d("discount", "discount: $discount")
+        Log.d("discount", "selectedVoucher: $selectedVoucher")
+        Log.d("discount", "Available vouchers: ${listDiscount.map { it.code }}")
+        Log.d("discount", "subtotal: $subtotal")
+        Log.d("discount", "discountPercentage: $discountPercentage")
+        Log.d("discount", "discountAmount: $discountAmount")
+        Log.d("discount", "maxDiscountAmount: $maxDiscountAmount")
+        Log.d("discount", "finalDiscountAmount: $finalDiscountAmount")
+        Log.d("discount", "total: $total")
+        Log.d("discount", "Discount State: $discountState")
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .clickable {
-                    navController.navigate("address_screen")
-                },
+                .background(Color.White),
             verticalArrangement = Arrangement.Top,
         ) {
             //Địa chỉ
+            Spacer(Modifier.height(4.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
                     .padding(horizontal = 16.dp)
+                    .clickable {
+                        navController.navigate("address_screen")
+                    },
             ) {
                 Icon(
                     Icons.Outlined.LocationOn,
                     contentDescription = "icon địa chỉ",
-                    tint = Color.Black
+                    tint = Color.Red
                 )
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 2.dp)
                 ) {
-                    Row {
+                    if (isLoading) {
+                        // Hiển thị placeholder khi đang tải
                         Text(
-                            "Chao Lao Lo",
+                            "Đang tải thông tin...",
                             color = Color.Black,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.W500
+                            fontWeight = FontWeight.W600,
+                            lineHeight = 15.sp
+                        )
+                    } else {
+                        val addressData = checkoutState?.body()?.data
+                        Row {
+                            Text(
+                                if (addressData?.full_name.isNullOrEmpty()) "Chưa có tên" else addressData?.full_name ?: "Chưa có tên",
+                                color = Color.Black,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.W600,
+                                lineHeight = 15.sp
                         )
                         Spacer(Modifier.width(2.dp))
                         Text(
-                            "(0123****89)",
+                            "(${if (addressData?.phone.isNullOrEmpty()) "Chưa có số điện thoại" else addressData?.phone ?: "Chưa có số điện thoại"})",
                             color = Color.Black,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.W500
+                            fontWeight = FontWeight.W600,
+                            lineHeight = 15.sp
                         )
                     }
                     Text(
-                        "Số 1, ngách 2, ngõ 3, đường Trần Duy Hưng, Trung Hoà, Cầu Giấy, Hà Nội",
+                        if (addressData?.address.isNullOrEmpty()) "Chưa có địa chỉ" else addressData?.address ?: "Chưa có địa chỉ",
                         color = Color(0xFF1A1A1A),
                         fontSize = 13.sp,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 14.sp
                     )
+                    }
                 }
                 Icon(
-                    Icons.Default.ArrowForwardIos,
-                    contentDescription = "icon địa chỉ",
+                    Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = "icon xem địa chỉ",
                     tint = Color.Black,
-                    modifier = Modifier
-
+                    modifier = Modifier.size(20.dp)
                 )
             }
+            Spacer(Modifier.height(1.dp))
             HorizontalDivider(
                 Modifier
-                    .height(1.dp)
-                    .padding(top = 2.dp)
+                    .height(2.dp)
+                    .background(Color(0xfff4f5fd)),
+                color = Color(0xfff4f5fd)
             )
             //Chọn phương thức thanh toán
-            Spacer(Modifier.height(8.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,43 +263,52 @@ fun PaymentUI(navController: NavController) {
                     "Phương thức thanh toán",
                     color = Color.Black,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
+                    fontWeight = FontWeight.W500,
+                    lineHeight = 15.sp
                 )
-                payOptions.forEach { (method, imageRes) ->
+                payOptions.forEach { method ->
                     PayMethodItem(
-                        text = method,
-                        imageRes = imageRes,
+                        text = method.displayName,
+                        imageRes = method.imageRes,
                         selected = (method == selectedPayOption),
                         onSelected = { selectedPayOption = method },
                     )
                 }
             }
+            HorizontalDivider(
+                Modifier
+                    .height(1.dp),
+                color = Color(0xfff4f5fd)
+            )
             //Danh sách sản phẩm sẽ thanh toán
             LazyColumn(
                 modifier = Modifier
 //                        .height(400.dp)
                     .weight(1f)
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 16.dp)
+                    .fillMaxSize()
+                    .background(Color(0xfff4f5fd))
+//                    .padding(horizontal = 16.dp)
                     .nestedScroll(rememberNestedScrollInteropConnection())
             ) {
-                items(checkoutItems) { item ->
-                    CheckoutItemTile(
-                        item = item,
-                        onQuantityChange = { id, newQuantity ->
-                            val index = checkoutItems.indexOfFirst { it.id == id }
-                            if (index != -1) {
-                                checkoutItems[index] = checkoutItems[index].copy(
-                                    quantity = newQuantity,
-                                )
-                            }
-
-                        },
-                        onDelete = { id ->
-                            checkoutItems.removeAll() { it.id == id }
+                if (selectedCartItems.isNullOrEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Không có sản phẩm nào được chọn")
                         }
+                    }
+                } else {
+                    items(selectedCartItems!!) { item ->
+                    CheckoutItemTile(
+                        product = item,
+                        cartViewModel = cartViewModel,
+                        checkoutViewModel = checkoutViewModel,
                     )
+                }
                 }
             }
             //Tóm tắt đơn hàng
@@ -285,111 +317,116 @@ fun PaymentUI(navController: NavController) {
                     .fillMaxHeight(1f)
                     .background(Color.Red)
             )
-            Box(
-                Modifier
-                    .height(4.dp)
-                    .fillMaxWidth()
-                    .background(Color.LightGray)
-            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .background(Color.White)
             ) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))
                 Text(
                     "Tóm tắt đơn hàng",
                     color = Color.Black,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.W500,
+                    fontWeight = FontWeight.W600,
+                    lineHeight = 15.sp,
                     modifier = Modifier
                         .fillMaxWidth()
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         "Tổng phụ",
                         color = Color.Black,
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                     Text(
-                        "1.400.500 VND",
+                        "${formatCurrency(subtotal)}₫",
                         color = Color.Black,
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         "Vận chuyển",
                         color = Color.Black,
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                     Text(
-                        "10.500 VND",
-                        color = Color(0xFFFF3333),
-                        fontSize = 14.sp,
+                        "${formatCurrency(shippingFee)}₫",
+                        color = Color(0xFF00C2A8),
+                        fontSize = 12.sp,
+                        lineHeight = 14.sp,
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 2.dp, start = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Giảm giá",
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                    )
-                    Text(
-                        "- 89.000 VND",
-                        color = Color(0xFFFF3333),
-                        fontSize = 14.sp,
-                    )
+                if (finalDiscountAmount > 0) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Giảm giá (${discountPercentage.toInt()}%)", fontSize = 12.sp, color = Color(0xFF00C2A8),lineHeight = 14.sp)
+                        Text("-${formatCurrency(finalDiscountAmount)}₫", fontSize = 12.sp, color = Color(0xFF00C2A8),lineHeight = 14.sp)
+                    }
                 }
+                Spacer(Modifier.height(3.dp))
                 HorizontalDivider(Modifier.height(0.5.dp), color = Color.LightGray)
+                Spacer(Modifier.height(3.dp))
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "Tổng (${checkoutItems.size} mặt hàng)",
+                        "Tổng (${selectedCartItems?.size ?: 0} mặt hàng)",
                         color = Color.Black,
                         fontSize = 14.sp,
+                        lineHeight = 15.sp,
                     )
                     Text(
-                        "10 230 000 VND",
+                        "${formatCurrency(total)}₫",
                         color = Color.Black,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.W500
+                        fontWeight = FontWeight.W600,
+                        lineHeight = 15.sp,
                     )
                 }
                 MyButton(
                     text = "Đặt hàng",
                     onClick = {
-                        navController.navigate("order_successfully")
+                        val addressData = checkoutState?.body()?.data
+                        val address = addressData?.address ?: ""
+                        val phone = addressData?.phone ?: ""
+                        val name = addressData?.full_name ?: ""
+                        Log.d("PaymentUI", "address: $address, phone: $phone, name:$name ")
+                        if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
+                            checkoutViewModel.checkout(
+                                address = address,
+                                phone_number = phone,
+                                receiver_name = name,
+                                payment_method = selectedPayOption.apiValue,
+                                discount_code = discount,
+                            )
+                            Log.d("PaymentUI", "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}")
+                            navController.navigate("order_successfully")
+                        } else {
+                            Toast.makeText(
+                                context, "Vui lòng cung cấp đầy đủ thông tin!", Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     },
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = 6.dp),
                     backgroundColor = Color.Black,
                     textColor = Color.White,
+                    enabled = selectedCartItems?.size != 0
                 )
                 Spacer(Modifier.height(4.dp))
             }
         }
     }
 //    }
+}
+
+fun formatCurrency(amount: Double): String {
+    return "%,.0f".format(amount).replace(",", ".")
 }
 
 @Composable
@@ -440,5 +477,5 @@ fun PayMethodItem(
 @Composable
 @Preview(showSystemUi = true)
 fun PreviewPayScreen() {
-    PaymentUI(rememberNavController())
+//    PaymentUI(rememberNavController())
 }

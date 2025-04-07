@@ -22,7 +22,7 @@ import com.datn.viettech_md_12.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTopAppBar2(
-    title: String, icon1: Int, icon2: Int?, icon3: Int?, navController: NavController
+    title: String, icon1: Int, navController: NavController
 ) {
     SmallTopAppBar(
         title = {
@@ -37,15 +37,6 @@ fun CustomTopAppBar2(
                 Text(text = title, fontWeight = FontWeight.Bold)
             }
 
-        }, actions = {
-            IconButton(onClick = { }) {
-                icon2?.let { painterResource(it) }
-                    ?.let { Icon(painter = it, contentDescription = "search") }
-            }
-            IconButton(onClick = {}) {
-                icon3?.let { painterResource(it) }
-                    ?.let { Icon(painter = it, contentDescription = "more") }
-            }
         }, colors = TopAppBarDefaults.smallTopAppBarColors(
             containerColor = Color.Transparent,
             titleContentColor = Color(0xFF1C1B1B),

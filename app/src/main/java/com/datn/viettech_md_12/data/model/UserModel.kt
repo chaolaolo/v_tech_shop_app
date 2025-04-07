@@ -48,3 +48,27 @@ data class LoginResult(
     val status: String,
     val metadata: Metadata
 )
+//Change Password
+data class ChangePasswordRequest(
+    val accountId: String,
+    val oldPassword: String,
+    val newPassword: String
+)
+
+data class ChangePasswordResponse(
+    val code: Int,
+    val message: String,
+    val status: String
+)
+//Forgot Password
+data class ForgotPasswordRequest(
+    val email: String,
+    val otp: String? = null,
+    val newPassword: String? = null
+)
+
+data class MessageResponse(
+    val message: String
+)
+
+

@@ -1,11 +1,16 @@
 package com.datn.viettech_md_12.data.interfaces
 
+import ChangePasswordRequest
+import ChangePasswordResponse
+import ForgotPasswordRequest
 import LoginRequest
 import LoginResponse
+import MessageResponse
 import RegisterRequest
 import RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 
@@ -23,4 +28,17 @@ interface UserService {
     )
     @POST("access/login")
     suspend fun signIn(@Body request: LoginRequest): Response<LoginResponse>
+    @Headers(
+        "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
+    )
+    @POST("account/change-password")
+    suspend fun changePassword(
+        @Header("x-client-id") clientId: String,
+        @Header("authorization") token: String,
+        @Body request: ChangePasswordRequest
+    ): Response<ChangePasswordResponse>
+
+    @POST("account/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<MessageResponse>
+
 }
