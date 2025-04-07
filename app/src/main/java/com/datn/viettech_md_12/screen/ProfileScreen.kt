@@ -134,14 +134,14 @@ fun ProfileScreen(navController: NavController) {
                 )
             }
             item { DividerItem() }
-//            item {
-//                ProfileItem(
-//                    R.drawable.ic_dark_theme_profile,
-//                    stringResource(R.string.dark_theme),
-//                    onClick = {}
-//                )
-//            }
-//            item { DividerItem() }
+            item {
+                ProfileItem(
+                    R.drawable.ic_dark_theme_profile,
+                    stringResource(R.string.dark_theme),
+                    onClick = {}
+                )
+            }
+            item { DividerItem() }
         }
     }
 }
