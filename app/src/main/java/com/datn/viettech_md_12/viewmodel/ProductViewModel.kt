@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.remote.ApiClient.cartRepository
@@ -36,6 +37,10 @@ class ProductViewModel : ViewModel() {
 
     private val _favoriteProducts = MutableStateFlow<List<FavoriteItem>>(emptyList())
     val favoriteProducts: StateFlow<List<FavoriteItem>> = _favoriteProducts
+
+    //hien thi don hang
+    private val _orders = MutableStateFlow<List<OrderModel>>(emptyList())
+    val orders: StateFlow<List<OrderModel>> = _orders
     init {
         loadCategories()
         getAllProduct()
@@ -286,5 +291,47 @@ class ProductViewModel : ViewModel() {
             }
         }
     }
+    //hien thi don hang
+    fun getUserOrders(context: Context) {
+        viewModelScope.launch {
+            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            val token = sharedPreferences.getString("accessToken", "")
+            val clientId = sharedPreferences.getString("clientId", "")
+            val userId = sharedPreferences.getString("userId", "")  // bạn cần lưu userId sau khi login
+            Log.d("dcm_debug_order", "Token:$token")
+            Log.d("dcm_debug_order", "ClientId: $clientId")
+            if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
+                try {
+                    val response = _repository.getUserOrders(userId.toString(),token, clientId)
+                    if (response.isSuccessful) {
+                        response.body()?.let {
+                            _orders.value = it.metadata.bills
+                            Log.d("dcm_order", "Đơn hàng: ${it.metadata.bills}")
+                        }
+                    } else {
+                        // Log chi tiết lỗi từ response.errorBody()
+                        Log.e("dcm_order", "Lỗi lấy danh sách đơn hàng: ${response.code()} - ${response.message()}")
+                        response.errorBody()?.let {
+                            Log.e("dcm_order", "Chi tiết lỗi: ${it.string()}")
+                        }
+                    }
+                } catch (e: UnknownHostException) {
+                    Log.e("dcm_order", "Lỗi mạng: Không thể kết nối với máy chủ")
+                } catch (e: SocketTimeoutException) {
+                    Log.e("dcm_order", "Lỗi mạng: Đã hết thời gian chờ")
+                } catch (e: HttpException) {
+                    Log.e("dcm_order", "Lỗi HTTP: ${e.message}")
+                    e.response()?.errorBody()?.let {
+                        Log.e("dcm_order", "Chi tiết lỗi HTTP: ${it.string()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("dcm_order", "Lỗi chung: ${e.message}")
+                }
+            } else {
+                Log.e("dcm_order", "Token hoặc ClientId không tồn tại")
+            }
+        }
+    }
+
 
 }
