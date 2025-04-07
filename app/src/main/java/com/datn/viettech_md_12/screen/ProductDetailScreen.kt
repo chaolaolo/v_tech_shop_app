@@ -144,6 +144,7 @@ fun ProductDetailScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     var isFavorite by remember { mutableStateOf(false) }
     var isAddingToCart by remember { mutableStateOf(false) }
+    var quantity by remember { mutableStateOf(1) }
 
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
@@ -441,17 +442,33 @@ fun ProductDetailScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     IconButton(
-                                        onClick = {/* if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) */ },
-                                        modifier = Modifier.size(16.dp)
+                                        onClick = {
+                                            if (quantity > 1) {
+                                                quantity--
+                                            }
+                                        },
+                                        modifier = Modifier.size(16.dp),
+                                        enabled = quantity > 1
                                     ) {
-                                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                                        Icon(
+                                            Icons.Default.Remove, contentDescription = "Decrease",
+                                            tint = if (quantity > 1) Color.Black else Color.Gray
+                                        )
                                     }
-                                    Text("1", modifier = Modifier.padding(horizontal = 12.dp))
+                                    Text("$quantity", modifier = Modifier.padding(horizontal = 12.dp))
                                     IconButton(
-                                        onClick = { /*onQuantityChange(item.id, item.quantity + 1)*/ },
-                                        modifier = Modifier.size(16.dp)
+                                        onClick = {
+                                            if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
+                                                quantity++
+                                            }
+                                        },
+                                        modifier = Modifier.size(16.dp),
+                                        enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
                                     ) {
-                                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                                        Icon(
+                                            Icons.Default.Add, contentDescription = "Increase",
+                                            tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                        )
                                     }
                                 }
                                 }
@@ -498,14 +515,14 @@ fun ProductDetailScreen(
 
                                                 if (!isLoggedIn) {
                                                     showLoginDialog = true
-                                                }else{
+                                                } else {
                                                     isAddingToCart = true
                                                 product?.let { product ->
                                                 Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(
                                                     productId = product.id,
                                                     variantId = "",
-                                                    quantity = 1,
+                                                    quantity = quantity,
                                                     context = context,
                                                     onSuccess = {
                                                         isAddingToCart = false
