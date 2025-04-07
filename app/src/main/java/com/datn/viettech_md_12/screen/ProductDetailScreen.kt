@@ -213,7 +213,8 @@ fun ProductDetailScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .size(48.dp)
+                                        .background(color = Color.Black)
+                                        .size(30.dp)
                                 ) {
                                     IconButton(
                                         onClick = {

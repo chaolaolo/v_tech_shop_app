@@ -48,6 +48,8 @@ fun CustomItemProductsByCate(productByCateModel: ProductByCateModel, onClick: ()
 fun CustomItemProductsBase(
     product: ProductModel? = null,
     productByCateModel: ProductByCateModel? = null,
+    viewModel: ProductViewModel? = null,
+    context: Context? = null,
     onClick: () -> Unit,
 ) {
     val imageUrl = product?.productThumbnail ?: productByCateModel?.productThumbnail
