@@ -39,8 +39,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
@@ -206,7 +208,7 @@ fun ProductDetailScreen(
                             ),
                             navigationIcon = {
                                 IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                                 }
                             },
                             actions = {
@@ -234,14 +236,14 @@ fun ProductDetailScreen(
                                         modifier = Modifier
                                             .align(Alignment.TopEnd)
                                             .padding(8.dp)
-                                            .size(30.dp)
+                                            .size(40.dp)
                                     ) {
                                         Icon(
                                             contentDescription = "favourite icon",
                                             imageVector = if (!isFavorite) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
                                             tint = if (!isFavorite) Color.White else Color.Red,
                                             modifier = Modifier
-                                                .size(20.dp)
+                                                .size(36.dp)
                                         )
                                     }
                                 }
@@ -300,11 +302,12 @@ fun ProductDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(color = Color(0xFF1F8BDA))
+                                            .background(color = Color(0xFF0090EE))
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
                                     ) {
                                         Text(
                                             "Top Rated",
-                                            modifier = Modifier.padding(4.dp),
+                                            modifier = Modifier,
                                             color = Color.White,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
@@ -314,11 +317,11 @@ fun ProductDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(color = Color(0xFF08E488))
+                                            .background(color = Color(0xFF009B79))
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
                                     ) {
                                         Text(
                                             "Free Shipping",
-                                            modifier = Modifier.padding(4.dp),
                                             color = Color.White,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
@@ -347,7 +350,6 @@ fun ProductDetailScreen(
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
                                         overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f)
                                     )
                                     }
                                         Text(
@@ -468,7 +470,7 @@ fun ProductDetailScreen(
                                         .border(
                                             width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(8.dp)
                                         )
-                                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
@@ -478,7 +480,7 @@ fun ProductDetailScreen(
                                                 quantity--
                                             }
                                         },
-                                        modifier = Modifier.size(16.dp),
+                                        modifier = Modifier.size(20.dp),
                                         enabled = quantity > 1
                                     ) {
                                         Icon(
@@ -486,14 +488,14 @@ fun ProductDetailScreen(
                                             tint = if (quantity > 1) Color.Black else Color.Gray
                                         )
                                     }
-                                    Text("$quantity", modifier = Modifier.padding(horizontal = 12.dp))
+                                    Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp))
                                     IconButton(
                                         onClick = {
                                             if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
                                                 quantity++
                                             }
                                         },
-                                        modifier = Modifier.size(16.dp),
+                                        modifier = Modifier.size(20.dp),
                                         enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
                                     ) {
                                         Icon(

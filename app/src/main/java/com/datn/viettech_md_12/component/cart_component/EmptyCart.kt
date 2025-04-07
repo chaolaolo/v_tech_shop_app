@@ -23,9 +23,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 
 
@@ -59,7 +61,7 @@ fun EmptyCart(
                 contentScale = ContentScale.Crop
             )
         }
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(30.dp))
         //Text
         Text(
             "Giỏ hàng đang trống",
@@ -75,14 +77,20 @@ fun EmptyCart(
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(30.dp))
         //Button
         MyButton(
             text = "Khám phá",
             onClick = {navController.navigate("home") },
             modifier = Modifier,
-            backgroundColor = Color.Black,
+            backgroundColor = Color(0xFF21D4B4),
             textColor = Color.White,
         )
     }
 }// end empty cart
+@Preview(showSystemUi = true)
+@Composable
+fun previewEmptyCart(){
+EmptyCart(rememberNavController())
+}
+

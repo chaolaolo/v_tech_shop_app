@@ -87,7 +87,7 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 text = stringResource(R.string.change_password),
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                fontSize = 20.sp
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
@@ -131,8 +131,7 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     MyTextField(
                         hint = "Nhập mật khẩu của bạn",
@@ -188,13 +187,12 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     MyTextField(
                         hint = "Nhập mật khẩu mới của bạn",
                         value = newPassword,
-                        onValueChange ={ newPassword=it },
+                        onValueChange = { newPassword = it },
                         modifier = Modifier.padding(horizontal = 16.dp),
                         isPassword = true
                     )
@@ -226,13 +224,12 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     MyTextField(
                         hint = "Xác nhận mật khẩu của bạn",
                         value = confirmPassword,
-                        onValueChange ={ confirmPassword=it },
+                        onValueChange = { confirmPassword = it },
                         modifier = Modifier.padding(horizontal = 16.dp),
                         isPassword = true
                     )
@@ -256,11 +253,10 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
         }
         Spacer(modifier = Modifier.height(20.dp))
         Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
-
-            Button(
+            MyButton(
+                text = "Tiếp tục",
                 onClick = {
                     if (step == 1) {
                         step = 2 // Chuyển sang bước nhập mật khẩu mới
@@ -271,32 +267,64 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                                 context = context,
                                 oldPassword = oldPassword,
                                 newPassword = newPassword,
-                                onSuccess = {
-                                    message ->
+                                onSuccess = { message ->
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     navController.popBackStack() // Quay về sau khi đổi mật khẩu
                                 },
-                                onError = {
-                                    error ->
+                                onError = { error ->
                                     Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                        }else {
-                            Toast.makeText(context, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show()
+                                })
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Mật khẩu xác nhận không khớp",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 },
-                modifier = Modifier
-                    .width(380.dp)
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(2.dp)),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                ),
+                modifier = Modifier.padding(horizontal = 16.dp),
+                backgroundColor = Color.Black,
+                textColor = Color.White,
                 enabled = if (step == 1) oldPassword.isNotEmpty() else newPassword.isNotEmpty() && confirmPassword == newPassword
-            ) {
-                Text("Tiếp tục", color = Color.White)
-            }
+            )
+//            Button(
+//                onClick = {
+//                    if (step == 1) {
+//                        step = 2 // Chuyển sang bước nhập mật khẩu mới
+//                    } else {
+//                        // Xử lý đổi mật khẩu (nếu cần)
+//                        if (newPassword == confirmPassword) {
+//                            userViewModel.changePassword(
+//                                context = context,
+//                                oldPassword = oldPassword,
+//                                newPassword = newPassword,
+//                                onSuccess = {
+//                                    message ->
+//                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+//                                    navController.popBackStack() // Quay về sau khi đổi mật khẩu
+//                                },
+//                                onError = {
+//                                    error ->
+//                                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+//                                }
+//                            )
+//                        }else {
+//                            Toast.makeText(context, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show()
+//                        }
+//                    }
+//                },
+//                modifier = Modifier
+//                    .width(380.dp)
+//                    .height(60.dp)
+//                    .clip(RoundedCornerShape(2.dp)),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color.Black
+//                ),
+//                enabled = if (step == 1) oldPassword.isNotEmpty() else newPassword.isNotEmpty() && confirmPassword == newPassword
+//            ) {
+//                Text("Tiếp tục", color = Color.White)
+//            }
         }
     }
 }

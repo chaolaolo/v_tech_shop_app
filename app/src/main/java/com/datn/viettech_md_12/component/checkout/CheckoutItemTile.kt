@@ -64,115 +64,136 @@ fun CheckoutItemTile(
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
+            .padding(bottom = 4.dp)
             .fillMaxWidth()
-            .background(Color(0xfff4f5fd))
-            .padding(bottom = 2.dp),
+            .background(Color.White, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .padding(bottom = 4.dp)
     ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(start = 16.dp, end = 16.dp, top = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = null,
+        Row(
             modifier = Modifier
-                .size(60.dp)
-                .background(Color.Transparent)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(R.drawable.ic_launcher_background),
-            error = painterResource(R.drawable.error_img),
-            onError = { Log.e("CheckoutItemTile", "Failed to load image: $imageUrl") }
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
-            Row(
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(start = 4.dp, end = 6.dp, top = 4.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column() {
-                    val variantValues = product.variant?.values?.joinToString(", ") { it.value } ?: ""
-                    Text(variantValues, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, lineHeight = 12.sp)
-                    Text("VND $itemPriceFormatted", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 12.sp)
-                }
+                    .size(60.dp)
+                    .background(Color(0xFFF4F4F4), RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.error_img),
+                onError = { Log.e("CheckoutItemTile", "Failed to load image: $imageUrl") }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+
                 Row(
                     modifier = Modifier
-                        .border(
-                            width = 1.dp,
-                            brush = SolidColor(Color(0xFFF4F5FD)),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 3.dp, vertical = 2.dp),
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(
-                        onClick = {
+                    Column() {
+                        Text(
+                            product.name,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W600,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        val variantValues =
+                            product.variant?.values?.joinToString(", ") { it.value } ?: ""
+                        if (!variantValues.isNullOrEmpty()) {
+                            Text(
+                                variantValues,
+                                fontSize = 12.sp,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.W500,
+                            )
+                        }
+                        Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500)
+                    }
+                    Row(
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                brush = SolidColor(Color(0xFFF4F5FD)),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(
+                            onClick = {
 //                            if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1)
-                            if (quantityState.value > 1) {
-                                quantityState.value -= 1
+                                if (quantityState.value > 1) {
+                                    quantityState.value -= 1
+                                    coroutineScope.launch {
+                                        cartViewModel.updateProductQuantity(
+                                            productId = product.productId,
+                                            variantId = product.detailsVariantId ?: "",
+                                            newQuantity = quantityState.value,
+                                        )
+                                        // Sau khi cập nhật xong, refresh lại danh sách
+                                        checkoutViewModel.refreshSelectedItems()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(18.dp)
+                        ) {
+                            Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                        }
+                        androidx.compose.material.Text(
+                            "${quantityState.value}",
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                        IconButton(
+                            onClick = {
+//                            onQuantityChange(product.productId, product.quantity + 1)
+                                quantityState.value += 1
                                 coroutineScope.launch {
                                     cartViewModel.updateProductQuantity(
                                         productId = product.productId,
                                         variantId = product.detailsVariantId ?: "",
                                         newQuantity = quantityState.value,
                                     )
-                                    // Sau khi cập nhật xong, refresh lại danh sách
                                     checkoutViewModel.refreshSelectedItems()
                                 }
-                            }
-                        },
-                        modifier = Modifier.size(16.dp)
-                    ) {
-                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
-                    }
-                    androidx.compose.material.Text("${quantityState.value}", modifier = Modifier.padding(horizontal = 10.dp))
-                    IconButton(
-                        onClick = {
-//                            onQuantityChange(product.productId, product.quantity + 1)
-                            quantityState.value += 1
-                            coroutineScope.launch {
-                                cartViewModel.updateProductQuantity(
-                                    productId = product.productId,
-                                    variantId = product.detailsVariantId ?: "",
-                                    newQuantity = quantityState.value,
-                                )
-                                checkoutViewModel.refreshSelectedItems()
-                            }
-                        },
-                        modifier = Modifier.size(16.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                            },
+                            modifier = Modifier.size(18.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Increase")
+                        }
                     }
                 }
+            }
         }
-        }
-    }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(end = 16.dp, bottom = 2.dp),
+                .padding(end = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Text(
                 "Số lượng ${quantityState.value}, tổng cộng ",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
-                lineHeight = 12.sp,
                 color = Color.Black
             )
             Text(
-                "${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(quantityState.value * itemPrice)}₫",
+                "${
+                    NumberFormat.getNumberInstance(Locale("vi", "VN"))
+                        .format(quantityState.value * itemPrice)
+                }₫",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
-                lineHeight = 12.sp,
                 color = Color.Black,
                 fontWeight = FontWeight.W600
             )

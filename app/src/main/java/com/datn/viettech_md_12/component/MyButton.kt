@@ -45,7 +45,11 @@ fun MyButton(
             .fillMaxWidth()
             .height(50.dp)
             .clip(RoundedCornerShape(10.dp)),
-        colors = CardDefaults.cardColors(backgroundColor),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            disabledContainerColor = Color.Gray,
+            disabledContentColor = Color.Black
+        ),
         enabled = enabled ?: true,
     ) {
         Row(

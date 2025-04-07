@@ -109,7 +109,7 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
                 text = stringResource(R.string.order_history),
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                fontSize = 20.sp
             )
         }
 

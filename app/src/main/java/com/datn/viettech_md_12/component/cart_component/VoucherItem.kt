@@ -114,15 +114,15 @@ fun VoucherItem(
                     painterResource(R.drawable.logo),
                     contentDescription = "logo",
                     modifier = Modifier
-                        .width(40.dp)
-                        .height(20.dp),
+                        .width(50.dp)
+                        .height(26.dp),
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(Color.White)
                 )
                 Text(
                     text = " ${voucher.discountType ?: ""}",
                     color = Color.White,
-                    fontSize = 8.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -150,9 +150,9 @@ fun VoucherItem(
         )
         Text(
             text = "Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên",
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             color = Color.Black,
-            lineHeight = 15.sp
+            lineHeight = 17.sp
         )
         Spacer(modifier = Modifier.height(4.dp))
         DashedDivider(
@@ -169,23 +169,24 @@ fun VoucherItem(
             remainingTime.value == "Đã hết hạn" -> {
                 Text(
                     text = remainingTime.value,
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     color = Color.Red,
                     fontWeight = FontWeight.Medium,
-                    lineHeight = 15.sp
+                    lineHeight = 17.sp
                 )
+                Spacer(modifier = Modifier.height(4.dp))
             }
 
             !remainingTime.value.isNullOrEmpty() -> {
                 Text(
                     text = "Hết hạn sau: ${remainingTime.value}",
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     color = Color.Red,
                     fontWeight = FontWeight.Medium,
-                    lineHeight = 15.sp
+                    lineHeight = 17.sp
                 )
+                Spacer(modifier = Modifier.height(4.dp))
             }
-            // Trường hợp null hoặc "" thì không hiển thị gì cả
         }
     }
 }

@@ -156,7 +156,7 @@ fun CartItemTile(
                 .fillMaxWidth()
                 .offset { IntOffset(swipeableState.offset.value.toInt(), 0) }
                 .background(Color.White)
-                .padding(horizontal = 4.dp)
+                .padding(horizontal = 4.dp, vertical = 4.dp)
                 .clickable {
                     navController.navigate("product_detail/${product.productId}") // Chuyển đến chi tiết sản phẩm
                 },
@@ -164,24 +164,25 @@ fun CartItemTile(
         ) {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = null,
+                contentDescription = "cart item image",
                 modifier = Modifier
                     .size(80.dp)
-                    .background(Color.Transparent)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .background(Color(0xFFF4F4F4), RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.ic_launcher_background),
+                placeholder = painterResource(R.drawable.logo),
                 error = painterResource(R.drawable.error_img),
                 onError = { Log.e("CartItemTile", "Failed to load image: $imageUrl") }
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
-//                Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
+                Text(product.name, fontSize = 14.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 16.sp, color = Color.Black)
                 // Hiển thị danh sách các value của biến thể, cách nhau bởi dấu phẩy
                 val variantValues = product.variant?.values?.joinToString(", ") { it.value } ?: ""
-                Text(variantValues, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
-                Text("$itemPriceFormatted₫", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
+                if(!variantValues.isNullOrEmpty()){
+                    Text(variantValues, fontSize = 13.sp, color = Color.Gray,maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 14.sp)
+                }
+                Text("$itemPriceFormatted₫", fontSize = 13.sp, color = Color.Black)
                 Row(
                     modifier = Modifier
                         .border(
@@ -189,7 +190,7 @@ fun CartItemTile(
                             brush = SolidColor(Color(0xFFF4F5FD)),
                             shape = RoundedCornerShape(6.dp)
                         )
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -206,11 +207,11 @@ fun CartItemTile(
                                 }
                             }
                         },
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp)
                     ) {
                         Icon(Icons.Default.Remove, contentDescription = "Decrease")
                     }
-                    Text("${quantityState.value}", fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                    Text("${quantityState.value}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
                     IconButton(
                         onClick = {
                             quantityState.value += 1
@@ -222,7 +223,7 @@ fun CartItemTile(
                                 )
                             }
                         },
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Increase")
                     }
@@ -233,7 +234,7 @@ fun CartItemTile(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(20.dp)
-                    .padding(end = 4.dp),
+                    .padding(end = 6.dp),
                 verticalArrangement = Arrangement.Bottom,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

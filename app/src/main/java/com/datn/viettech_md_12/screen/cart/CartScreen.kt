@@ -58,6 +58,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -205,7 +206,7 @@ fun CartScreen(
                             }
                     )
                 }
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(10.dp))
                 //TextField nhập mã
@@ -253,7 +254,7 @@ fun CartScreen(
                             Text(
                                 "Áp dụng",
                                 color = Color.White,
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,
@@ -261,15 +262,8 @@ fun CartScreen(
                         }
                     } //Card
                 }
-//                Text(
-//                    "Thông báo thành công hoặc thất bại khi bấm nút \"áp dụng\"",
-//                    color = Color.Black,
-//                    fontSize = 12.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    modifier = Modifier.padding(start = 5.dp, top = 2.dp)
-//                )
                 Spacer(Modifier.height(10.dp))
-                Text("Voucher dành cho bạn", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("Voucher dành cho bạn", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 //danh sách mã giảm giá
                 LazyColumn(
                     modifier = Modifier
@@ -320,8 +314,10 @@ fun CartScreen(
             .fillMaxHeight()
             .systemBarsPadding(),
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Giỏ Hàng", color = Color.Black) },
+            SmallTopAppBar(
+                title = {
+                        Text(text = "Giỏ Hàng", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.Black)
+                     },
                 colors = TopAppBarColors(
                     containerColor = Color.White,
                     scrolledContainerColor = Color.Transparent,
@@ -345,7 +341,7 @@ fun CartScreen(
                         Text(
                             text = "Mã giảm giá",
                             color = Color(0xFF00C2A8),
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                         )
                     }

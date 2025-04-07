@@ -33,6 +33,8 @@ class CheckoutViewModel(application: Application) : ViewModel(){
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val _gettingAddress = MutableStateFlow(true)
+    val gettingAddress: StateFlow<Boolean> = _gettingAddress
 
     private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val token: String? = sharedPreferences.getString("accessToken", null)
@@ -48,7 +50,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
         viewModelScope.launch {
             Log.d("getAddress", "userId: $userId")
             Log.d("getAddress", "token: $token")
-            _isLoading.value = true
+            _gettingAddress.value = true
             try {
                 val response = checkoutRepository.getAddress(
                     accountId = userId?:"",
@@ -72,7 +74,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
             } catch (e: Exception) {
                 Log.e("getAddress", "Lỗi chung: ${e.message}", e)
             } finally {
-                _isLoading.value = false // Kết thúc trạng thái loading
+                _gettingAddress.value = false // Kết thúc trạng thái loading
             }
         }
     }

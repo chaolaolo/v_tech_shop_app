@@ -85,13 +85,13 @@ data class PaymentMethod(
 @Composable
 fun PaymentUI(
     navController: NavController,
-    discount:String,
+    discount: String,
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
     val context = LocalContext.current
     val checkoutState by checkoutViewModel.addressState.collectAsState()
-    val isLoading by checkoutViewModel.isLoading.collectAsState()
+    val gettingAddress by checkoutViewModel.gettingAddress.collectAsState()
     val selectedCartItems by checkoutViewModel.selectedCartItems.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -118,7 +118,8 @@ fun PaymentUI(
 //            item.price * item.quantity
 //        } ?: 0.0
 //    }
-    val subtotal = remember(selectedCartItems) {selectedCartItems?.sumOf { it.price * it.quantity } ?: 0.0}
+    val subtotal =
+        remember(selectedCartItems) { selectedCartItems?.sumOf { it.price * it.quantity } ?: 0.0 }
 
     val shippingFee = remember(selectedCartItems) {
         if (selectedCartItems.isNullOrEmpty()) 0.0 else 35000.0
@@ -143,7 +144,14 @@ fun PaymentUI(
             .systemBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Thanh Toán") },
+                title = {
+                    Text(
+                        text = "Thanh Toán",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                },
                 colors = TopAppBarColors(
                     containerColor = Color.White,
                     scrolledContainerColor = Color.Transparent,
@@ -180,7 +188,7 @@ fun PaymentUI(
             verticalArrangement = Arrangement.Top,
         ) {
             //Địa chỉ
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,6 +197,7 @@ fun PaymentUI(
                     .clickable {
                         navController.navigate("address_screen")
                     },
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     Icons.Outlined.LocationOn,
@@ -200,7 +209,7 @@ fun PaymentUI(
                         .weight(1f)
                         .padding(horizontal = 2.dp)
                 ) {
-                    if (isLoading) {
+                    if (gettingAddress) {
                         // Hiển thị placeholder khi đang tải
                         Text(
                             "Đang tải thông tin...",
@@ -213,29 +222,28 @@ fun PaymentUI(
                         val addressData = checkoutState?.body()?.data
                         Row {
                             Text(
-                                if (addressData?.full_name.isNullOrEmpty()) "Chưa có tên" else addressData?.full_name ?: "Chưa có tên",
+                                if (addressData?.full_name.isNullOrEmpty()) "Chưa có tên" else addressData?.full_name
+                                    ?: "Chưa có tên",
                                 color = Color.Black,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.W600,
-                                lineHeight = 15.sp
-                        )
-                        Spacer(Modifier.width(2.dp))
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Text(
+                                "(${if (addressData?.phone.isNullOrEmpty()) "Chưa có số điện thoại" else addressData?.phone ?: "Chưa có số điện thoại"})",
+                                color = Color.Black,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W600,
+                            )
+                        }
                         Text(
-                            "(${if (addressData?.phone.isNullOrEmpty()) "Chưa có số điện thoại" else addressData?.phone ?: "Chưa có số điện thoại"})",
-                            color = Color.Black,
+                            if (addressData?.address.isNullOrEmpty()) "Chưa có địa chỉ" else addressData?.address
+                                ?: "Chưa có địa chỉ",
+                            color = Color(0xFF1A1A1A),
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.W600,
-                            lineHeight = 15.sp
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                    Text(
-                        if (addressData?.address.isNullOrEmpty()) "Chưa có địa chỉ" else addressData?.address ?: "Chưa có địa chỉ",
-                        color = Color(0xFF1A1A1A),
-                        fontSize = 13.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        lineHeight = 14.sp
-                    )
                     }
                 }
                 Icon(
@@ -245,7 +253,7 @@ fun PaymentUI(
                     modifier = Modifier.size(20.dp)
                 )
             }
-            Spacer(Modifier.height(1.dp))
+            Spacer(Modifier.height(4.dp))
             HorizontalDivider(
                 Modifier
                     .height(2.dp)
@@ -253,18 +261,18 @@ fun PaymentUI(
                 color = Color(0xfff4f5fd)
             )
             //Chọn phương thức thanh toán
+            Spacer(Modifier.height(4.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(horizontal = 16.dp)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 4.dp)
             ) {
                 Text(
                     "Phương thức thanh toán",
                     color = Color.Black,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.W500,
-                    lineHeight = 15.sp
                 )
                 payOptions.forEach { method ->
                     PayMethodItem(
@@ -287,7 +295,7 @@ fun PaymentUI(
                     .weight(1f)
                     .fillMaxSize()
                     .background(Color(0xfff4f5fd))
-//                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp)
                     .nestedScroll(rememberNestedScrollInteropConnection())
             ) {
                 if (selectedCartItems.isNullOrEmpty()) {
@@ -303,12 +311,12 @@ fun PaymentUI(
                     }
                 } else {
                     items(selectedCartItems!!) { item ->
-                    CheckoutItemTile(
-                        product = item,
-                        cartViewModel = cartViewModel,
-                        checkoutViewModel = checkoutViewModel,
-                    )
-                }
+                        CheckoutItemTile(
+                            product = item,
+                            cartViewModel = cartViewModel,
+                            checkoutViewModel = checkoutViewModel,
+                        )
+                    }
                 }
             }
             //Tóm tắt đơn hàng
@@ -327,9 +335,8 @@ fun PaymentUI(
                 Text(
                     "Tóm tắt đơn hàng",
                     color = Color.Black,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.W600,
-                    lineHeight = 15.sp,
                     modifier = Modifier
                         .fillMaxWidth()
                 )
@@ -337,39 +344,43 @@ fun PaymentUI(
                     Text(
                         "Tổng phụ",
                         color = Color.Black,
-                        fontSize = 12.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 14.sp,
                     )
                     Text(
                         "${formatCurrency(subtotal)}₫",
                         color = Color.Black,
-                        fontSize = 12.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 14.sp,
                     )
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         "Vận chuyển",
                         color = Color.Black,
-                        fontSize = 12.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 14.sp,
                     )
                     Text(
                         "${formatCurrency(shippingFee)}₫",
                         color = Color(0xFF00C2A8),
-                        fontSize = 12.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 14.sp,
                     )
                 }
                 if (finalDiscountAmount > 0) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Giảm giá (${discountPercentage.toInt()}%)", fontSize = 12.sp, color = Color(0xFF00C2A8),lineHeight = 14.sp)
-                        Text("-${formatCurrency(finalDiscountAmount)}₫", fontSize = 12.sp, color = Color(0xFF00C2A8),lineHeight = 14.sp)
+                        Text(
+                            "Giảm giá (${discountPercentage.toInt()}%)",
+                            fontSize = 14.sp,
+                            color = Color(0xFF00C2A8),
+                        )
+                        Text(
+                            "-${formatCurrency(finalDiscountAmount)}₫",
+                            fontSize = 14.sp,
+                            color = Color(0xFF00C2A8),
+                        )
                     }
                 }
-                Spacer(Modifier.height(3.dp))
+                Spacer(Modifier.height(4.dp))
                 HorizontalDivider(Modifier.height(0.5.dp), color = Color.LightGray)
-                Spacer(Modifier.height(3.dp))
+                Spacer(Modifier.height(4.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -378,15 +389,14 @@ fun PaymentUI(
                     Text(
                         "Tổng (${selectedCartItems?.size ?: 0} mặt hàng)",
                         color = Color.Black,
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.W600
                     )
                     Text(
                         "${formatCurrency(total)}₫",
                         color = Color.Black,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.W600,
-                        lineHeight = 15.sp,
                     )
                 }
                 MyButton(
@@ -405,7 +415,10 @@ fun PaymentUI(
                                 payment_method = selectedPayOption.apiValue,
                                 discount_code = discount,
                             )
-                            Log.d("PaymentUI", "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}")
+                            Log.d(
+                                "PaymentUI",
+                                "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
+                            )
                             navController.navigate("order_successfully")
                         } else {
                             Toast.makeText(
@@ -413,12 +426,11 @@ fun PaymentUI(
                             ).show()
                         }
                     },
-                    modifier = Modifier.padding(top = 6.dp),
-                    backgroundColor = Color.Black,
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    backgroundColor = Color(0xFF00C2A8),
                     textColor = Color.White,
                     enabled = selectedCartItems?.size != 0
                 )
-                Spacer(Modifier.height(4.dp))
             }
         }
     }

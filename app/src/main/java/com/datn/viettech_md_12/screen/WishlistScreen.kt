@@ -104,7 +104,7 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
             .systemBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Yêu thích", fontSize = 20.sp) },
+                title = { Text(text = "Yêu thích", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {

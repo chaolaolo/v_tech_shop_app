@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 
@@ -34,7 +35,7 @@ fun CustomTopAppBar2(
                     contentDescription = "back",
                     Modifier.clickable { navController.popBackStack() })
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = title, fontWeight = FontWeight.Bold)
+                Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
         }, colors = TopAppBarDefaults.smallTopAppBarColors(

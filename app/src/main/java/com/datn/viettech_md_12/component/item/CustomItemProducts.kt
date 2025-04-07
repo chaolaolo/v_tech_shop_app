@@ -32,8 +32,18 @@ import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
-fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, context: Context,  onClick: () -> Unit) {
-    CustomItemProductsBase(product = product, viewModel = viewModel, context = context, onClick = onClick)
+fun CustomItemProducts(
+    product: ProductModel,
+    viewModel: ProductViewModel,
+    context: Context,
+    onClick: () -> Unit
+) {
+    CustomItemProductsBase(
+        product = product,
+        viewModel = viewModel,
+        context = context,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -70,7 +80,7 @@ fun CustomItemProductsBase(
     }
 
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .width(160.dp)
             .height(200.dp),
@@ -85,7 +95,7 @@ fun CustomItemProductsBase(
                 .clickable { onClick() }
         ) {
             Column(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(top = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
@@ -108,33 +118,37 @@ fun CustomItemProductsBase(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White, shape = RoundedCornerShape(5.dp))
-                        .padding(8.dp),
+                        .padding(vertical = 8.dp, horizontal = 10.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    Row(
+//                    Row(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        horizontalArrangement = Arrangement.SpaceBetween,
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Column {
-                            Text(
-                                name ?: "",
-                                color = Color.Black,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                        Text(
+                            name ?: "",
+                            color = Color.Black,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
-                            Text(
-                                "$itemPriceFormatted₫",
-                                color = Color(0xFFF44336),
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
+                        Text(
+                            "$itemPriceFormatted₫",
+                            color = Color(0xFFF44336),
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
+
+//                    }
                 }
             }
 

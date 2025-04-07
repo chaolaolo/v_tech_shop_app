@@ -38,13 +38,19 @@ fun MyTextField(
         colors = TextFieldDefaults.outlinedTextFieldColors(
             containerColor = Color.White,
             focusedBorderColor = Color(0xFF21D4B4),
-            unfocusedBorderColor = Color(0xFFF4F5FD)
+            unfocusedBorderColor = Color(0xFFC9C9D3),
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            disabledTextColor = Color.Gray,
         ),
         trailingIcon = {
             if (isPassword) {
                 val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = "Toggle password visibility")
+                    Icon(imageVector = image, contentDescription = "Toggle password visibility", tint = Color(
+                        0xFF313133
+                    )
+                    )
                 }
             }
         },
@@ -56,7 +62,7 @@ fun MyTextField(
     )
 }
 
-@Preview(showSystemUi = true)
+@Preview(showSystemUi = false)
 @Composable
 fun PreviewMyTextField() {
     var text by remember { mutableStateOf("") }
