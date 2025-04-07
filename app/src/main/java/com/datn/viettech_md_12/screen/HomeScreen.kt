@@ -45,7 +45,7 @@ fun HomeScreen(
                 title = "ietTech",
                 iconLogo = R.drawable.ic_logo,
                 icon1 = R.drawable.search,
-                icon2 = R.drawable.rectangle_7,
+                icon2 = R.drawable.ic_profile,
                 navController = navController,
                 actionTitle1 = "search",
                 actionTitle2 = "profile",
