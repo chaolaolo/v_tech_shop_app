@@ -173,7 +173,10 @@ fun CartItemTile(
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontSize = 12.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp, color = Color.Black)
-                Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 1.sp)
+//                Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
+                // Hiển thị danh sách các value của biến thể, cách nhau bởi dấu phẩy
+                val variantValues = product.variant?.values?.joinToString(", ") { it.value } ?: ""
+                Text(variantValues, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 12.sp)
                 Text("$itemPriceFormatted₫", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp, color = Color.Black)
                 Row(
                     modifier = Modifier
