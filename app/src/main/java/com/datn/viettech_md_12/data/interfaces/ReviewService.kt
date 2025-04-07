@@ -25,6 +25,12 @@ interface ReviewService {
         @Path("productId") productId: String
     ): Response<ReviewResponse>
 
+    // Thông tin thống kê đánh giá sản phẩm (tổng số đánh giá và điểm trung bình)
+    @GET("review/getReviewStats/{productId}")
+    suspend fun getReviewStats(
+        @Path("productId") productId: String
+    ): Response<ReviewStatsResponse>
+
     // Thêm mới một đánh giá cho sản phẩm
     @Headers("Content-Type: application/json", "x-api-key: $API_KEY")
     @POST("review/add")
@@ -32,7 +38,7 @@ interface ReviewService {
         @Body request: AddReviewRequest,
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
-    ): Response<ReviewResponse>
+    ): Response<ReviewResponseAddUp>
 
     // Cập nhật một đánh giá
     @Headers("Content-Type: application/json", "x-api-key: $API_KEY")
@@ -42,5 +48,5 @@ interface ReviewService {
         @Body request: UpdateReviewRequest,
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
-    ): Response<ReviewResponse>
+    ): Response<ReviewResponseAddUp>
 }

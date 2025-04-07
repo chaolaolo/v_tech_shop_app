@@ -7,17 +7,23 @@ import java.io.IOException
 
 class ReviewRepository(private val reviewService: ReviewService) {
 
-    // Thêm một review mới
     suspend fun addReview(
         token: String,
         clientId: String,
+        accountId: String,
         productId: String,
         contentsReview: String,
-        images: List<Image>,
         rating: Int,
-    ): Result<ReviewResponse> {
+        imageIds: List<String>
+    ): Result<ReviewResponseAddUp> {
         return try {
-            val request = AddReviewRequest(productId, contentsReview, images, rating)
+            val request = AddReviewRequest(
+                account_id = accountId,
+                product_id = productId,
+                contents_review = contentsReview,
+                image_ids = imageIds,
+                rating = rating
+            )
             val response = reviewService.addReview(request, token, clientId)
             if (response.isSuccessful) {
                 response.body()?.let {
@@ -37,11 +43,15 @@ class ReviewRepository(private val reviewService: ReviewService) {
         clientId: String,
         reviewId: String,
         contentsReview: String,
-        images: List<Image>
-    ): Result<ReviewResponse> {
+        imageIds: List<String>
+    ): Result<ReviewResponseAddUp> {
         return try {
-            val request = UpdateReviewRequest(contentsReview, images)
+            val request = UpdateReviewRequest(
+                contents_review = contentsReview,
+                imageIds = imageIds
+            )
             val response = reviewService.updateReview(reviewId, request, token, clientId)
+
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.success(it)
@@ -54,23 +64,7 @@ class ReviewRepository(private val reviewService: ReviewService) {
         }
     }
 
-    // Upload ảnh
-    suspend fun uploadImage(file: MultipartBody.Part): Result<Image> {
-        return try {
-            val response = reviewService.uploadImage(file)
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Result.success(it.data)
-                } ?: Result.failure(IOException("Empty response body"))
-            } else {
-                Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(IOException("Failed to upload image: ${e.localizedMessage}", e))
-        }
-    }
-
-    // Lấy danh sách review cho sản phẩm
+    // Lấy danh sách review
     suspend fun getReviewsByProduct(productId: String): Result<ReviewResponse> {
         return try {
             val response = reviewService.getReviewsByProduct(productId)
@@ -83,6 +77,22 @@ class ReviewRepository(private val reviewService: ReviewService) {
             }
         } catch (e: Exception) {
             Result.failure(IOException("Failed to fetch reviews: ${e.localizedMessage}", e))
+        }
+    }
+
+    // Lấy thống kê review
+    suspend fun getReviewStats(productId: String): Result<ReviewStatsResponse> {
+        return try {
+            val response = reviewService.getReviewStats(productId)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(IOException("Empty response body"))
+            } else {
+                Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(IOException("Failed to fetch review stats: ${e.localizedMessage}", e))
         }
     }
 }

@@ -2,9 +2,14 @@ package com.datn.viettech_md_12.screen
 
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Context
+import android.net.Uri
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +37,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
@@ -39,8 +45,12 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,6 +69,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -81,19 +92,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.data.model.Image
 import com.datn.viettech_md_12.screen.authentication.LoginScreen
 import com.datn.viettech_md_12.screen.authentication.RegisterScreen
 import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -103,14 +124,20 @@ import java.util.Locale
 fun ProductDetailScreen(
     navController: NavController,
     productId: String,
-    viewModel: ProductViewModel= viewModel(),
-    reviewViewModel: ReviewViewModel = viewModel()
+    viewModel: ProductViewModel = viewModel(),
 ) {
+    val context = LocalContext.current.applicationContext as Application
+
+    // 🔧 Khởi tạo ReviewViewModel với factory
+    val reviewViewModel: ReviewViewModel = viewModel(
+        factory = ReviewViewModelFactory(context)
+    )
+
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
         reviewViewModel.getReviewsByProduct(productId)
+        reviewViewModel.getReviewStats(productId)
     }
-    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
@@ -121,7 +148,10 @@ fun ProductDetailScreen(
     var showMoreVisible by remember { mutableStateOf(false) }
     val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
     val reviews by reviewViewModel.reviews.collectAsState()
+    val reviewStats by reviewViewModel.reviewStats.collectAsState()
+
     var showDialog by remember { mutableStateOf(false) }
+    var showAddReviewDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
     var showLoginDialog by remember { mutableStateOf(false) }
 
@@ -192,7 +222,7 @@ fun ProductDetailScreen(
                                 .background(Color(0xFFF4FDFA)),
                         ) {
                             AsyncImage(
-                            model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                model = "http://103.166.184.249:3056/${product?.productThumbnail}",
                                 contentDescription = "p detail image",
                                 modifier = Modifier
                                     .fillMaxSize(),
@@ -301,11 +331,27 @@ fun ProductDetailScreen(
                                         contentDescription = "Star",
                                         tint = Color(0xFFFFD700)
                                     )
-                                    Text(
-                                        text = "4.5 (2,495 reviews)",
-                                        fontSize = 12.sp,
-                                        color = Color.Black
-                                    )
+
+                                    // Kiểm tra xem reviewStats có dữ liệu hay không
+                                    if (reviewStats != null) {
+                                        val totalReviews =
+                                            reviewStats?.getOrNull()?.totalReviews ?: 0
+                                        val averageRating =
+                                            reviewStats?.getOrNull()?.averageRating ?: 0f
+
+                                        Text(
+                                            text = "${averageRating} (${totalReviews} reviews)",
+                                            fontSize = 12.sp,
+                                            color = Color.Black
+                                        )
+                                    } else {
+                                        // Hiển thị thông báo hoặc xử lý khi không có dữ liệu
+                                        Text(
+                                            text = "Đang tải dữ liệu đánh giá...",
+                                            fontSize = 12.sp,
+                                            color = Color.Gray
+                                        )
+                                    }
                                 }
                                 // Description
                                 Spacer(Modifier.height(4.dp))
@@ -316,9 +362,9 @@ fun ProductDetailScreen(
 //                                    mainAxisAlignment = MainAxisAlignment.Center,
                                 ) {
                                     Text(
-                                    text = "${product?.productDescription}",
+                                        text = "${product?.productDescription}",
                                         fontSize = 12.sp,
-                                    color = Color.Gray,
+                                        color = Color.Gray,
                                         modifier = Modifier.padding(top = 8.dp),
                                         maxLines = if (isExpanded) Int.MAX_VALUE else 5,
                                         overflow = TextOverflow.Ellipsis,
@@ -326,7 +372,7 @@ fun ProductDetailScreen(
                                             textLayoutResult.value = layoutResult
                                             showMoreVisible = layoutResult.hasVisualOverflow && !isExpanded
                                         }
-                                )
+                                    )
                                     if (showMoreVisible) {
                                         Text(text = "... Xem thêm",
                                             fontSize = 12.sp,
@@ -526,6 +572,20 @@ fun ProductDetailScreen(
                                             }
                                         }
                                     }
+                                }
+                                //add review
+                                if (showAddReviewDialog) {
+                                    AddReviewDialog(
+                                        productId = productId,
+                                        reviewViewModel = reviewViewModel,
+                                        onDismiss = { showAddReviewDialog = false }
+                                    )
+                                }
+
+                                Button(onClick = { showAddReviewDialog = true }) {
+                                    Icon(Icons.Default.RateReview, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Thêm đánh giá")
                                 }
                                 // review màn
                                 if (reviews.isEmpty()) {
@@ -732,3 +792,160 @@ fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
         }
     }
 }
+
+@Composable
+fun AddReviewDialog(
+    productId: String,
+    reviewViewModel: ReviewViewModel,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    var rating by remember { mutableStateOf(0) }
+    var content by remember { mutableStateOf("") }
+
+    val addReviewResult by reviewViewModel.addReviewResult.collectAsState()
+    val userReviewStatus by reviewViewModel.userReviewStatus.collectAsState()
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    // Kiểm tra xem người dùng đã đánh giá sản phẩm chưa
+    LaunchedEffect(productId) {
+        reviewViewModel.checkUserReviewStatus(productId)
+    }
+
+    // Nếu người dùng đã có đánh giá, hiển thị thông báo và không cho phép thêm review
+    if (userReviewStatus) {
+        Toast.makeText(context, "Bạn đã thêm đánh giá cho sản phẩm này!", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    // Sau khi submit review thành công
+    LaunchedEffect(addReviewResult) {
+        addReviewResult?.onSuccess {
+            Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
+            reviewViewModel.getReviewsByProduct(productId)
+            onDismiss()
+        }?.onFailure {
+            Log.e("ADD_REVIEW", "Error: ${it.message}")
+            Toast.makeText(context, "Gửi đánh giá thất bại!", Toast.LENGTH_SHORT).show()
+            onDismiss()
+        }
+    }
+
+    // Dialog xác nhận gửi
+    if (showConfirmDialog) {
+        ConfirmDialog(
+            onConfirm = {
+                showConfirmDialog = false
+
+                coroutineScope.launch {
+                    if (content.isBlank() || rating == 0) {
+                        Toast.makeText(context, "Vui lòng nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+
+                    // Gửi review với ảnh ID cố định
+                    reviewViewModel.addReviewWithFixedImageId(
+                        productId = productId,
+                        contentsReview = content,
+                        rating = rating
+                    )
+                }
+            },
+            onDismiss = { showConfirmDialog = false }
+        )
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    repeat(5) { index ->
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clickable { rating = index + 1 }
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("$rating sao")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = content,
+                    onValueChange = { content = it },
+                    label = { Text("Nội dung đánh giá") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 4
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Hủy")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    TextButton(
+                        onClick = {
+                            if (content.isBlank() || rating == 0) {
+                                Toast.makeText(context, "Nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
+                            } else {
+                                showConfirmDialog = true
+                            }
+                        },
+                    ) {
+                        Text("Gửi")
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Dialog xác nhận
+@Composable
+fun ConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Xác nhận gửi đánh giá") },
+        text = { Text("Bạn có chắc chắn muốn gửi đánh giá này không?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Đồng ý")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        }
+    )
+}
+
+
