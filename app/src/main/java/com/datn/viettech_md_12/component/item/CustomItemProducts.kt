@@ -32,8 +32,8 @@ import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
-fun CustomItemProducts(product: ProductModel, onClick: () -> Unit) {
-    CustomItemProductsBase(product = product, onClick = onClick)
+fun CustomItemProducts(product: ProductModel, viewModel: ProductViewModel, context: Context,  onClick: () -> Unit) {
+    CustomItemProductsBase(product = product, viewModel = viewModel, context = context, onClick = onClick)
 }
 
 @Composable
