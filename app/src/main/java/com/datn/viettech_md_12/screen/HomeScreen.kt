@@ -38,6 +38,7 @@ fun HomeScreen(
     val categories by categoryViewModel.categories.collectAsState()
     val products by productViewModel.products.collectAsState()
 
+
     Scaffold(
         topBar = {
             CustomTopAppBar(
@@ -117,7 +118,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Sản phẩm mới nhất",
+                        text = "Tất cả sản phẩm",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1C1B1B),
@@ -149,8 +150,6 @@ fun HomeScreen(
 
                                 CustomItemProducts(
                                     product = product,
-                                    context = context,
-                                    viewModel = productViewModel,
                                     onClick = {
                                         navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
                                     }

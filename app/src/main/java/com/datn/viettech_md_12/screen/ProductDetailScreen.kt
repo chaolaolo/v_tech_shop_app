@@ -142,7 +142,6 @@ fun ProductDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    var isFavorite by remember { mutableStateOf(false) }
     var isAddingToCart by remember { mutableStateOf(false) }
     var quantity by remember { mutableStateOf(1) }
 
@@ -159,6 +158,16 @@ fun ProductDetailScreen(
 
     val price = product?.productPrice ?:0.0
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
+
+
+    var isFavorite by remember { mutableStateOf(false) }
+    val sharedPreferences =
+        context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) //lay trang thai da luu tru
+    if (product != null) {
+        if (sharedPreferences != null) {
+            isFavorite = sharedPreferences.getBoolean(productId, false)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
@@ -204,10 +213,28 @@ fun ProductDetailScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .background(color = Color.Black)
-                                        .size(30.dp)
+                                        .size(48.dp)
                                 ) {
-                                    IconButton(onClick = { isFavorite = !isFavorite }) {
+                                    IconButton(
+                                        onClick = {
+                                            isFavorite = !isFavorite
+                                            if (isFavorite) {
+                                                val productId = product?.id
+                                                if (productId != null) {
+                                                    viewModel.addToFavorites(productId, context)
+                                                }
+                                            } else {
+                                                val favoriteId = product?.id
+                                                if (favoriteId != null) {
+                                                    viewModel.removeFromFavorites(favoriteId, context)
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(8.dp)
+                                            .size(30.dp)
+                                    ) {
                                         Icon(
                                             contentDescription = "favourite icon",
                                             imageVector = if (!isFavorite) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
@@ -319,6 +346,7 @@ fun ProductDetailScreen(
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
                                         overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
                                     }
                                         Text(
@@ -383,7 +411,8 @@ fun ProductDetailScreen(
                                         }
                                     )
                                     if (showMoreVisible) {
-                                        Text(text = "... Xem thêm",
+                                        Text(
+                                            text = "... Xem thêm",
                                             fontSize = 12.sp,
                                             color = Color(0xFF21D4B4),
                                             fontWeight = FontWeight.Medium,
@@ -391,7 +420,8 @@ fun ProductDetailScreen(
                                                 .padding(top = 4.dp)
                                                 .clickable { isExpanded = true })
                                     } else if (isExpanded) {
-                                        Text(text = "Thu gọn",
+                                        Text(
+                                            text = "Thu gọn",
                                             fontSize = 12.sp,
                                             color = Color(0xFF21D4B4),
                                             fontWeight = FontWeight.Medium,
@@ -813,6 +843,7 @@ fun ProductDetailScreen(
         }
     }
 }
+
 @Composable
 fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
