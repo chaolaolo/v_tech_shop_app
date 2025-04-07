@@ -134,7 +134,7 @@ fun ProductDetailScreen(
     val reviewViewModel: ReviewViewModel = viewModel(
         factory = ReviewViewModelFactory(context)
     )
-
+    val contextToCheckLogin = LocalContext.current
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
         reviewViewModel.getReviewsByProduct(productId)
@@ -519,7 +519,7 @@ fun ProductDetailScreen(
                                         text = "Mua ngay",
                                         onClick = {
                                             //check bat dang nhap hoac dang ki moi cho su dung
-                                            val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                            val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                                                 ?.getString("accessToken", "")
                                             val isLoggedIn = !token.isNullOrEmpty()
 
@@ -542,7 +542,7 @@ fun ProductDetailScreen(
                                         onClick = {
                                             Log.d("ProductDetailScreen", "productId: " + productId)
                                                 //check bat dang nhap hoac dang ki moi cho su dung
-                                                val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                                val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                                                     ?.getString("accessToken", "")
                                                 val isLoggedIn = !token.isNullOrEmpty()
 
@@ -556,7 +556,7 @@ fun ProductDetailScreen(
                                                     productId = product.id,
                                                     variantId = "",
                                                     quantity = quantity,
-                                                    context = context,
+                                                    context = contextToCheckLogin,
                                                     onSuccess = {
                                                         isAddingToCart = false
                                                         coroutineScope.launch {
@@ -616,15 +616,15 @@ fun ProductDetailScreen(
                                                     ) {
                                                         TextButton(onClick = {
                                                             showLoginDialog = false
-                                                            val intent = Intent(context, RegisterScreen::class.java)
-                                                            context?.startActivity(intent)
+                                                            val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
+                                                            contextToCheckLogin?.startActivity(intent)
                                                         }) {
                                                             Text("Tạo tài khoản mới")
                                                         }
                                                         TextButton(onClick = {
                                                             showLoginDialog = false
-                                                            val intent = Intent(context, LoginScreen::class.java)
-                                                            context?.startActivity(intent)
+                                                            val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
+                                                            contextToCheckLogin?.startActivity(intent)
                                                         }) {
                                                             Text("Đăng nhập")
                                                         }

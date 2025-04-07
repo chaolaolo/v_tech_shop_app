@@ -98,7 +98,9 @@ fun CheckoutItemTile(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column() {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
                         Text(
                             product.name,
                             fontSize = 12.sp,
