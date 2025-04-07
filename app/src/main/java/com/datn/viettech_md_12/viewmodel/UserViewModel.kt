@@ -42,6 +42,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
                                 .putString("clientId", userId)  // Lưu userId
+                                .putString("userId", userId)  // Lưu userId
                                 .apply()
                             onSuccess()
                         } else {
@@ -101,8 +102,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
                                 .putString("clientId", userId)
-                                .putString("fullname",body.result?.metadata?.account?.full_name)
-                                .putString("email",body.result?.metadata?.account?.email)
+                                .putString("userId", userId)  // Lưu userId
+                                .putString("fullname", body.result?.metadata?.account?.full_name)
+                                .putString("email", body.result?.metadata?.account?.email)
                                 .apply()
 
                             // Kiểm tra lại token sau khi lưu

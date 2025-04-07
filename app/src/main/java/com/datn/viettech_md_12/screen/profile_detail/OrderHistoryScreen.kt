@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,8 +50,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.OrderItem
+import com.datn.viettech_md_12.data.model.OrderModel
+import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
@@ -60,9 +64,15 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun OrderHistoryScreen(navController: NavController) {
+fun OrderHistoryScreen(navController: NavController,viewModel: ProductViewModel) {
+    val context = LocalContext.current
+    val orders = viewModel.orders.collectAsState()
+
     val pagerState = rememberPagerState()
     val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        viewModel.getUserOrders(context)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -138,7 +148,7 @@ fun OrderHistoryScreen(navController: NavController) {
             modifier = Modifier.weight(1f)
         ) { page ->
             when (page) {
-                0 -> OngoingOrdersScreen()
+                0 -> OngoingOrdersScreen(orders.value)
                 1 -> CompletedOrdersScreen()
             }
         }
@@ -146,22 +156,18 @@ fun OrderHistoryScreen(navController: NavController) {
 }
 
 @Composable
-fun OngoingOrdersScreen() {
-    val orders = listOf(
-        OrderItem("Loop Silicone Strong Magnetic Watch", "VND15.25", "VND20.00", R.drawable.img_test_order),
-        OrderItem("M6 Smart Watch IP67 Waterproof", "VND12.00", "VND18.00", R.drawable.img_test_order)
-    )
-
-    if (orders.isEmpty()) {
+fun OngoingOrdersScreen(orderList: List<OrderModel>) {
+    if (orderList.isEmpty()) {
         EmptyOrderScreen()
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(orders) { order ->
-                OrderCard(order, isOngoing = true)
+            items(orderList) { order ->
+                OrderCard(order)
             }
         }
     }
 }
+
 
 @Composable
 fun CompletedOrdersScreen() {
@@ -169,75 +175,59 @@ fun CompletedOrdersScreen() {
 }
 
 @Composable
-fun OrderCard(order: OrderItem, isOngoing: Boolean) {
+fun OrderCard(order: OrderModel) {
+    val BASE_URL = "http://103.166.184.249:3056/"
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        if (isOngoing) {
-            Box(
-                modifier = Modifier
-                    .background(Color(0xFFE63946), shape = RoundedCornerShape(8.dp))
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "Thời gian ước tính: 7 ngày làm việc",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .background(Color(0xFFE63946), shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
-            Image(
-                painter = painterResource(id = order.image),
-                contentDescription = "Product Image",
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp)) // Bo góc ảnh
-                    .background(Color.LightGray),
+            Text(
+                text = "Trạng thái: ${order.status}",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
             )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(text = order.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = order.price, color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text(
-                    text = order.oldPrice,
-                    color = Color.Gray,
-                    fontSize = 12.sp,
-                    textDecoration = TextDecoration.LineThrough
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-
+        // Lặp qua các sản phẩm trong đơn hàng
+        order.products.forEach { product ->
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /* Giảm số lượng */ }, modifier = Modifier.size(24.dp)) {
-                    Icon(imageVector = Icons.Default.Remove, contentDescription = "Decrease", tint = Color.Black)
-                }
-                Text(text = "1", fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 8.dp))
-                IconButton(onClick = { /* Tăng số lượng */ }, modifier = Modifier.size(24.dp)) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Increase", tint = Color.Black)
+                AsyncImage(
+                    model = BASE_URL + product.image,
+                    contentDescription = "Product Image",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.LightGray),
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "VND ${product.price}", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
         }
     }
 }
+
+
 
 
 @Composable
@@ -300,5 +290,5 @@ fun DividerItemOrder() {
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 @Composable
 fun OrderHistoryScreenPreview() {
-    OrderHistoryScreen(navController = NavController(context = LocalContext.current))
+//    OrderHistoryScreen(navController = NavController(context = LocalContext.current))
 }

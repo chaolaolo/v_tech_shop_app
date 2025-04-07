@@ -83,7 +83,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("wishlist") { WishlistScreen(viewModel = productViewModel,navController) }
             composable("profile") { ProfileScreen(navController) }
             composable("change_password_screen") { ChangePasswordScreen(navController,userViewModel = userViewModel) }
-            composable("order_history_screen") { OrderHistoryScreen(navController) }
+            composable("order_history_screen") { OrderHistoryScreen(navController, viewModel = productViewModel) }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
