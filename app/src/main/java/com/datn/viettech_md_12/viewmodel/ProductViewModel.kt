@@ -180,7 +180,7 @@ class ProductViewModel : ViewModel() {
             val userId = sharedPreferences.getString("clientId", "")
             Log.d("CartViewModel", "token $token")
             Log.d("CartViewModel", "token $userId")
-            _isLoading.value = true
+//            _isLoading.value = true
             try {
                 val response = cartRepository.addToCart(
                     token = token ?: "",

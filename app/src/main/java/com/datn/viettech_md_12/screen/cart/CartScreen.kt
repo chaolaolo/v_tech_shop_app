@@ -99,6 +99,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -394,6 +395,26 @@ fun CartContent(
     cartViewModel: CartViewModel,
     selectedVoucher: DiscountResponse.DiscountModel? = null,
 ) {
+    var isDeleting by remember { mutableStateOf(false) }
+    // Hiển thị dialog loading khi đang xóa
+    if (isDeleting) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(150.dp)
+                    .background(Color.White, shape = RoundedCornerShape(8.dp))
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF21D4B4))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Đang xóa...", color = Color.Black)
+                }
+            }
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         if(cartProducts.isEmpty()){
             EmptyCart(navController)
@@ -419,11 +440,12 @@ fun CartContent(
                                 selectedItems.remove(itemKey)
                             }
                         },
-                        onDelete = { _, _  ->
+                        onDelete = { _, _ ->
                             selectedItems.remove(itemKey)
                         },
                         navController,
                         cartViewModel = cartViewModel,
+                        onDeletingStateChange = { deleting-> isDeleting = deleting },
                     )
                 }
             }

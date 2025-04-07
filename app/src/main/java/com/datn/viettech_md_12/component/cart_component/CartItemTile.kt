@@ -68,6 +68,7 @@ fun CartItemTile(
     onDelete: (String, String) -> Unit,
     navController: NavController,
     cartViewModel: CartViewModel,
+    onDeletingStateChange: (Boolean) -> Unit
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val swipeThreshold = 250f
@@ -109,16 +110,19 @@ fun CartItemTile(
                 .fillMaxSize()
                 .padding(end = 10.dp)
                 .clickable {
+                    onDeletingStateChange(true)
                     onDelete(product.productId, variantIdToUse)
                     cartViewModel.deleteCartItem(
                         productId = product.productId,
                         detailsVariantId = product.detailsVariantId ?: "",
                         onSuccess = {
                             // Có thể thêm thông báo thành công
+                            onDeletingStateChange(false)
                             Log.d("CartItemTile", "Deleting productId: ${product.productId}, variantId: ${product.detailsVariantId}")
                             Log.d("CartItemTile", "Xóa sản phẩm thành công")
                         },
                         onError = { error ->
+                            onDeletingStateChange(false)
                             Log.e("CartItemTile", "Lỗi khi xóa sản phẩm: $error")
                             // Có thể hiển thị Snackbar thông báo lỗi
                         }

@@ -230,7 +230,7 @@ class CartViewModel(application: Application) : ViewModel() {
         onError: (String) -> Unit = {},
     ) {
         viewModelScope.launch {
-            _isLoading.value = true
+//            _isLoading.value = true
             Log.d("CartViewModel", "token $token")
             Log.d("CartViewModel", "client id $userId")
             try {

@@ -143,6 +143,7 @@ fun ProductDetailScreen(
     val product by viewModel.product.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var isFavorite by remember { mutableStateOf(false) }
+    var isAddingToCart by remember { mutableStateOf(false) }
 
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
@@ -160,10 +161,17 @@ fun ProductDetailScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
-            CircularProgressIndicator(
-                color = Color(0xFF21D4B4),
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.2f))
+                    .align(Alignment.Center)
+            ) {
+                CircularProgressIndicator(
+                    color = Color(0xFF21D4B4),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         } else {
             product?.let {
                 Scaffold(
@@ -483,7 +491,6 @@ fun ProductDetailScreen(
                                         text = "Thêm vào giỏ",
                                         onClick = {
                                             Log.d("ProductDetailScreen", "productId: " + productId)
-                                            product?.let { product ->
                                                 //check bat dang nhap hoac dang ki moi cho su dung
                                                 val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                                                     ?.getString("accessToken", "")
@@ -492,6 +499,8 @@ fun ProductDetailScreen(
                                                 if (!isLoggedIn) {
                                                     showLoginDialog = true
                                                 }else{
+                                                    isAddingToCart = true
+                                                product?.let { product ->
                                                 Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(
                                                     productId = product.id,
@@ -499,11 +508,13 @@ fun ProductDetailScreen(
                                                     quantity = 1,
                                                     context = context,
                                                     onSuccess = {
+                                                        isAddingToCart = false
                                                         coroutineScope.launch {
                                                             snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
                                                         }
                                                     },
                                                     onError = {
+                                                        isAddingToCart = false
                                                         coroutineScope.launch {
                                                             snackbarHostState.showSnackbar("Thêm sản phẩm vào giỏ hàng thất bại.")
                                                         }
@@ -763,6 +774,25 @@ fun ProductDetailScreen(
                 }
             }
 
+        }
+        // Thêm vào phần Box chính, cùng cấp với các dialog khác
+        if (isAddingToCart) {
+            Dialog(onDismissRequest = {}) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(150.dp)
+                        .background(Color.White, shape = RoundedCornerShape(8.dp))
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Đang thêm...", color = Color.Black)
+                    }
+                }
+            }
         }
     }
 }

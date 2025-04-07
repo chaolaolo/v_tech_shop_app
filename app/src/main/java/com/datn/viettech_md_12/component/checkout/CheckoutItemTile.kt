@@ -97,8 +97,9 @@ fun CheckoutItemTile(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column() {
-                    Text(product.variant?.sku ?: "", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, textDecoration = TextDecoration.LineThrough, lineHeight = 1.sp)
-                    Text("VND $itemPriceFormatted", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 1.sp)
+                    val variantValues = product.variant?.values?.joinToString(", ") { it.value } ?: ""
+                    Text(variantValues, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.W500, lineHeight = 12.sp)
+                    Text("VND $itemPriceFormatted", fontSize = 10.sp, fontWeight = FontWeight.W500, lineHeight = 12.sp)
                 }
                 Row(
                     modifier = Modifier
