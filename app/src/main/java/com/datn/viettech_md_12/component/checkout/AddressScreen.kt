@@ -131,6 +131,7 @@ fun AddressScreen(
                 Text(
                     text = "Họ tên",
                     fontSize = 16.sp,
+                    color = Color.Black,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
@@ -154,6 +155,7 @@ fun AddressScreen(
                 Text(
                     text = "Số điện thoại",
                     fontSize = 16.sp,
+                    color = Color.Black,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
@@ -176,6 +178,7 @@ fun AddressScreen(
                 Text(
                     text = "Địa chỉ",
                     fontSize = 16.sp,
+                    color = Color.Black,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
@@ -206,6 +209,7 @@ fun AddressScreen(
                 Text(
                     text = "Địa chỉ chi tiết",
                     fontSize = 16.sp,
+                    color = Color.Black,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
