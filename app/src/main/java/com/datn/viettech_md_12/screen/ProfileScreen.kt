@@ -69,17 +69,17 @@ fun ProfileScreen(navController: NavController) {
                 ProfileItem(
                     R.drawable.ic_shipping_profile,
                     stringResource(R.string.shipping_address),
-                    onClick = { navController.navigate("shipping_screen") }
+                    onClick = { navController.navigate("address_screen") }
                 )
             }
-            item { DividerItem() }
-            item {
-                ProfileItem(
-                    R.drawable.ic_payment_profile,
-                    stringResource(R.string.payment_method),
-                    onClick = { navController.navigate("payment_screen") }
-                )
-            }
+//            item { DividerItem() }
+//            item {
+//                ProfileItem(
+//                    R.drawable.ic_payment_profile,
+//                    stringResource(R.string.payment_method),
+//                    onClick = { navController.navigate("payment_screen") }
+//                )
+//            }
             item { DividerItem() }
             item {
                 ProfileItem(
@@ -134,14 +134,14 @@ fun ProfileScreen(navController: NavController) {
                 )
             }
             item { DividerItem() }
-            item {
-                ProfileItem(
-                    R.drawable.ic_dark_theme_profile,
-                    stringResource(R.string.dark_theme),
-                    onClick = {}
-                )
-            }
-            item { DividerItem() }
+//            item {
+//                ProfileItem(
+//                    R.drawable.ic_dark_theme_profile,
+//                    stringResource(R.string.dark_theme),
+//                    onClick = {}
+//                )
+//            }
+//            item { DividerItem() }
         }
     }
 }

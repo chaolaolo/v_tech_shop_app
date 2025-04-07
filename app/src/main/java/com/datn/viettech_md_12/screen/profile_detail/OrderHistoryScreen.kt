@@ -1,6 +1,8 @@
 package com.datn.viettech_md_12.screen.profile_detail
 
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -61,18 +63,29 @@ import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun OrderHistoryScreen(navController: NavController,viewModel: ProductViewModel) {
+fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel) {
     val context = LocalContext.current
     val orders = viewModel.orders.collectAsState()
 
+    // Kiểm tra SharedPreferences để lấy token và clientId
+    val sharedPreferences: SharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    val token = sharedPreferences.getString("accessToken", null)
+    val clientId = sharedPreferences.getString("clientId", null)
+
     val pagerState = rememberPagerState()
     val coroutineScope = rememberCoroutineScope()
+    val completedOrders = orders.value.filter { it.status == "completed" }
+    val ongoingOrders = orders.value.filter { it.status != "completed" }
+
     LaunchedEffect(Unit) {
         viewModel.getUserOrders(context)
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,7 +96,7 @@ fun OrderHistoryScreen(navController: NavController,viewModel: ProductViewModel)
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = {
-                 navController.popBackStack()
+                navController.popBackStack()
             }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
@@ -103,6 +116,7 @@ fun OrderHistoryScreen(navController: NavController,viewModel: ProductViewModel)
         DividerItemOrder()
         Spacer(modifier = Modifier.height(10.dp))
 
+        // TabRow luôn hiển thị dù có token hay không
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -142,18 +156,23 @@ fun OrderHistoryScreen(navController: NavController,viewModel: ProductViewModel)
                 }
             }
         }
-        HorizontalPager(
-            count = 2,
-            state = pagerState,
-            modifier = Modifier.weight(1f)
-        ) { page ->
-            when (page) {
-                0 -> OngoingOrdersScreen(orders.value)
-                1 -> CompletedOrdersScreen()
+
+        if (token != null && clientId != null) {
+            HorizontalPager(
+                count = 2,
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) { page ->
+                when (page) {
+                    0 -> OngoingOrdersScreen(ongoingOrders)
+                    1 -> CompletedOrdersScreen(completedOrders) // Truyền các đơn hàng đã hoàn thành
+                }
             }
         }
     }
 }
+
+
 
 @Composable
 fun OngoingOrdersScreen(orderList: List<OrderModel>) {
@@ -170,13 +189,22 @@ fun OngoingOrdersScreen(orderList: List<OrderModel>) {
 
 
 @Composable
-fun CompletedOrdersScreen() {
-    EmptyOrderScreen()
+fun CompletedOrdersScreen(completedOrders: List<OrderModel>) {
+    if (completedOrders.isEmpty()) {
+        EmptyOrderScreen()
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(completedOrders) { order ->
+                OrderCardCompleted(order)
+            }
+        }
+    }
 }
 
 @Composable
 fun OrderCard(order: OrderModel) {
     val BASE_URL = "http://103.166.184.249:3056/"
+    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.products.first().price)
 
     Column(
         modifier = Modifier
@@ -189,7 +217,7 @@ fun OrderCard(order: OrderModel) {
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
-                text = "Trạng thái: ${order.status}",
+                text = order.status,
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -219,7 +247,60 @@ fun OrderCard(order: OrderModel) {
                 ) {
                     Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "VND ${product.price}", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
+        }
+    }
+}
+@Composable
+fun OrderCardCompleted(order: OrderModel) {
+    val BASE_URL = "http://103.166.184.249:3056/"
+    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.products.first().price)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(Color(0xFF1F8BDA), shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = order.status,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Lặp qua các sản phẩm trong đơn hàng
+        order.products.forEach { product ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = BASE_URL + product.image,
+                    contentDescription = "Product Image",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.LightGray),
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
