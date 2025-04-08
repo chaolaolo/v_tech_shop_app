@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -47,9 +48,11 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -96,8 +99,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.Image
+import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
@@ -110,7 +115,9 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -727,23 +734,34 @@ fun AddReviewDialog(
     var rating by remember { mutableStateOf(0) }
     var content by remember { mutableStateOf("") }
 
+    var selectedUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var isUploading by remember { mutableStateOf(false) }
+
+    val imageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.size > 3) {
+            Toast.makeText(context, "Chỉ được phép chọn tối đa 3 ảnh", Toast.LENGTH_SHORT).show()
+            selectedUris = uris.take(3)
+        } else {
+            selectedUris = uris
+        }
+    }
+
     val addReviewResult by reviewViewModel.addReviewResult.collectAsState()
     val userReviewStatus by reviewViewModel.userReviewStatus.collectAsState()
 
     var showConfirmDialog by remember { mutableStateOf(false) }
 
-    // Kiểm tra xem người dùng đã đánh giá sản phẩm chưa
     LaunchedEffect(productId) {
         reviewViewModel.checkUserReviewStatus(productId)
     }
 
-    // Nếu người dùng đã có đánh giá, hiển thị thông báo và không cho phép thêm review
     if (userReviewStatus) {
         Toast.makeText(context, "Bạn đã thêm đánh giá cho sản phẩm này!", Toast.LENGTH_SHORT).show()
         return
     }
 
-    // Sau khi submit review thành công
     LaunchedEffect(addReviewResult) {
         addReviewResult?.onSuccess {
             Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
@@ -756,23 +774,50 @@ fun AddReviewDialog(
         }
     }
 
-    // Dialog xác nhận gửi
     if (showConfirmDialog) {
         ConfirmDialog(
             onConfirm = {
                 showConfirmDialog = false
 
                 coroutineScope.launch {
-                    if (content.isBlank() || rating == 0) {
-                        Toast.makeText(context, "Vui lòng nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
+                    if (content.isBlank() || rating == 0 || selectedUris.isEmpty()) {
+                        Toast.makeText(context, "Vui lòng nhập nội dung, sao và ảnh", Toast.LENGTH_SHORT).show()
                         return@launch
                     }
 
-                    // Gửi review với ảnh ID cố định
-                    reviewViewModel.addReviewWithFixedImageId(
+                    isUploading = true
+                    val imageIds = mutableListOf<String>()
+                    for (uri in selectedUris) {
+                        val file = uriToFile(context, uri)
+                        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                        val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+                        val response = ApiClient.imageRepository.uploadImage(body)
+                        Log.d("UPLOAD", "Response code: ${response.code()}, message: ${response.message()}, body: ${response.body()}")
+                        if (response.isSuccessful) {
+                            response.body()?.let { uploadResponse ->
+                                val imageId = uploadResponse.image._id
+                                Log.d("UPLOAD", "Image uploaded: $imageId")
+                                imageIds.add(imageId)
+                                Log.d("UPLOAD", "Image uploaded list: $imageIds")
+                            } ?: run {
+                                Toast.makeText(context, "Upload ảnh thất bại! (Response body null)", Toast.LENGTH_SHORT).show()
+                                isUploading = false
+                                return@launch
+                            }
+                        } else {
+                            Toast.makeText(context, "Upload ảnh thất bại!", Toast.LENGTH_SHORT).show()
+                            isUploading = false
+                            return@launch
+                        }
+                    }
+                    isUploading = false
+
+                    reviewViewModel.addReview(
                         productId = productId,
                         contentsReview = content,
-                        rating = rating
+                        rating = rating,
+                        images = imageIds
                     )
                 }
             },
@@ -790,7 +835,6 @@ fun AddReviewDialog(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -818,6 +862,34 @@ fun AddReviewDialog(
                     maxLines = 4
                 )
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = { imageLauncher.launch("image/*") },
+                    modifier = Modifier.align(Alignment.End),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+                ) {
+                    Icon(Icons.Default.Image, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Chọn ảnh (tối đa 3)")
+                }
+
+                if (selectedUris.isNotEmpty()) {
+                    LazyRow(modifier = Modifier.padding(top = 8.dp)) {
+                        items(selectedUris.size) { index ->
+                            Image(
+                                painter = rememberAsyncImagePainter(selectedUris[index]),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .padding(end = 8.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
@@ -830,16 +902,27 @@ fun AddReviewDialog(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    TextButton(
+                    Button(
                         onClick = {
-                            if (content.isBlank() || rating == 0) {
-                                Toast.makeText(context, "Nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
+                            if (content.isBlank() || rating == 0 || selectedUris.isEmpty()) {
+                                Toast.makeText(context, "Nhập đầy đủ nội dung, sao và ảnh", Toast.LENGTH_SHORT).show()
                             } else {
                                 showConfirmDialog = true
                             }
                         },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
                     ) {
-                        Text("Gửi")
+                        if (isUploading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.Default.Send, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Gửi")
+                        }
                     }
                 }
             }
@@ -870,4 +953,12 @@ fun ConfirmDialog(
     )
 }
 
+fun uriToFile(context: Context, uri: Uri): File {
+    val inputStream = context.contentResolver.openInputStream(uri)
+    val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
+    tempFile.outputStream().use { outputStream ->
+        inputStream?.copyTo(outputStream)
+    }
+    return tempFile
+}
 

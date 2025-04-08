@@ -35,7 +35,6 @@ class ReviewViewModel(application: Application) : ViewModel() {
         application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
     fun addReview(
-        accountId: String,
         productId: String,
         contentsReview: String,
         rating: Int,
@@ -50,7 +49,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
                 val result = _repository.addReview(
                     token = token,
                     clientId = clientId,
-                    accountId = accountId,
+                    accountId = clientId,
                     productId = productId,
                     contentsReview = contentsReview,
                     rating = rating,
@@ -62,29 +61,6 @@ class ReviewViewModel(application: Application) : ViewModel() {
             }
         }
     }
-// test
-fun addReviewWithFixedImageId(productId: String, contentsReview: String, rating: Int) {
-    val token = sharedPreferences.getString("accessToken", "") ?: ""
-    val clientId = sharedPreferences.getString("clientId", "") ?: ""
-
-    viewModelScope.launch {
-        _isLoading.value = true
-        try {
-            val result = _repository.addReview(
-                token = token,
-                clientId = clientId,
-                accountId = clientId,
-                productId = productId,
-                contentsReview = contentsReview,
-                rating = rating,
-                imageIds = listOf("67f2043a4c6573cb98bd844f") // ảnh cố định
-            )
-            _addReviewResult.value = result
-        } finally {
-            _isLoading.value = false
-        }
-    }
-}
 
     fun updateReview(reviewId: String, contentsReview: String, images: List<String>) {
         val token = sharedPreferences.getString("accessToken", "") ?: ""

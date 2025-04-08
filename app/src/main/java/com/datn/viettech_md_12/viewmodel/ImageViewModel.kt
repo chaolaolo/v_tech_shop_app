@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.ImageModel
 import com.datn.viettech_md_12.data.remote.ApiClient
-import com.datn.viettech_md_12.data.repository.ImageRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +23,6 @@ class ImageViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Log tag
     private val TAG = "ImageViewModel"
 
     fun uploadImage(image: MultipartBody.Part) {
@@ -33,13 +31,14 @@ class ImageViewModel : ViewModel() {
             Log.d(TAG, "Starting image upload...")
 
             try {
-                Log.d(TAG, "Uploading image: ${image.body?.contentLength()} bytes")
-
                 val response = repository.uploadImage(image)
 
+                Log.d(TAG, "Upload response: code=${response.code()}, body=${response.body()}")
+
                 if (response.isSuccessful && response.body() != null) {
-                    _uploadResult.value = response.body()
-                    Log.d(TAG, "Image uploaded successfully: ${response.body()}")
+                    val uploadResponse = response.body()
+                    _uploadResult.value = uploadResponse?.image
+                    Log.d(TAG, "Image uploaded successfully: ${uploadResponse?.image}")
                 } else {
                     _error.value = "Upload failed: ${response.message()}"
                     Log.e(TAG, "Upload failed: ${response.message()}")
