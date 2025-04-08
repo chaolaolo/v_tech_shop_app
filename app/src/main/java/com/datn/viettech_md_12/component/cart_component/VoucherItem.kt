@@ -95,8 +95,18 @@ fun VoucherItem(
         modifier = Modifier
             .padding(vertical = 4.dp) //padding bên ngoài
             .fillMaxWidth()
-            .background(Color(0xFFE9FDFB), RoundedCornerShape(10.dp))
-            .border(0.2.dp, Color(0xFF00C2A8), RoundedCornerShape(10.dp))
+            .background(
+                Color(0xFFE9FDFB),
+                RoundedCornerShape(10.dp))
+            .border(
+                0.2.dp,
+//                Color(0xFF00C2A8),
+                color = when (voucher.discountType?.lowercase()) {
+                    "shipping" -> Color(0xFF0084FF) // Màu xanh cho vận chuyển
+                    "percentage" -> Color(0xFF00C2A8) // Màu cam cho giảm giá %
+                    else -> Color(0xFF00C2A8) // Màu mặc định
+                },
+                RoundedCornerShape(10.dp))
             .padding(start = 12.dp, end = 12.dp, bottom = 4.dp, top = 0.dp) //padding bên trong
             .clickable { onSelectedVoucher(voucher) }
     ) {
@@ -106,21 +116,32 @@ fun VoucherItem(
         ) {
             Row(
                 modifier = Modifier
-                    .background(Color(0xFF00C2A8), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 2.dp),
+                    .background(
+                        color = when (voucher.discountType?.lowercase()) {
+                            "shipping" -> Color(0xFF009DFF) // Màu xanh cho vận chuyển
+                            "percentage" -> Color(0xFF00C2A8) // Màu cam cho giảm giá %
+                            else -> Color(0xFF00C2A8) // Màu mặc định
+                        },
+                        RoundedCornerShape(4.dp)
+                    )
+                    .padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painterResource(R.drawable.logo),
+                    painterResource(R.drawable.ic_logo),
                     contentDescription = "logo",
                     modifier = Modifier
-                        .width(50.dp)
-                        .height(26.dp),
+                        .width(20.dp)
+                        .height(20.dp),
                     contentScale = ContentScale.Fit,
-                    colorFilter = ColorFilter.tint(Color.White)
+//                    colorFilter = ColorFilter.tint(Color.White)
                 )
                 Text(
-                    text = " ${voucher.discountType ?: ""}",
+                    text = when (voucher.discountType?.lowercase()) {
+                        "shipping" -> " Voucher vận chuyển"
+                        "percentage" -> " Giảm ${voucher.discountValue}%"
+                        else -> " ${voucher.discountType ?: ""}"
+                    },
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -149,14 +170,22 @@ fun VoucherItem(
             lineHeight = 16.sp
         )
         Text(
-            text = "Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên",
+//            text = "Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên",
+            when (voucher.discountType?.lowercase()) {
+                "shipping" -> " M"
+                else -> " Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên"
+            },
             fontSize = 14.sp,
             color = Color.Black,
             lineHeight = 17.sp
         )
         Spacer(modifier = Modifier.height(4.dp))
         DashedDivider(
-            color = Color(0xFF00C2A8),  // Có thể thay đổi màu
+            color = when (voucher.discountType?.lowercase()) {
+                "shipping" -> Color(0xFF0084FF)
+                "percentage" -> Color(0xFF00C2A8)
+                else -> Color(0xFF00C2A8)
+            },  // Có thể thay đổi màu
             thickness = 0.5.dp,   // Độ dày đường kẻ
             dashWidth = 5.dp,  // Độ dài mỗi đoạn gạch
             gapWidth = 3.dp,    // Khoảng cách giữa các đoạn

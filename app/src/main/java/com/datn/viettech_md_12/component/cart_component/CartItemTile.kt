@@ -92,10 +92,7 @@ fun CartItemTile(
             .fillMaxWidth()
             .padding(vertical = 2.dp)
             .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.5f) },
-                orientation = Orientation.Horizontal
+                state = swipeableState, anchors = anchors, thresholds = { _, _ -> FractionalThreshold(0.5f) }, orientation = Orientation.Horizontal
             )
             .background(
                 if (swipeableState.offset.value < -swipeThreshold / 2) Color.Red else Color.Transparent, shape = RoundedCornerShape(
@@ -104,50 +101,39 @@ fun CartItemTile(
             )
             .clip(RoundedCornerShape(10.dp))
     ) {
-        //nút xóa sp khỏi giỏ hàng
-        Box(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxHeight()
+                .width(100.dp)
+                .background(Color.Transparent)
+                .align(Alignment.CenterEnd)
                 .padding(end = 10.dp)
                 .clickable {
                     onDeletingStateChange(true)
                     onDelete(product.productId, variantIdToUse)
-                    cartViewModel.deleteCartItem(
-                        productId = product.productId,
-                        detailsVariantId = product.detailsVariantId ?: "",
-                        onSuccess = {
-                            // Có thể thêm thông báo thành công
-                            onDeletingStateChange(false)
-                            Log.d("CartItemTile", "Deleting productId: ${product.productId}, variantId: ${product.detailsVariantId}")
-                            Log.d("CartItemTile", "Xóa sản phẩm thành công")
-                        },
-                        onError = { error ->
-                            onDeletingStateChange(false)
-                            Log.e("CartItemTile", "Lỗi khi xóa sản phẩm: $error")
-                            // Có thể hiển thị Snackbar thông báo lỗi
-                        }
-                    )
+                    cartViewModel.deleteCartItem(productId = product.productId, detailsVariantId = product.detailsVariantId ?: "", onSuccess = {
+                        // Có thể thêm thông báo thành công
+                        onDeletingStateChange(false)
+                        Log.d("CartItemTile", "Deleting productId: ${product.productId}, variantId: ${product.detailsVariantId}")
+                        Log.d("CartItemTile", "Xóa sản phẩm thành công")
+                    }, onError = { error ->
+                        onDeletingStateChange(false)
+                        Log.e("CartItemTile", "Lỗi khi xóa sản phẩm: $error")
+                        // Có thể hiển thị Snackbar thông báo lỗi
+                    })
                     Log.d("CartItemTile", "ondelete: clicked")
                 },
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            Row(
-                modifier = Modifier
-                    .height(80.dp),
-                verticalAlignment = Alignment.CenterVertically,
+
             ) {
-                Text(
-                    text = "Xóa",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.White
-                )
-            }
+            Text(
+                text = "Xóa", color = Color.White, fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                Icons.Default.Delete, contentDescription = "Delete", tint = Color.White
+            )
         }
 
         // nội dung của item
@@ -186,9 +172,7 @@ fun CartItemTile(
                 Row(
                     modifier = Modifier
                         .border(
-                            width = 1.dp,
-                            brush = SolidColor(Color(0xFFF4F5FD)),
-                            shape = RoundedCornerShape(6.dp)
+                            width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(6.dp)
                         )
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,

@@ -29,9 +29,28 @@ fun OrderSummary(
     selectedVoucher: DiscountResponse.DiscountModel? = null,
 ) {
     val subtotal = selectedItems.filter { it.isSelected }.sumOf { it.price * it.quantity }
-    val shippingFee = remember(selectedItems) {
-        if (selectedItems.any { it.isSelected }) 35000.0 else 0.0
+//    val shippingFee = remember(selectedItems) {
+//        if (selectedItems.any { it.isSelected }) 35000.0 else 0.0
+//    }
+    val defaultShippingFee = 35000.0
+    val shippingFee = remember(selectedItems, selectedVoucher) {
+        val hasSelectedItems = selectedItems.any { it.isSelected }
+        if (!hasSelectedItems) {
+            0.0
+        } else {
+            if (selectedVoucher?.discountType?.lowercase() == "shipping") {
+                if (selectedVoucher?.discountValue == 0.0) {
+                    0.0
+                } else {
+                    val shippingDiscount = selectedVoucher.discountValue
+                    (defaultShippingFee - shippingDiscount).coerceAtLeast(0.0)
+                }
+            } else {
+                defaultShippingFee
+            }
+        }
     }
+
     val discount = remember { 0.0 }
     val discountPercentage = selectedVoucher?.discountValue ?: 0.0
     val discountAmount = remember(subtotal, discountPercentage) {
@@ -56,7 +75,12 @@ fun OrderSummary(
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Phí vận chuyển", fontSize = 14.sp, color = Color.Gray)
-            Text("${formatCurrency(shippingFee)}₫", fontSize = 14.sp, color = Color.Gray)
+            Text(
+                "${formatCurrency(shippingFee)}₫",
+                fontSize = 14.sp,
+                color = if (selectedVoucher?.discountType?.lowercase() == "shipping") Color(0xFF00C2A8) else
+                    Color.Gray
+            )
         }
         if (finalDiscountAmount > 0) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -74,10 +98,13 @@ fun OrderSummary(
             text = "Thanh Toán(${selectedItems.count{it.isSelected}})",
             onClick = {
 //                navController.navigate("payment_ui")
-                navController.navigate("payment_ui/${selectedVoucher?.code ?: ""}") // Chuyển đến chi tiết sản phẩm
+                val discountCode = selectedVoucher?.code ?: ""
+                navController.navigate("payment_ui/cart/$discountCode") // Chuyển đến màn thanh toán
                       },
             backgroundColor = Color(0xFF21D4B4),
             textColor = Color.White,
+            enabled = if (selectedItems.count{it.isSelected}>0) true else false
         )
+        Spacer(Modifier.height(6.dp))
     }
 }//end order summary

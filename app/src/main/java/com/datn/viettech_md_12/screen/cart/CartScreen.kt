@@ -164,7 +164,14 @@ fun CartScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 10.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                SnackbarHost(hostState = snackbarHostState)
+            }
         },
         sheetPeekHeight = 0.dp,
         sheetDragHandle = { },
@@ -288,14 +295,27 @@ fun CartScreen(
                         MyButton(
                             text = "Xác nhận",
                             onClick = {
-                                selectedVoucherId.value?.let { voucherId ->
-                                    val selectedVoucherId = listDiscount.firstOrNull { it.id == voucherId }
-                                    selectedVoucherId?.let {
-//                                        cartViewModel.applyDiscount(it.code ?: "")
-                                        selectedVoucher.value = it
+                                val enteredCode = voucherCode.value
+                                val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
+                                if (matchingVoucher != null) {
+                                    selectedVoucherId.value = matchingVoucher.id
+                                    selectedVoucher.value = matchingVoucher
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Áp dụng mã thành công!")
+                                    }
+                                    scope.launch { scaffoldState.bottomSheetState.hide() }
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Mã không hợp lệ.")
                                     }
                                 }
-                                scope.launch { scaffoldState.bottomSheetState.hide() }
+//                                selectedVoucherId.value?.let { voucherId ->
+//                                    val selectedVoucherId = listDiscount.firstOrNull { it.id == voucherId }
+//                                    selectedVoucherId?.let {
+////                                        cartViewModel.applyDiscount(it.code ?: "")
+//                                        selectedVoucher.value = it
+//                                    }
+//                                }
                             },
                             modifier = Modifier,
                             backgroundColor = Color.Black,

@@ -50,6 +50,7 @@ fun CheckoutItemTile(
     product: CartModel.Metadata.CartProduct,
     cartViewModel: CartViewModel,
     checkoutViewModel: CheckoutViewModel,
+    onQuantityChange: (Int) -> Unit
 ) {
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
@@ -105,6 +106,7 @@ fun CheckoutItemTile(
                             product.name,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.W600,
+                            color = Color.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -114,11 +116,11 @@ fun CheckoutItemTile(
                             Text(
                                 variantValues,
                                 fontSize = 12.sp,
-                                color = Color.Gray,
+                                color = Color.Black,
                                 fontWeight = FontWeight.W500,
                             )
                         }
-                        Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500)
+                        Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500, color = Color.Black)
                     }
                     Row(
                         modifier = Modifier
@@ -136,6 +138,7 @@ fun CheckoutItemTile(
 //                            if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1)
                                 if (quantityState.value > 1) {
                                     quantityState.value -= 1
+                                    onQuantityChange(quantityState.value)
                                     coroutineScope.launch {
                                         cartViewModel.updateProductQuantity(
                                             productId = product.productId,
@@ -149,7 +152,7 @@ fun CheckoutItemTile(
                             },
                             modifier = Modifier.size(18.dp)
                         ) {
-                            Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                            Icon(Icons.Default.Remove, contentDescription = "Decrease", tint = Color.Black)
                         }
                         androidx.compose.material.Text(
                             "${quantityState.value}",
@@ -159,18 +162,20 @@ fun CheckoutItemTile(
                             onClick = {
 //                            onQuantityChange(product.productId, product.quantity + 1)
                                 quantityState.value += 1
+                                onQuantityChange(quantityState.value)
                                 coroutineScope.launch {
                                     cartViewModel.updateProductQuantity(
                                         productId = product.productId,
                                         variantId = product.detailsVariantId ?: "",
                                         newQuantity = quantityState.value,
                                     )
+
                                     checkoutViewModel.refreshSelectedItems()
                                 }
                             },
                             modifier = Modifier.size(18.dp)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Increase")
+                            Icon(Icons.Default.Add, contentDescription = "Increase", tint = Color.Black)
                         }
                     }
                 }
