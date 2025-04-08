@@ -525,7 +525,8 @@ fun ProductDetailScreen(
 
                                             if (!isLoggedIn) {
                                                 showLoginDialog = true
-
+                                            }else{
+                                                navController.navigate("payment_ui/product/${product?.id}") // Chuyển đến màn thanh toán
                                             }
                                         },
                                         modifier = Modifier
