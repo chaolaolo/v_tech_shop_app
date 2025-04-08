@@ -69,17 +69,17 @@ fun ProfileScreen(navController: NavController) {
                 ProfileItem(
                     R.drawable.ic_shipping_profile,
                     stringResource(R.string.shipping_address),
-                    onClick = { navController.navigate("shipping_screen") }
+                    onClick = { navController.navigate("address_screen") }
                 )
             }
-            item { DividerItem() }
-            item {
-                ProfileItem(
-                    R.drawable.ic_payment_profile,
-                    stringResource(R.string.payment_method),
-                    onClick = { navController.navigate("payment_screen") }
-                )
-            }
+//            item { DividerItem() }
+//            item {
+//                ProfileItem(
+//                    R.drawable.ic_payment_profile,
+//                    stringResource(R.string.payment_method),
+//                    onClick = { navController.navigate("payment_screen") }
+//                )
+//            }
             item { DividerItem() }
             item {
                 ProfileItem(
@@ -149,6 +149,14 @@ fun ProfileScreen(navController: NavController) {
 @Composable
 fun ProfileHeader() {
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+
+    val token = sharedPreferences.getString("accessToken", null)
+    val fullName = sharedPreferences.getString("fullname", "")
+    val email = sharedPreferences.getString("email", "")
+
+    val isLoggedIn = !token.isNullOrEmpty()&&!fullName.isNullOrEmpty()&&!email.isNullOrEmpty()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -157,14 +165,22 @@ fun ProfileHeader() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(R.drawable.profile_header),
+            painter = painterResource(R.drawable.user_home),
             contentDescription = null,
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(60.dp)
         )
         Spacer(modifier = Modifier.width(15.dp))
         Column {
-            Text(text = "Nguyen Dinh Tuan Anh", color = Color.White, fontSize = 18.sp)
-            Text(text = "anhndt@gmail.com", color = Color.White, fontSize = 18.sp)
+            Text(
+                text = if (isLoggedIn) fullName!! else "Họ và tên",
+                color = Color.White,
+                fontSize = 18.sp
+            )
+            Text(
+                text = if (isLoggedIn) email!! else "Địa chỉ email",
+                color = Color.White,
+                fontSize = 18.sp
+            )
         }
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = {

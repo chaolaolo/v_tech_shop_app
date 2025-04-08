@@ -38,13 +38,14 @@ fun HomeScreen(
     val categories by categoryViewModel.categories.collectAsState()
     val products by productViewModel.products.collectAsState()
 
+
     Scaffold(
         topBar = {
             CustomTopAppBar(
                 title = "ietTech",
                 iconLogo = R.drawable.ic_logo,
                 icon1 = R.drawable.search,
-                icon2 = R.drawable.rectangle_7,
+                icon2 = R.drawable.ic_profile,
                 navController = navController,
                 actionTitle1 = "search",
                 actionTitle2 = "profile",
@@ -117,7 +118,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Sản phẩm mới nhất",
+                        text = "Tất cả sản phẩm",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1C1B1B),

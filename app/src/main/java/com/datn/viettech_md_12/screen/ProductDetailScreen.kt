@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.net.Uri
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,8 +40,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
@@ -54,6 +57,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -102,6 +106,8 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.Image
+import com.datn.viettech_md_12.screen.authentication.LoginScreen
+import com.datn.viettech_md_12.screen.authentication.RegisterScreen
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
@@ -118,6 +124,8 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -133,7 +141,7 @@ fun ProductDetailScreen(
     val reviewViewModel: ReviewViewModel = viewModel(
         factory = ReviewViewModelFactory(context)
     )
-
+    val contextToCheckLogin = LocalContext.current
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
         reviewViewModel.getReviewsByProduct(productId)
@@ -143,7 +151,8 @@ fun ProductDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    var isFavorite by remember { mutableStateOf(false) }
+    var isAddingToCart by remember { mutableStateOf(false) }
+    var quantity by remember { mutableStateOf(1) }
 
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
@@ -154,12 +163,34 @@ fun ProductDetailScreen(
     var showDialog by remember { mutableStateOf(false) }
     var showAddReviewDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
+    var showLoginDialog by remember { mutableStateOf(false) }
+
+    val price = product?.productPrice ?:0.0
+    val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
+
+
+    var isFavorite by remember { mutableStateOf(false) }
+    val sharedPreferences =
+        context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) //lay trang thai da luu tru
+    if (product != null) {
+        if (sharedPreferences != null) {
+            isFavorite = sharedPreferences.getBoolean(productId, false)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
-            CircularProgressIndicator(
-                color = Color(0xFF21D4B4),
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.2f))
+                    .align(Alignment.Center)
+            ) {
+                CircularProgressIndicator(
+                    color = Color(0xFF21D4B4),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         } else {
             product?.let {
                 Scaffold(
@@ -184,7 +215,7 @@ fun ProductDetailScreen(
                             ),
                             navigationIcon = {
                                 IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                                 }
                             },
                             actions = {
@@ -194,13 +225,32 @@ fun ProductDetailScreen(
                                         .background(color = Color.Black)
                                         .size(30.dp)
                                 ) {
-                                    IconButton(onClick = { isFavorite = !isFavorite }) {
+                                    IconButton(
+                                        onClick = {
+                                            isFavorite = !isFavorite
+                                            if (isFavorite) {
+                                                val productId = product?.id
+                                                if (productId != null) {
+                                                    viewModel.addToFavorites(productId, context)
+                                                }
+                                            } else {
+                                                val favoriteId = product?.id
+                                                if (favoriteId != null) {
+                                                    viewModel.removeFromFavorites(favoriteId, context)
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(8.dp)
+                                            .size(40.dp)
+                                    ) {
                                         Icon(
                                             contentDescription = "favourite icon",
                                             imageVector = if (!isFavorite) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
                                             tint = if (!isFavorite) Color.White else Color.Red,
                                             modifier = Modifier
-                                                .size(20.dp)
+                                                .size(36.dp)
                                         )
                                     }
                                 }
@@ -259,11 +309,12 @@ fun ProductDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(color = Color(0xFF1F8BDA))
+                                            .background(color = Color(0xFF0090EE))
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
                                     ) {
                                         Text(
                                             "Top Rated",
-                                            modifier = Modifier.padding(4.dp),
+                                            modifier = Modifier,
                                             color = Color.White,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
@@ -273,11 +324,11 @@ fun ProductDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(color = Color(0xFF08E488))
+                                            .background(color = Color(0xFF009B79))
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
                                     ) {
                                         Text(
                                             "Free Shipping",
-                                            modifier = Modifier.padding(4.dp),
                                             color = Color.White,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
@@ -287,34 +338,34 @@ fun ProductDetailScreen(
                                 //Tên/giá
                                 Spacer(Modifier.height(10.dp))
                                 Row(
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.Top
                                 ) {
-                                    Text(
+                                    Column(
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Text(
+                                            "${product!!.productStock} còn hàng",
+                                            fontSize = 12.sp,
+                                            color = Color.Gray,
+                                        )
+                                        Text(
                                         "${product?.productName}",
                                         maxLines = 2,
                                         fontSize = 16.sp,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
                                         overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f)
                                     )
-                                    Column(
-                                        horizontalAlignment = Alignment.End
-                                    ) {
+                                    }
                                         Text(
-                                            "${product?.productPrice}",
+                                            "$itemPriceFormatted₫",
                                             fontSize = 14.sp,
                                             color = Color.Black,
                                             fontWeight = FontWeight.Bold,
                                         )
-                                        Text(
-                                            "${product?.productPrice}",
-                                            fontSize = 14.sp,
-                                            color = Color.Gray,
-                                            textDecoration = TextDecoration.LineThrough
-                                        )
-                                    }
+
                                 }
                                 //Đánh giá
                                 Spacer(Modifier.height(4.dp))
@@ -366,12 +417,12 @@ fun ProductDetailScreen(
                                         overflow = TextOverflow.Ellipsis,
                                         onTextLayout = { layoutResult ->
                                             textLayoutResult.value = layoutResult
-                                            showMoreVisible =
-                                                layoutResult.hasVisualOverflow && !isExpanded
+                                            showMoreVisible = layoutResult.hasVisualOverflow && !isExpanded
                                         }
                                     )
                                     if (showMoreVisible) {
-                                        Text(text = "... Xem thêm",
+                                        Text(
+                                            text = "... Xem thêm",
                                             fontSize = 12.sp,
                                             color = Color(0xFF21D4B4),
                                             fontWeight = FontWeight.Medium,
@@ -379,7 +430,8 @@ fun ProductDetailScreen(
                                                 .padding(top = 4.dp)
                                                 .clickable { isExpanded = true })
                                     } else if (isExpanded) {
-                                        Text(text = "Thu gọn",
+                                        Text(
+                                            text = "Thu gọn",
                                             fontSize = 12.sp,
                                             color = Color(0xFF21D4B4),
                                             fontWeight = FontWeight.Medium,
@@ -391,7 +443,13 @@ fun ProductDetailScreen(
 
                                 // chọn màu
                                 Spacer(Modifier.height(4.dp))
-                                Text(
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Column {
+                                        Text(
                                     text = "Color",
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(top = 10.dp)
@@ -410,36 +468,53 @@ fun ProductDetailScreen(
                                         Spacer(modifier = Modifier.width(8.dp))
                                     }
                                 }
+                                    }
 
                                 // Số lượng
-                                Spacer(Modifier.height(10.dp))
+//                                Spacer(Modifier.height(10.dp))
                                 Row(
                                     modifier = Modifier
                                         .border(
-                                            width = 1.dp,
-                                            brush = SolidColor(Color(0xFFF4F5FD)),
-                                            shape = RoundedCornerShape(8.dp)
+                                            width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(8.dp)
                                         )
-                                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     IconButton(
-                                        onClick = {/* if (item.quantity > 1) onQuantityChange(item.id, item.quantity - 1) */ },
-                                        modifier = Modifier.size(16.dp)
+                                        onClick = {
+                                            if (quantity > 1) {
+                                                quantity--
+                                            }
+                                        },
+                                        modifier = Modifier.size(20.dp),
+                                        enabled = quantity > 1
                                     ) {
-                                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                                        Icon(
+                                            Icons.Default.Remove, contentDescription = "Decrease",
+                                            tint = if (quantity > 1) Color.Black else Color.Gray
+                                        )
                                     }
-                                    Text("1", modifier = Modifier.padding(horizontal = 12.dp))
+                                    Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp))
                                     IconButton(
-                                        onClick = { /*onQuantityChange(item.id, item.quantity + 1)*/ },
-                                        modifier = Modifier.size(16.dp)
+                                        onClick = {
+                                            if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
+                                                quantity++
+                                            }
+                                        },
+                                        modifier = Modifier.size(20.dp),
+                                        enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
                                     ) {
-                                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                                        Icon(
+                                            Icons.Default.Add, contentDescription = "Increase",
+                                            tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                        )
                                     }
                                 }
+                                }
 
-                                Spacer(Modifier.height(4.dp))
+
+                                Spacer(Modifier.height(8.dp))
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -449,13 +524,21 @@ fun ProductDetailScreen(
                                 ) {
                                     MyButton(
                                         text = "Mua ngay",
-                                        onClick = { },
+                                        onClick = {
+                                            //check bat dang nhap hoac dang ki moi cho su dung
+                                            val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                                ?.getString("accessToken", "")
+                                            val isLoggedIn = !token.isNullOrEmpty()
+
+                                            if (!isLoggedIn) {
+                                                showLoginDialog = true
+
+                                            }
+                                        },
                                         modifier = Modifier
                                             .weight(1f)
                                             .border(
-                                                width = 1.dp,
-                                                brush = SolidColor(Color(0xFFF4F5FD)),
-                                                shape = RoundedCornerShape(12.dp)
+                                                width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(12.dp)
                                             ),
                                         backgroundColor = Color.White,
                                         textColor = Color.Black,
@@ -465,27 +548,36 @@ fun ProductDetailScreen(
                                         text = "Thêm vào giỏ",
                                         onClick = {
                                             Log.d("ProductDetailScreen", "productId: " + productId)
-                                            product?.let { product ->
-                                                Log.d(
-                                                    "ProductDetailScreen",
-                                                    "product.id: " + product.id
-                                                )
+                                                //check bat dang nhap hoac dang ki moi cho su dung
+                                                val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                                    ?.getString("accessToken", "")
+                                                val isLoggedIn = !token.isNullOrEmpty()
+
+                                                if (!isLoggedIn) {
+                                                    showLoginDialog = true
+                                                } else {
+                                                    isAddingToCart = true
+                                                product?.let { product ->
+                                                Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(
                                                     productId = product.id,
                                                     variantId = "",
-                                                    quantity = 1,
-                                                    context = context,
+                                                    quantity = quantity,
+                                                    context = contextToCheckLogin,
                                                     onSuccess = {
+                                                        isAddingToCart = false
                                                         coroutineScope.launch {
                                                             snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
                                                         }
                                                     },
                                                     onError = {
+                                                        isAddingToCart = false
                                                         coroutineScope.launch {
                                                             snackbarHostState.showSnackbar("Thêm sản phẩm vào giỏ hàng thất bại.")
                                                         }
                                                     }
                                                 )
+                                            }
                                             }
 //                                            coroutineScope.launch {
 //                                                Log.d("SnackbarDebug", "Snackbar gọi showSnackbar()")
@@ -499,6 +591,55 @@ fun ProductDetailScreen(
                                         textColor = Color.White,
                                         vectorIcon = Icons.Default.AddShoppingCart
                                     )
+                                    // Custom Dialog yêu cầu đăng nhập
+                                    if (showLoginDialog) {
+                                        Dialog(onDismissRequest = { showLoginDialog = false }) {
+                                            Card(
+                                                shape = RoundedCornerShape(16.dp),
+                                                elevation = CardDefaults.cardElevation(8.dp),
+                                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                                modifier = Modifier.width(300.dp)
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier.padding(20.dp),
+                                                    horizontalAlignment = Alignment.Start
+                                                ) {
+                                                    Text(
+                                                        text = "Bạn cần đăng nhập",
+                                                        fontSize = 18.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.Black
+                                                    )
+                                                    Spacer(modifier = Modifier.height(10.dp))
+                                                    Text(
+                                                        text = "Vui lòng đăng nhập hoặc tạo tài khoản để thực hiện hành động này.",
+                                                        fontSize = 14.sp,
+                                                        color = Color.Gray
+                                                    )
+                                                    Spacer(modifier = Modifier.height(20.dp))
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.End
+                                                    ) {
+                                                        TextButton(onClick = {
+                                                            showLoginDialog = false
+                                                            val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
+                                                            contextToCheckLogin?.startActivity(intent)
+                                                        }) {
+                                                            Text("Tạo tài khoản mới")
+                                                        }
+                                                        TextButton(onClick = {
+                                                            showLoginDialog = false
+                                                            val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
+                                                            contextToCheckLogin?.startActivity(intent)
+                                                        }) {
+                                                            Text("Đăng nhập")
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                                 //add review
                                 if (showAddReviewDialog) {
@@ -641,7 +782,7 @@ fun ProductDetailScreen(
                     hostState = snackbarHostState,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(start = 16.dp, end = 16.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 10.dp)
                         .systemBarsPadding()
                         .background(Color.Transparent),
                 ) { data ->
@@ -650,13 +791,11 @@ fun ProductDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
+                            .background(Color(0xFF464646))
                             .border(
-                                width = 1.dp,
-                                color = Color(0xFFEEEEEE),
-                                shape = RoundedCornerShape(12.dp)
+                                width = 1.dp, color = Color(0xFF00C4B4), shape = RoundedCornerShape(12.dp)
                             )
-                            .padding(16.dp)
+                            .padding(10.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -675,7 +814,7 @@ fun ProductDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "Đã thêm vào giỏ hàng!", color = Color.Black
+                                    "Đã thêm vào giỏ hàng!", color = Color.White, fontSize = 14.sp
                                 )
                             }
 
@@ -683,7 +822,8 @@ fun ProductDetailScreen(
                                 Text(
                                     "Xem giỏ hàng",
                                     color = Color(0xFF00C4B4),
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
                                 )
                             }
                         }
@@ -691,6 +831,25 @@ fun ProductDetailScreen(
                 }
             }
 
+        }
+        // Thêm vào phần Box chính, cùng cấp với các dialog khác
+        if (isAddingToCart) {
+            Dialog(onDismissRequest = {}) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(150.dp)
+                        .background(Color.White, shape = RoundedCornerShape(8.dp))
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Đang thêm...", color = Color.Black)
+                    }
+                }
+            }
         }
     }
 }

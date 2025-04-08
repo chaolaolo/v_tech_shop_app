@@ -48,8 +48,6 @@ fun ProductListScreen(
             CustomTopAppBar2(
                 title = "",
                 icon1 = R.drawable.ic_arrow_left,
-                icon2 = R.drawable.ic_setting,
-                icon3 = R.drawable.ic_search,
                 navController = navController,
             )
         },

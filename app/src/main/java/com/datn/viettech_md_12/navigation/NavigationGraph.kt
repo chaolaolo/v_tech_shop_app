@@ -83,7 +83,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("wishlist") { WishlistScreen(viewModel = productViewModel,navController) }
             composable("profile") { ProfileScreen(navController) }
             composable("change_password_screen") { ChangePasswordScreen(navController,userViewModel = userViewModel) }
-            composable("order_history_screen") { OrderHistoryScreen(navController) }
+            composable("order_history_screen") { OrderHistoryScreen(navController, viewModel = productViewModel) }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment") { CheckoutScreen(navController) }
@@ -92,7 +92,11 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("address_screen") { AddressScreen(navController) }
-            composable("payment_ui") { PaymentUI(navController) }
+//            composable("payment_ui") { PaymentUI(navController) }
+            composable("payment_ui/{discount}") { backStackEntry ->
+                val discount = backStackEntry.arguments?.getString("discount") ?: ""
+                PaymentUI(navController, discount)
+            }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
                 ProductDetailScreen(navController, productId)

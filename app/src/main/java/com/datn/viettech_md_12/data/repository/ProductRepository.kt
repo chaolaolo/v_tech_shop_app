@@ -5,6 +5,7 @@ import FavoriteRequest
 import FavoriteResponse
 import android.util.Log
 import com.datn.viettech_md_12.data.interfaces.ProductService
+import com.datn.viettech_md_12.data.model.OrderListResponse
 import com.datn.viettech_md_12.data.model.Product
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
@@ -56,4 +57,9 @@ class ProductRepository(
             apiService.searchProducts(query)
         }
     }
+    //hien thi don hang
+    suspend fun getUserOrders(userId: String,token: String, clientId: String): Response<OrderListResponse> {
+        return apiService.getUserOrders(userId,token, clientId)
+    }
+
 }

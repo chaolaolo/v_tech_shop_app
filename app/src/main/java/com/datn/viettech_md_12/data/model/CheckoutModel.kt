@@ -7,7 +7,8 @@ data class CheckoutModel(
     @SerializedName("address") val address: String,
     @SerializedName("phone_number") val phone_number: String,
     @SerializedName("receiver_name") val receiver_name: String,
-    @SerializedName("payment_method") val payment_method: String
+    @SerializedName("payment_method") val payment_method: String,
+    @SerializedName("discount_code") val discount_code: String? = null
 )
 
 data class AddressModel(
@@ -35,13 +36,11 @@ data class UpdateAddressRequest(
 
 )
 
-
 data class BillResponse(
     @SerializedName("message") val message: String,
     @SerializedName("statusCode") val statusCode: Int,
     @SerializedName("metadata") val metadata: BillMetadata
 ) {
-
     data class BillMetadata(
         @SerializedName("user_id") val userId: String,
         @SerializedName("products") val products: List<BillProduct>,

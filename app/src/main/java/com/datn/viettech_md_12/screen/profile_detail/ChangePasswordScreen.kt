@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -86,7 +87,7 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 text = stringResource(R.string.change_password),
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                fontSize = 20.sp
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
@@ -130,8 +131,7 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     MyTextField(
                         hint = "Nhập mật khẩu của bạn",
@@ -187,13 +187,12 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     MyTextField(
                         hint = "Nhập mật khẩu mới của bạn",
                         value = newPassword,
-                        onValueChange ={ newPassword=it },
+                        onValueChange = { newPassword = it },
                         modifier = Modifier.padding(horizontal = 16.dp),
                         isPassword = true
                     )
@@ -225,13 +224,12 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     MyTextField(
                         hint = "Xác nhận mật khẩu của bạn",
                         value = confirmPassword,
-                        onValueChange ={ confirmPassword=it },
+                        onValueChange = { confirmPassword = it },
                         modifier = Modifier.padding(horizontal = 16.dp),
                         isPassword = true
                     )
@@ -255,8 +253,7 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
         }
         Spacer(modifier = Modifier.height(20.dp))
         Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             MyButton(
                 text = "Tiếp tục",
@@ -270,18 +267,19 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
                                 context = context,
                                 oldPassword = oldPassword,
                                 newPassword = newPassword,
-                                onSuccess = {
-                                        message ->
+                                onSuccess = { message ->
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     navController.popBackStack() // Quay về sau khi đổi mật khẩu
                                 },
-                                onError = {
-                                        error ->
+                                onError = { error ->
                                     Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                        }else {
-                            Toast.makeText(context, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show()
+                                })
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Mật khẩu xác nhận không khớp",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 },
@@ -318,7 +316,8 @@ fun ChangePasswordScreen(navController: NavController, userViewModel: UserViewMo
 //                },
 //                modifier = Modifier
 //                    .width(380.dp)
-//                    .height(60.dp),
+//                    .height(60.dp)
+//                    .clip(RoundedCornerShape(2.dp)),
 //                colors = ButtonDefaults.buttonColors(
 //                    containerColor = Color.Black
 //                ),

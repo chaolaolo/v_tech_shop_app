@@ -16,13 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTopAppBar2(
-    title: String, icon1: Int, icon2: Int?, icon3: Int?, navController: NavController
+    title: String, icon1: Int, navController: NavController
 ) {
     SmallTopAppBar(
         title = {
@@ -34,18 +35,9 @@ fun CustomTopAppBar2(
                     contentDescription = "back",
                     Modifier.clickable { navController.popBackStack() })
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = title, fontWeight = FontWeight.Bold)
+                Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
-        }, actions = {
-            IconButton(onClick = { }) {
-                icon2?.let { painterResource(it) }
-                    ?.let { Icon(painter = it, contentDescription = "search") }
-            }
-            IconButton(onClick = {}) {
-                icon3?.let { painterResource(it) }
-                    ?.let { Icon(painter = it, contentDescription = "more") }
-            }
         }, colors = TopAppBarDefaults.smallTopAppBarColors(
             containerColor = Color.Transparent,
             titleContentColor = Color(0xFF1C1B1B),

@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.data.remote.ApiClient.checkoutService
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +18,8 @@ import retrofit2.HttpException
 import retrofit2.Response
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 class CartViewModel(application: Application) : ViewModel() {
@@ -33,12 +37,22 @@ class CartViewModel(application: Application) : ViewModel() {
     private val _deleteCartItemState = MutableStateFlow<Response<Unit>?>(null)
     val deleteCartItemState: StateFlow<Response<Unit>?> get() = _deleteCartItemState
 
+    private val _discountState = MutableStateFlow<Response<DiscountResponse>?>(null)
+    val discountState: StateFlow<Response<DiscountResponse>?> get() = _discountState
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val _isDiscountLoading = MutableStateFlow(true)
+    val isDiscountLoading: StateFlow<Boolean> = _isDiscountLoading
 
     private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val token: String? = sharedPreferences.getString("accessToken", null)
     private val userId: String? = sharedPreferences.getString("clientId", null)
+
+    init {
+        fetchCart()
+        getListDisCount()
+    }
 
     //Get cart
     fun fetchCart() {
@@ -53,21 +67,21 @@ class CartViewModel(application: Application) : ViewModel() {
                 if (response.isSuccessful) {
                     _cartState.value = response
                     response.body()?.let {
-                        Log.d("dm", "Fetch Cart Success: ${it}")
+                        Log.d("fetchCart", "Fetch Cart Success: ${it}")
                     }
                 } else {
-                    Log.e("dm", "Fetch Cart Failed: ${response.code()} - ${response.message()}")
+                    Log.e("fetchCart", "Fetch Cart Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
-                Log.e("dm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
+                Log.e("fetchCart", "Lỗi mạng: Không thể kết nối với máy chủ")
             } catch (e: SocketTimeoutException) {
-                Log.e("dm_error", "Lỗi mạng: Đã hết thời gian chờ")
+                Log.e("fetchCart", "Lỗi mạng: Đã hết thời gian chờ")
             } catch (e: HttpException) {
-                Log.e("dm_error", "Lỗi HTTP: ${e.message()}")
+                Log.e("fetchCart", "Lỗi HTTP: ${e.message()}")
             } catch (e: JsonSyntaxException) {
-                Log.e("dm_error", "Lỗi dữ liệu: Invalid JSON response")
+                Log.e("fetchCart", "Lỗi dữ liệu: Invalid JSON response")
             } catch (e: Exception) {
-                Log.e("dm_error", "Lỗi chung: ${e.message}", e)
+                Log.e("fetchCart", "Lỗi chung: ${e.message}", e)
             } finally {
                 _isLoading.value = false // Kết thúc trạng thái loading
             }
@@ -94,15 +108,20 @@ class CartViewModel(application: Application) : ViewModel() {
 
                 if (response.isSuccessful) {
 //                    fetchCart()
+                    checkoutService.getIsSelectedItemInCart(
+                        token = token ?: "",
+                        userId = userId ?: "",
+                        userIdQuery = userId ?: ""
+                    )
                     _updateCartState.value = response
                     updateLocalCartState(productId, newQuantity)
-                    Log.d("CartViewModel", "Update quantity success")
+                    Log.d("updateProductQuantity", "Update quantity success")
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Unknown error"
-                    Log.e("CartViewModel", "Update quantity failed: $errorMsg")
+                    Log.e("updateProductQuantity", "Update quantity failed: $errorMsg")
                 }
             } catch (e: Exception) {
-                Log.e("CartViewModel", "updateProductQuantity: $e", )
+                Log.e("updateProductQuantity", "updateProductQuantity: $e")
             } finally {
                 _isLoading.value = false
             }
@@ -153,31 +172,31 @@ class CartViewModel(application: Application) : ViewModel() {
                     updateLocalCartItemSelection(productId, detailsVariantId, isSelected)
 //                    fetchCart()
                     onSuccess()
-                    Log.d("CartViewModel", "Update isSelected success")
+                    Log.d("updateIsSelected", "Update isSelected success")
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Unknown error"
-                    Log.e("CartViewModel", "Update isSelected failed: $errorMsg")
+                    Log.e("updateIsSelected", "Update isSelected failed: $errorMsg")
                     onError(errorMsg)
                 }
             } catch (e: UnknownHostException) {
                 val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("updateIsSelected", errorMsg, e)
                 onError(errorMsg)
             } catch (e: SocketTimeoutException) {
                 val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("updateIsSelected", errorMsg, e)
                 onError(errorMsg)
             } catch (e: HttpException) {
                 val errorMsg = "Lỗi HTTP: ${e.message()}"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("updateIsSelected", errorMsg, e)
                 onError(errorMsg)
             } catch (e: JsonSyntaxException) {
                 val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("updateIsSelected", errorMsg, e)
                 onError(errorMsg)
             } catch (e: Exception) {
                 val errorMsg = e.message ?: "Lỗi không xác định"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("updateIsSelected", errorMsg, e)
                 onError(errorMsg)
             }
         }
@@ -211,7 +230,7 @@ class CartViewModel(application: Application) : ViewModel() {
         onError: (String) -> Unit = {},
     ) {
         viewModelScope.launch {
-            _isLoading.value = true
+//            _isLoading.value = true
             Log.d("CartViewModel", "token $token")
             Log.d("CartViewModel", "client id $userId")
             try {
@@ -226,34 +245,84 @@ class CartViewModel(application: Application) : ViewModel() {
                     // Cập nhật lại giỏ hàng sau khi xóa thành công
                     fetchCart()
                     onSuccess()
-                    Log.d("CartViewModel", "Delete item success")
+                    Log.d("deleteCartItem", "Delete item success")
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Unknown error"
-                    Log.e("CartViewModel", "Delete item failed: $errorMsg")
+                    Log.e("deleteCartItem", "Delete item failed: $errorMsg")
                     onError(errorMsg)
                 }
             } catch (e: UnknownHostException) {
                 val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("deleteCartItem", errorMsg, e)
                 onError(errorMsg)
             } catch (e: SocketTimeoutException) {
                 val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("deleteCartItem", errorMsg, e)
                 onError(errorMsg)
             } catch (e: HttpException) {
                 val errorMsg = "Lỗi HTTP: ${e.message()}"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("deleteCartItem", errorMsg, e)
                 onError(errorMsg)
             } catch (e: JsonSyntaxException) {
                 val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("deleteCartItem", errorMsg, e)
                 onError(errorMsg)
             } catch (e: Exception) {
                 val errorMsg = e.message ?: "Lỗi không xác định"
-                Log.e("CartViewModel", errorMsg, e)
+                Log.e("deleteCartItem", errorMsg, e)
                 onError(errorMsg)
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    //Get list DisCount
+    fun getListDisCount() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = cartRepository.getDiscount(
+                    token = token?:"",
+                    userId = userId?:"",
+                )
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    val currentDate = LocalDate.now()
+                    val formatter = DateTimeFormatter.ISO_DATE
+
+                    val filteredMetadata = body?.data?.filter { discount ->
+                        val endDateStr = discount.endDate ?: discount.expirationDate
+                        endDateStr?.let {
+                            try {
+                                val endDate = LocalDate.parse(it.substring(0, 10), formatter)
+                                !endDate.isBefore(currentDate) // Chưa hết hạn
+                            } catch (e: Exception) {
+                                true // Nếu không parse được thì vẫn giữ lại
+                            }
+                        } ?: true // Nếu không có ngày thì giữ lại (giả định là chưa hết hạn)
+                    } ?: emptyList()
+                    val filteredResponse = body?.copy(data = filteredMetadata)
+                    _discountState.value = Response.success(filteredResponse)
+
+                    response.body()?.let {
+                        Log.d("getListDisCount", "Fetch Discount Success: $filteredMetadata")
+                    }
+                } else {
+                    Log.e("getListDisCount", "Fetch Discount Failed: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: UnknownHostException) {
+                Log.e("getListDisCount", "Lỗi mạng: Không thể kết nối với máy chủ")
+            } catch (e: SocketTimeoutException) {
+                Log.e("getListDisCount", "Lỗi mạng: Đã hết thời gian chờ")
+            } catch (e: HttpException) {
+                Log.e("getListDisCount", "Lỗi HTTP: ${e.message()}")
+            } catch (e: JsonSyntaxException) {
+                Log.e("getListDisCount", "Lỗi dữ liệu: Invalid JSON response")
+            } catch (e: Exception) {
+                Log.e("getListDisCount", "Lỗi chung: ${e.message}", e)
+            } finally {
+                _isLoading.value = false // Kết thúc trạng thái loading
             }
         }
     }

@@ -1,8 +1,11 @@
 package com.datn.viettech_md_12.component.address_selection
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -77,18 +81,24 @@ fun ProvinceDropdown(
                             Icons.Default.KeyboardArrowUp
                         else
                             Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Toggle dropdown"
+                        contentDescription = "Toggle dropdown",
+                        tint = Color.Black
                     )
                 }
             },
+            shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Color.Transparent, shape = RoundedCornerShape(8.dp))
                 .clickable { expanded = true },
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 containerColor = Color.White,
                 focusedBorderColor = Color(0xFF21D4B4),
                 unfocusedBorderColor = Color(0xFFE5E6EC),
-                focusedLabelColor =  Color(0xFF21D4B4),
+                focusedLabelColor = Color(0xFF21D4B4),
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                disabledTextColor = Color.Gray,
             ),
         )
         DropdownMenu(
@@ -98,31 +108,59 @@ fun ProvinceDropdown(
                 .heightIn(max = 300.dp)
                 .background(Color(0xFFF5F5F8))
         ) {
-            OutlinedTextField(
-                value = searchText,
-                onValueChange = { searchText = it },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
-                placeholder = { Text("Tìm kiếm...") },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
-                },
-                singleLine = true,
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = Color.White,
-                    focusedBorderColor = Color(0xFF21D4B4),
-                    unfocusedBorderColor = Color(0xFFF4F5FD)
+                    .padding(horizontal = 10.dp)
+            ) {
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, shape = RoundedCornerShape(8.dp)),
+                    placeholder = { Text("Tìm kiếm...", color = Color.Gray) },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                    },
+                    singleLine = true,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        containerColor = Color.White,
+                        focusedBorderColor = Color(0xFF21D4B4),
+                        unfocusedBorderColor = Color(0xFFF4F5FD),
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        disabledTextColor = Color.Gray,
+                    )
                 )
-            )
+            }
             filteredProvinces.forEach { province ->
                 DropdownMenuItem(
-                    text = { Text(province) },
+                    text = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    border = BorderStroke(width = 0.5.dp, color = Color.LightGray),
+                                    shape = RectangleShape
+                                )
+                                .padding(10.dp)
+                        ) {
+                            Text(province, color = Color.Black)
+                        }
+                           },
                     onClick = {
                         onProvinceSelected(province)
                         expanded = false
                         searchText = ""
                     }
+                )
+            }
+            if (filteredProvinces.isEmpty()) {
+                DropdownMenuItem(
+                    text = { Text("Không có dữ liệu", color = Color.Black) },
+                    onClick = {}
                 )
             }
         }

@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -67,7 +68,7 @@ fun OrderSuccessfullyScreen(navController:NavController) {
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
             )
@@ -123,7 +124,7 @@ fun OrderSuccessfullyScreen(navController:NavController) {
                     //Button
                     MyButton(
                         text = "Xem đơn hàng",
-                        onClick = { },
+                        onClick = { navController.navigate("order_history_screen")},
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
                             .border(
@@ -137,7 +138,7 @@ fun OrderSuccessfullyScreen(navController:NavController) {
                     Spacer(Modifier.height(10.dp))
                     MyButton(
                         text = "Tiếp tục mua sắm",
-                        onClick = { },
+                        onClick = { navController.navigate("home")},
                         modifier = Modifier,
                         backgroundColor = Color.Black,
                         textColor = Color.White,

@@ -81,6 +81,8 @@ import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,7 +104,7 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
             .systemBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Yêu thích", fontSize = 20.sp) },
+                title = { Text(text = "Yêu thích", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -159,6 +161,7 @@ fun ItemFavorite(
 ) {
     val product = favoriteItem.product
     val BASE_URL = "http://103.166.184.249:3056/"
+    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(product.product_price)
 
     val dismissState = rememberDismissState(
         confirmStateChange = { dismissValue ->
@@ -223,8 +226,8 @@ fun ItemFavorite(
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "${product.product_price}₫",
-                            color = Color(0xFF4CAF50),
+                            text = "${itemPriceFormatted}",
+                            color = Color(0xFFF44336),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )
