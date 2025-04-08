@@ -44,7 +44,7 @@ class ProductViewModel : ViewModel() {
     init {
         loadCategories()
         getAllProduct()
-        getProductById("67cdd20838591fcf41a06e47")
+//        getProductById("67cdd20838591fcf41a06e47")
         Log.d("ProductViewModel", _product.value.toString())
     }
 
