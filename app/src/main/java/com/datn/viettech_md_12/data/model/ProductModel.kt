@@ -58,8 +58,12 @@ data class ProductModel(
     val isDraft: Boolean,
     @SerializedName("isPulished")
     val isPublished: Boolean,
-    @SerializedName("product_attributes")
-    val productAttributes: ProductAttributes,
+//    @SerializedName("product_attributes")
+//    val productAttributes: ProductAttributes,
+    @SerializedName("attributes")  //Lở thêm
+    val attributes: Attributes, //Lở thêm
+    @SerializedName("attributeIds")
+    val attributeIds: List<String>,
     @SerializedName("product_description")
     val productDescription: String,
     @SerializedName("product_name")
@@ -74,8 +78,12 @@ data class ProductModel(
     val productStock: Int,
     @SerializedName("product_thumbnail")
     val productThumbnail: String,
-    @SerializedName("variations")
-    val variations: List<Variation>
+//    @SerializedName("variations")
+//    val variations: List<Variation>,
+    @SerializedName("variants") //Lở thêm
+    val variants: List<Variation>,//Lở thêm
+    @SerializedName("default_variant") //Lở thêm
+    val default_variant: Variation //Lở thêm
 ) {
     data class Category(
         @SerializedName("attributes_template")
@@ -85,16 +93,18 @@ data class ProductModel(
         @SerializedName("name")
         val name: String,
         @SerializedName("parent_category")
-        val parentCategory: Any
+        val parentCategory: Any,
+        @SerializedName("thumbnail")
+        val thumbnail: String,
     )
 
-    data class ProductAttributes(
-        @SerializedName("battery_life")
-        val batteryLife: String,
-        @SerializedName("lens_type")
-        val lensType: String,
-        @SerializedName("resolution")
-        val resolution: String,
+    data class Attributes(
+        @SerializedName("_id")
+        val _id: String,
+        @SerializedName("name")
+        val name: String,
+        @SerializedName("values")
+        val values: List<String>,
         @SerializedName("video_resolution")
         val videoResolution: String,
         @SerializedName("zoom")
@@ -104,17 +114,27 @@ data class ProductModel(
     data class Variation(
         @SerializedName("_id")
         val id: String,
+        @SerializedName("productId")
+        val productId: String,
+        @SerializedName("variantDetails")
+        val variantDetails: List<VariationDetail>,
         @SerializedName("price")
         val price: Double,
-        @SerializedName("sku")
-        val sku: String,
         @SerializedName("stock")
         val stock: Int,
-        @SerializedName("variant_name")
-        val variantName: String,
-        @SerializedName("variant_value")
-        val variantValue: String
-    )
+        @SerializedName("sku")
+        val sku: String,
+    ){
+        data class VariationDetail(
+            @SerializedName("_id")
+            val _id: String,
+            @SerializedName("variantId")
+            val variantId: String,
+            @SerializedName("value")
+            val value: String,
+        )
+
+    }
 
 }
 data class ProductResponse(
@@ -129,102 +149,3 @@ data class SearchResponse(
     val success: Boolean,
     val products: List<ProductModel>
 )
-
-
-//data class ProductModel(
-//    @SerializedName("_id")
-//    val id: String,
-//    @SerializedName("product_name")
-//    val productName: String,
-//    @SerializedName("product_thumbnail")
-//    val productThumbnail: String,
-//    @SerializedName("product_description")
-//    val productDescription: String,
-//    @SerializedName("product_price")
-//    val productPrice: Double,
-//    @SerializedName("product_stock")
-//    val productStock: Int,
-//    @SerializedName("category")
-//    val category: Category,
-//    @SerializedName("product_ratingsAverage")
-//    val productRatingsAverage: Double,
-//    @SerializedName("isDraft")
-//    val isDraft: Boolean,
-//    @SerializedName("isPulished")
-//    val isPublished: Boolean,
-//    @SerializedName("image_ids")
-//    val imageIds: List<Any>,
-////    @SerializedName("product_attributes")
-////    val productAttributes: ProductAttributes,
-//    @SerializedName("attributeIds")
-//    val attributeIds: ProductAttributes,
-//    @SerializedName("product_slug")
-//    val productSlug: String,
-//    @SerializedName("variations")
-//    val variations: List<Variation>
-//) {
-//    data class Category(
-//        @SerializedName("_id")
-//        val id: String,
-//        @SerializedName("name")
-//        val name: String,
-//        @SerializedName("parent_category")
-//        val parentCategory: Any,
-//        @SerializedName("attributes_template")
-//        val attributesTemplate: List<String>,
-//        @SerializedName("thumbnail")
-//        val thumbnail: String,
-//    )
-//
-//    data class ProductAttributes(
-//        @SerializedName("battery_life")
-//        val batteryLife: String,
-//        @SerializedName("lens_type")
-//        val lensType: String,
-//        @SerializedName("resolution")
-//        val resolution: String,
-//        @SerializedName("video_resolution")
-//        val videoResolution: String,
-//        @SerializedName("zoom")
-//        val zoom: String
-//    )
-//
-//    data class Variation(
-//        @SerializedName("_id")
-//        val id: String,
-//        @SerializedName("productId")
-//        val productId: String,
-//        @SerializedName("variantDetails")
-//        val variantDetails: List<VariantDetail>,
-//        @SerializedName("price")
-//        val price: Double,
-//        @SerializedName("sku")
-//        val sku: String,
-//        @SerializedName("stock")
-//        val stock: Int,
-//        @SerializedName("variant_name")
-//        val variantName: String,
-//        @SerializedName("variant_value")
-//        val variantValue: String
-//    )
-//
-//    data class VariantDetail(
-//        @SerializedName("variantId")
-//        val variantId: String,
-//        @SerializedName("value")
-//        val value: String
-//    )
-//
-//}
-//data class ProductResponse(
-//    val success: Boolean,
-//    val product: ProductModel
-//)
-//data class ProductListResponse(
-//    @SerializedName("products")
-//    val products: List<ProductModel>, // Danh sach san pham
-//)
-//data class SearchResponse(
-//    val success: Boolean,
-//    val products: List<ProductModel>
-//)
