@@ -238,25 +238,32 @@ fun SignUpUser( userViewModel: UserViewModel) {
 
                 when {
                     username.isBlank() || fullName.isBlank() || phone.isBlank() || email.isBlank() || password.isBlank() -> {
-                        Toast.makeText(context, "Vui lòng điền đầy đủ thông tin.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            context.getString(R.string.validate_check_all), Toast.LENGTH_SHORT).show()
                     }
                     !regexUsername.matches(username) -> {
-                        Toast.makeText(context, "Tên đăng nhập không được chứa ký tự đặc biệt.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            context.getString(R.string.validate_user_name_register), Toast.LENGTH_SHORT).show()
                     }
                     !regexName.matches(fullName) -> {
-                        Toast.makeText(context, "Họ tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng).", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            context.getString(R.string.invalid_full_name), Toast.LENGTH_SHORT).show()
                     }
                     !regexEmail.matches(email) -> {
-                        Toast.makeText(context, "Email không đúng định dạng.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            context.getString(R.string.invalid_email), Toast.LENGTH_SHORT).show()
                     }
                     hasSpace -> {
-                        Toast.makeText(context, "Mật khẩu không được chứa khoảng trắng.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            context.getString(R.string.password_no_spaces), Toast.LENGTH_SHORT).show()
                     }
                     !isLengthValid -> {
-                        Toast.makeText(context, "Mật khẩu phải có ít nhất 6 ký tự.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            context.getString(R.string.password_too_short), Toast.LENGTH_SHORT).show()
                     }
                     !hasLetter || !hasDigit -> {
-                        Toast.makeText(context, "Mật khẩu phải bao gồm cả chữ cái và số.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            context.getString(R.string.password_requirements), Toast.LENGTH_SHORT).show()
                     }
                     else -> {
                         isLoading = true
@@ -266,7 +273,8 @@ fun SignUpUser( userViewModel: UserViewModel) {
                             context,
                             onSuccess = {
                                 isLoading = false
-                                Toast.makeText(context, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context,
+                                    context.getString(R.string.register_success), Toast.LENGTH_SHORT).show()
                                 val intent = Intent(context, LoginScreen::class.java)
                                 context.startActivity(intent)
                             },
