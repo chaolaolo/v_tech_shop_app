@@ -118,7 +118,7 @@ fun OrderDetailScreen(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "Đơn hàng đã hoàn thành",
+                            text = "Đơn hàng của bạn",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
