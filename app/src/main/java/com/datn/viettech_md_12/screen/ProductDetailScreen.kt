@@ -101,7 +101,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.data.model.Image
+import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.screen.authentication.LoginScreen
 import com.datn.viettech_md_12.screen.authentication.RegisterScreen
 import com.datn.viettech_md_12.viewmodel.CartViewModel
@@ -130,7 +132,7 @@ fun ProductDetailScreen(
 ) {
     val context = LocalContext.current.applicationContext as Application
 
-    // 🔧 Khởi tạo ReviewViewModel với factory
+    // Khởi tạo ReviewViewModel với factory
     val reviewViewModel: ReviewViewModel = viewModel(
         factory = ReviewViewModelFactory(context)
     )
@@ -141,8 +143,13 @@ fun ProductDetailScreen(
         reviewViewModel.getReviewStats(productId)
     }
     val snackbarHostState = remember { SnackbarHostState() }
+    val simpleSnackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
+    val productResponse by viewModel.productResponse.collectAsState()
+    val attributes = productResponse?.attributes
+    val variants = productResponse?.variants
+    val defaultVariant = productResponse?.defaultVariant
     val isLoading by viewModel.isLoading.collectAsState()
     var isAddingToCart by remember { mutableStateOf(false) }
     var quantity by remember { mutableStateOf(1) }
@@ -157,6 +164,7 @@ fun ProductDetailScreen(
     var showAddReviewDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
     var showLoginDialog by remember { mutableStateOf(false) }
+    var showCheckStockDialog by remember { mutableStateOf(false) }
 
     val price = product?.productPrice ?:0.0
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
@@ -250,13 +258,22 @@ fun ProductDetailScreen(
                             },
                         )
                     },
-
+                    snackbarHost = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = 10.dp),
+                            contentAlignment = Alignment.TopCenter
+                        ) {
+                            SnackbarHost(hostState = simpleSnackbarHostState)
+                        }
+                    }
                     ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(300.dp)
+                                .height(350.dp)
                                 .padding(bottom = 20.dp)
                                 .background(Color(0xFFF4FDFA)),
                         ) {
@@ -264,26 +281,18 @@ fun ProductDetailScreen(
                                 model = "http://103.166.184.249:3056/${product?.productThumbnail}",
                                 contentDescription = "p detail image",
                                 modifier = Modifier
-                                    .fillMaxSize(),
-                                contentScale = ContentScale.Crop,
+                                    .fillMaxWidth()
+                                    .height(300.dp),
+                                contentScale = ContentScale.Fit,
                                 placeholder = painterResource(R.drawable.logo),
                                 error = painterResource(R.drawable.error_img)
                             )
                         }
                         Log.d("zzzzzzzzzzzzzz", "productThumbnail: ${product?.productThumbnail}")
-//                            Image(
-//                                painter = painterResource(R.drawable.ic_launcher_background),
-//                                contentDescription = "p detail image",
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .height(350.dp)
-//                                    .background(Color.Gray),
-//                                contentScale = ContentScale.Crop
-//                            )
                         Card(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(top = 250.dp), // Đẩy nội dung lên che hình ảnh
+                                .padding(top = 300.dp), // Đẩy nội dung lên che hình ảnh
                             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
 //                            backgroundColor = Color.White,
 //                            elevation = 8.dp
@@ -336,6 +345,7 @@ fun ProductDetailScreen(
                                     verticalAlignment = Alignment.Top
                                 ) {
                                     Column(
+                                        modifier = Modifier.weight(1f),
                                         horizontalAlignment = Alignment.Start
                                     ) {
                                         Text(
@@ -441,28 +451,53 @@ fun ProductDetailScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.Bottom
                                 ) {
-                                    Column {
-                                        Text(
-                                    text = "Color",
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(top = 10.dp)
-                                )
-                                Row(modifier = Modifier.padding(top = 4.dp)) {
-                                    listOf(
-                                        Color.Black, Color.Gray, Color.Blue, Color.Magenta
-                                    ).forEach { color ->
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .background(color, CircleShape)
-                                                .border(0.dp, Color.LightGray, CircleShape)
-                                                .padding(8.dp)
-                                                .clickable { /* Handle Color Selection */ })
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                    val hasColorAttribute = remember(attributes) {
+                                        attributes?.any {it.name.equals("Color", ignoreCase = true)} ?: false
                                     }
-                                }
+                                    Log.d("hasColorAttribute", "hasColorAttribute: $hasColorAttribute")
+                                    Log.d("hasColorAttribute", "product: $product")
+                                    Log.d("hasColorAttribute", "attributes: $attributes")
+                                    Log.d("hasColorAttribute", "variants: $variants")
+                                    Log.d("hasColorAttribute", "default_variant: $defaultVariant")
+                                    if(hasColorAttribute){
+                                        Column {
+                                            Text(
+                                                text = "Color",
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(top = 10.dp)
+                                            )
+                                            Row(modifier = Modifier.padding(top = 4.dp)) {
+                                                val colorAttribute = attributes?.first { it.name.equals("Color", ignoreCase = true) }
+                                                colorAttribute?.values?.forEach { colorValue ->
+                                                    // Chuyển đổi colorValue thành Color thực tế
+//                                                    val colorName = colorValue.trim().lowercase()
+//                                                    Log.d("hasColorAttribute", "colorName: $colorName")
+//                                                    val color = when{
+//                                                        colorName.contains("space black") -> Color.Black
+//                                                        colorName.contains("silver") -> Color.Gray
+//                                                        colorName.contains("gold") -> Color(0xFFD4AF37)
+//                                                        colorName.contains("deep blue") -> Color.Blue
+//                                                        // Thêm các màu khác nếu cần
+//                                                        else -> Color.Gray // Màu mặc định
+//                                                    }
+                                                    val color = colorValue.toColor()
+//                                                listOf(
+//                                                    Color.Black, Color.Gray, Color.Blue, Color.Magenta
+//                                                ).forEach { color ->
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(32.dp)
+                                                            .background(color, CircleShape)
+                                                            .border(0.dp, Color.LightGray, CircleShape)
+                                                            .padding(8.dp)
+                                                            .clickable { /* Handle Color Selection */ })
+                                                    Spacer(modifier = Modifier.width(8.dp))
+//                                                }
+                                                }
+                                            }
+//                                        }
                                     }
-
+                                    }
                                 // Số lượng
 //                                Spacer(Modifier.height(10.dp))
                                 Row(
@@ -488,11 +523,15 @@ fun ProductDetailScreen(
                                             tint = if (quantity > 1) Color.Black else Color.Gray
                                         )
                                     }
-                                    Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp))
+                                    Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp), color = Color.Black)
                                     IconButton(
                                         onClick = {
                                             if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
                                                 quantity++
+                                            }else if (product!!.productStock == 1) {
+                                                coroutineScope.launch {
+                                                    simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.productStock} trong kho")
+                                                }
                                             }
                                         },
                                         modifier = Modifier.size(20.dp),
@@ -526,13 +565,18 @@ fun ProductDetailScreen(
                                             if (!isLoggedIn) {
                                                 showLoginDialog = true
                                             }else{
+                                                if (product!!.productStock == 0) {
+                                                    showCheckStockDialog = true
+                                                } else {
+                                                    showCheckStockDialog = false
                                                 navController.navigate("payment_ui/product/${product?.id}") // Chuyển đến màn thanh toán
+                                                }
                                             }
                                         },
                                         modifier = Modifier
                                             .weight(1f)
                                             .border(
-                                                width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(12.dp)
+                                                width = 1.dp, brush = SolidColor(Color(0xFF21D4B4)), shape = RoundedCornerShape(12.dp)
                                             ),
                                         backgroundColor = Color.White,
                                         textColor = Color.Black,
@@ -550,7 +594,11 @@ fun ProductDetailScreen(
                                                 if (!isLoggedIn) {
                                                     showLoginDialog = true
                                                 } else {
-                                                    isAddingToCart = true
+                                                    if (product!!.productStock == 0) {
+                                                        showCheckStockDialog = true
+                                                    } else {
+                                                        isAddingToCart = true
+                                                        showCheckStockDialog = false
                                                 product?.let { product ->
                                                 Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(
@@ -567,11 +615,12 @@ fun ProductDetailScreen(
                                                     onError = {
                                                         isAddingToCart = false
                                                         coroutineScope.launch {
-                                                            snackbarHostState.showSnackbar("Thêm sản phẩm vào giỏ hàng thất bại.")
+                                                            simpleSnackbarHostState.showSnackbar("Có lỗi xảy ra khi thêm sản phẩm này vào giỏ hàng.")
                                                         }
                                                     }
                                                 )
                                             }
+                                                    }
                                             }
 //                                            coroutineScope.launch {
 //                                                Log.d("SnackbarDebug", "Snackbar gọi showSnackbar()")
@@ -633,6 +682,14 @@ fun ProductDetailScreen(
                                                 }
                                             }
                                         }
+                                    }
+
+                                    //thông báo stock đã hết
+                                    if (showCheckStockDialog) {
+                                        ProductStockNotifyDialog(
+                                            onDismiss = { showCheckStockDialog = false },
+                                            navController = navController
+                                        )
                                     }
                                 }
                                 //add review
@@ -1030,4 +1087,12 @@ fun ConfirmDialog(
     )
 }
 
-
+fun String.toColor(): Color {
+    return when (this.trim().lowercase()) {
+        "space black", "black" -> Color.Black
+        "silver", "gray" -> Color.Gray
+        "gold" -> Color(0xFFD4AF37)
+        "deep blue", "blue" -> Color.Blue
+        else -> Color.Gray
+    }
+}

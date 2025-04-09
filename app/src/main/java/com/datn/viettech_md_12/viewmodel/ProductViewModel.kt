@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductModel
+import com.datn.viettech_md_12.data.model.ProductResponse
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.remote.ApiClient.cartRepository
 import com.datn.viettech_md_12.data.remote.ApiClient.productRepository
@@ -29,6 +30,7 @@ class ProductViewModel : ViewModel() {
     val products: StateFlow<List<ProductModel>> = _products
     private val _product = MutableStateFlow<ProductModel?>(null)
     val product: StateFlow<ProductModel?> = _product
+    val productResponse = MutableStateFlow<ProductResponse?>(null)
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -78,7 +80,12 @@ class ProductViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _product.value = it.product
+                        productResponse.value = response.body()
                         Log.d("ProductViewModel", "Product loaded: ${it.product.productName}")
+                        Log.d("ProductViewModel", "product: ${it.product}")
+                        Log.d("ProductViewModel", "attributes: ${it.attributes}")
+                        Log.d("ProductViewModel", "variants: ${it.variants}")
+                        Log.d("ProductViewModel", "productResponse: $productResponse")
                     }
                 } else {
                     Log.e("ProductViewModel", "Error: ${response.code()} ${response.message()}")

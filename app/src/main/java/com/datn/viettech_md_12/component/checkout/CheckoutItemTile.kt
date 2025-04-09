@@ -150,17 +150,24 @@ fun CheckoutItemTile(
                                     }
                                 }
                             },
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp),
+                            enabled = quantityState.value > 1
                         ) {
-                            Icon(Icons.Default.Remove, contentDescription = "Decrease", tint = Color.Black)
+                            Icon(
+                                Icons.Default.Remove, contentDescription = "Decrease",
+                                tint = if (quantityState.value > 1) Color.Black else Color.Gray
+                            )
                         }
-                        androidx.compose.material.Text(
+                        Text(
                             "${quantityState.value}",
-                            modifier = Modifier.padding(horizontal = 12.dp)
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = Color.Black
                         )
                         IconButton(
                             onClick = {
 //                            onQuantityChange(product.productId, product.quantity + 1)
+//                                if (quantityState.value < (product?.productStock ?: Int.MAX_VALUE)) {
+//                                }
                                 quantityState.value += 1
                                 onQuantityChange(quantityState.value)
                                 coroutineScope.launch {
@@ -169,13 +176,16 @@ fun CheckoutItemTile(
                                         variantId = product.detailsVariantId ?: "",
                                         newQuantity = quantityState.value,
                                     )
-
                                     checkoutViewModel.refreshSelectedItems()
                                 }
                             },
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp),
+//                            enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Increase", tint = Color.Black)
+                            Icon(
+                                Icons.Default.Add, contentDescription = "Increase",
+//                                tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                            )
                         }
                     }
                 }

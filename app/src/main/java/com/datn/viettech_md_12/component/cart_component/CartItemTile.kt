@@ -191,13 +191,16 @@ fun CartItemTile(
                                 }
                             }
                         },
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
+                        enabled = quantityState.value > 1
                     ) {
-                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                        Icon(Icons.Default.Remove, contentDescription = "Decrease",
+                            tint = if (quantityState.value > 1) Color.Black else Color.Gray)
                     }
                     Text("${quantityState.value}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
                     IconButton(
                         onClick = {
+//                            if (quantityState.value < (product?.productStock ?: Int.MAX_VALUE)) {}
                             quantityState.value += 1
                             coroutineScope.launch {
                                 cartViewModel.updateProductQuantity(
@@ -207,9 +210,12 @@ fun CartItemTile(
                                 )
                             }
                         },
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
+//                        enabled = quantityState.value < (product?.productStock ?: Int.MAX_VALUE)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                        Icon(Icons.Default.Add, contentDescription = "Increase",
+//                            tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                            )
                     }
                 }
             }

@@ -60,8 +60,8 @@ data class ProductModel(
     val isPublished: Boolean,
 //    @SerializedName("product_attributes")
 //    val productAttributes: ProductAttributes,
-    @SerializedName("attributes")  //Lở thêm
-    val attributes: Attributes, //Lở thêm
+//    @SerializedName("attributes")  //Lở thêm
+//    val attributes: List<Attributes>, //Lở thêm
     @SerializedName("attributeIds")
     val attributeIds: List<String>,
     @SerializedName("product_description")
@@ -80,10 +80,10 @@ data class ProductModel(
     val productThumbnail: String,
 //    @SerializedName("variations")
 //    val variations: List<Variation>,
-    @SerializedName("variants") //Lở thêm
-    val variants: List<Variation>,//Lở thêm
-    @SerializedName("default_variant") //Lở thêm
-    val default_variant: Variation //Lở thêm
+//    @SerializedName("variants") //Lở thêm
+//    val variants: List<Variation>,//Lở thêm
+//    @SerializedName("default_variant") //Lở thêm
+//    val default_variant: Variation //Lở thêm
 ) {
     data class Category(
         @SerializedName("attributes_template")
@@ -105,10 +105,6 @@ data class ProductModel(
         val name: String,
         @SerializedName("values")
         val values: List<String>,
-        @SerializedName("video_resolution")
-        val videoResolution: String,
-        @SerializedName("zoom")
-        val zoom: String
     )
 
     data class Variation(
@@ -139,7 +135,13 @@ data class ProductModel(
 }
 data class ProductResponse(
     val success: Boolean,
-    val product: ProductModel
+    val product: ProductModel,
+    @SerializedName("attributes")
+    val attributes: List<ProductModel.Attributes>,
+    @SerializedName("variants")
+    val variants: List<ProductModel.Variation>,
+    @SerializedName("default_variant")
+    val defaultVariant: ProductModel.Variation
 )
 data class ProductListResponse(
     @SerializedName("products")
