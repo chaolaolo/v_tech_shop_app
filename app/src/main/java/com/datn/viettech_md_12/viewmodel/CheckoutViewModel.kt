@@ -33,6 +33,8 @@ class CheckoutViewModel(application: Application) : ViewModel(){
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+    val _isCheckoutLoading = MutableStateFlow(false)
+    val isCheckoutLoading: StateFlow<Boolean> = _isCheckoutLoading
     private val _gettingAddress = MutableStateFlow(true)
     val gettingAddress: StateFlow<Boolean> = _gettingAddress
 
@@ -175,7 +177,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     fun checkout(address: String, phone_number: String, receiver_name: String, payment_method: String, discount_code:String) {
         viewModelScope.launch {
             Log.d("checkout", "clientId: $userId")
-            _isLoading.value = true
+            _isCheckoutLoading.value = true
             try {
                 val request = CheckoutModel(
                     userId = userId ?: "",
@@ -223,7 +225,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                 val errorMsg = e.message ?: "Lỗi không xác định"
                 Log.e("checkout", errorMsg, e)
             } finally {
-                _isLoading.value = false
+                _isCheckoutLoading.value = false
             }
         }
     }

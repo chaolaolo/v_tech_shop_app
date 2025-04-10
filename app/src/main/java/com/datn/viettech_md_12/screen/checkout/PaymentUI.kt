@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -71,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -108,6 +110,9 @@ fun PaymentUI(
     val checkoutState by checkoutViewModel.addressState.collectAsState()
     val gettingAddress by checkoutViewModel.gettingAddress.collectAsState()
     val selectedCartItems by checkoutViewModel.selectedCartItems.collectAsState()
+    val isLoadingCartItems by checkoutViewModel.isLoading.collectAsState()
+    val isLoadingProduct by productViewModel.isLoading.collectAsState()
+    val isCheckoutLoading by checkoutViewModel.isCheckoutLoading.collectAsState()
 
     // Thêm state cho sản phẩm mua ngay
     val product by productViewModel.product.collectAsState()
@@ -384,33 +389,30 @@ fun PaymentUI(
                 color = Color(0xfff4f5fd)
             )
             //Danh sách sản phẩm sẽ thanh toán
+            if ((fromCart && isLoadingCartItems) || (!fromCart && isLoadingProduct)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF21D4B4))
+                }
+            } else {
             LazyColumn(
                 modifier = Modifier
-//                        .height(400.dp)
                     .weight(1f)
                     .fillMaxSize()
                     .background(Color(0xfff4f5fd))
                     .padding(start = 16.dp, end = 16.dp, top = 4.dp)
                     .nestedScroll(rememberNestedScrollInteropConnection())
             ) {
-                if (productsToPay.isNullOrEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Không có sản phẩm nào được chọn")
-                        }
-                    }
-                } else {
+//                if (productsToPay.isNotEmpty()) {
                     items(productsToPay) { item ->
                         CheckoutItemTile(
                             product =
 //                            item.copy(quantity = quantityState.value)
-                            item.copy(quantity = if (!fromCart) quantityState.value else item.quantity)
-                            ,
+                            item.copy(quantity = if (!fromCart) quantityState.value else item.quantity),
                             cartViewModel = cartViewModel,
                             checkoutViewModel = checkoutViewModel,
                             onQuantityChange = { newQuantity ->
@@ -419,7 +421,19 @@ fun PaymentUI(
                             snackbarHostState = snackbarHostState,
                         )
                     }
-                }
+//                } else {
+//                    item {
+//                        Box(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(16.dp),
+//                            contentAlignment = Alignment.Center
+//                        ) {
+//                            Text("Không có sản phẩm nào được chọn")
+//                        }
+//                    }
+//                }
+            }
             }
             //Tóm tắt đơn hàng
             Spacer(
@@ -504,6 +518,7 @@ fun PaymentUI(
                 MyButton(
                     text = "Đặt hàng",
                     onClick = {
+                        checkoutViewModel._isCheckoutLoading.value = true
                         val addressData = checkoutState?.body()?.data
                         val address = addressData?.address ?: ""
                         val phone = addressData?.phone ?: ""
@@ -556,6 +571,24 @@ fun PaymentUI(
                     }
                 }
             )
+        }
+        if (isCheckoutLoading) {
+            Dialog(onDismissRequest = {}) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(150.dp)
+                        .background(Color.White, shape = RoundedCornerShape(8.dp))
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Vui lòng chờ...", color = Color.Black)
+                    }
+                }
+            }
         }
     }
 //    }
