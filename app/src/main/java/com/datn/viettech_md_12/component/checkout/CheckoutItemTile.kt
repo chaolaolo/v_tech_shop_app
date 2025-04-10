@@ -21,9 +21,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,7 +68,10 @@ fun CheckoutItemTile(
 
     val itemPrice = product.price
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
-    val quantityState = remember { mutableStateOf(product.quantity) }
+    var quantityState by remember { mutableIntStateOf(product.quantity) }
+    LaunchedEffect(quantityState) {
+        onQuantityChange(quantityState)
+    }
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
@@ -138,15 +145,14 @@ fun CheckoutItemTile(
                     ) {
                         IconButton(
                             onClick = {
-//                            if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1)
-                                if (quantityState.value > 1) {
-                                    quantityState.value -= 1
-                                    onQuantityChange(quantityState.value)
+                                if (quantityState > 1) {
+                                    quantityState -= 1
+                                    onQuantityChange(quantityState)
                                     coroutineScope.launch {
                                         cartViewModel.updateProductQuantity(
                                             productId = product.productId,
                                             variantId = product.detailsVariantId ?: "",
-                                            newQuantity = quantityState.value,
+                                            newQuantity = quantityState,
                                         )
                                         // Sau khi cập nhật xong, refresh lại danh sách
                                         checkoutViewModel.refreshSelectedItems()
@@ -154,28 +160,28 @@ fun CheckoutItemTile(
                                 }
                             },
                             modifier = Modifier.size(18.dp),
-                            enabled = quantityState.value > 1
+                            enabled = quantityState > 1
                         ) {
                             Icon(
                                 Icons.Default.Remove, contentDescription = "Decrease",
-                                tint = if (quantityState.value > 1) Color.Black else Color.Gray
+                                tint = if (quantityState > 1) Color.Black else Color.Gray
                             )
                         }
                         Text(
-                            if (product?.stock == 0) "0" else "${quantityState.value}",
+                            if (product?.stock == 0) "0" else "${quantityState}",
                             modifier = Modifier.padding(horizontal = 12.dp),
                             color = Color.Black
                         )
                         IconButton(
                             onClick = {
-                                if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) {
-                                    quantityState.value += 1
-                                    onQuantityChange(quantityState.value)
+                                if (quantityState < (product?.stock ?: Int.MAX_VALUE)) {
+                                    quantityState += 1
+                                    onQuantityChange(quantityState)
                                     coroutineScope.launch {
                                         cartViewModel.updateProductQuantity(
                                             productId = product.productId,
                                             variantId = product.detailsVariantId ?: "",
-                                            newQuantity = quantityState.value,
+                                            newQuantity = quantityState,
                                         )
                                         checkoutViewModel.refreshSelectedItems()
                                     }
@@ -186,11 +192,11 @@ fun CheckoutItemTile(
                                 }
                             },
                             modifier = Modifier.size(18.dp),
-                            enabled = quantityState.value < (product?.stock ?: Int.MAX_VALUE)
+                            enabled = quantityState < (product?.stock ?: Int.MAX_VALUE)
                         ) {
                             Icon(
                                 Icons.Default.Add, contentDescription = "Increase",
-                                tint = if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                tint = if (quantityState < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
                             )
                         }
                     }
@@ -211,7 +217,7 @@ fun CheckoutItemTile(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                "Số lượng ${quantityState.value}, tổng cộng ",
+                "Số lượng ${quantityState}, tổng cộng ",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
                 color = Color.Black
@@ -219,7 +225,7 @@ fun CheckoutItemTile(
             Text(
                 "${
                     NumberFormat.getNumberInstance(Locale("vi", "VN"))
-                        .format(quantityState.value * itemPrice)
+                        .format(quantityState * itemPrice)
                 }₫",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,

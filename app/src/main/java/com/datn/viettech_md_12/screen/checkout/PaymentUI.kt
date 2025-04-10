@@ -51,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -85,7 +86,7 @@ import com.datn.viettech_md_12.viewmodel.ProductViewModel
 
 data class PaymentMethod(
     val displayName: String,
-    val imageRes: Int,
+    val imageRes: Int = 1,
     val apiValue: String,
 )
 
@@ -97,10 +98,12 @@ fun PaymentUI(
     discount: String = "",
     productId: String = "",
     fromCart: Boolean,
+    quantity: Int = 1,
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
     productViewModel: ProductViewModel = viewModel(),
 ) {
+    Log.d("PaymentUI", "Received quantity: $quantity") // Debug log
     val context = LocalContext.current
     val checkoutState by checkoutViewModel.addressState.collectAsState()
     val gettingAddress by checkoutViewModel.gettingAddress.collectAsState()
@@ -109,6 +112,7 @@ fun PaymentUI(
     // Thêm state cho sản phẩm mua ngay
     val product by productViewModel.product.collectAsState()
     var directPurchaseProduct by remember { mutableStateOf<CartModel.Metadata.CartProduct?>(null) }
+    val quantityState = remember { mutableIntStateOf(quantity) }
 
     if (fromCart) {
         // Xử lý khi từ giỏ hàng
@@ -128,11 +132,12 @@ fun PaymentUI(
     // Khi có thông tin sản phẩm (trường hợp mua ngay)
     LaunchedEffect(key1 = product) {
         product?.let {
+            Log.d("PaymentUI", "Creating product with quantity: $quantity")
             directPurchaseProduct = CartModel.Metadata.CartProduct(
                 productId = it.id,
                 name = it.productName,
                 price = it.productPrice,
-                quantity = 1, // Mặc định số lượng là 1 khi mua ngay
+                quantity = quantityState.intValue,
                 image = it.productThumbnail,
                 isSelected = true,
                 detailsVariantId = "",
@@ -142,7 +147,6 @@ fun PaymentUI(
         }
     }
 
-    val quantityState = remember { mutableStateOf(1) }
 
     // Danh sách sản phẩm sẽ hiển thị
     val productsToPay = remember(selectedCartItems, directPurchaseProduct) {
@@ -151,12 +155,11 @@ fun PaymentUI(
             selectedCartItems ?: emptyList()
         } else {
             // Trường hợp mua ngay
-            listOfNotNull(directPurchaseProduct)
+            listOfNotNull(directPurchaseProduct?.copy(quantity = quantityState.intValue))
         }
     }
 
     val payOptions =
-//        listOf("Thanh toán khi nhận hàng" to R.drawable.codpay_img, "VnPay" to R.drawable.vnpay_img)
         listOf(
             PaymentMethod("Thanh toán khi nhận hàng", R.drawable.codpay_img, "tm"),
             PaymentMethod("Thanh toán VNPay", R.drawable.vnpay_img, "ck")
@@ -168,16 +171,10 @@ fun PaymentUI(
     val selectedVoucher = remember(discount, listDiscount) {
         listDiscount.firstOrNull { it.code.trim() == discount.trim() }
     }
-//    val subtotal = remember(selectedCartItems) {
-//        selectedCartItems?.sumOf { item ->
-//            item.price * item.quantity
-//        } ?: 0.0
-//    }
-    val subtotal = remember(productsToPay, quantityState.value) { productsToPay.sumOf { it.price * quantityState.value } ?: 0.0 }
-
-//    val shippingFee = remember(productsToPay) {
-//        if (productsToPay.isNullOrEmpty()) 0.0 else 35000.0
-//    }
+//    val subtotal = remember(productsToPay, quantityState.value) { productsToPay.sumOf { it.price * quantityState.value } ?: 0.0 }
+    val subtotal = remember(productsToPay) {
+        productsToPay.sumOf { it.price * it.quantity } ?: 0.0
+    }
     val defaultShippingFee = 35000.0
     val shippingFee = remember(selectedVoucher) {
         if (selectedVoucher?.discountType?.lowercase() == "shipping") {
@@ -410,7 +407,10 @@ fun PaymentUI(
                 } else {
                     items(productsToPay) { item ->
                         CheckoutItemTile(
-                            product = item.copy(quantity = quantityState.value),
+                            product =
+//                            item.copy(quantity = quantityState.value)
+                            item.copy(quantity = if (!fromCart) quantityState.value else item.quantity)
+                            ,
                             cartViewModel = cartViewModel,
                             checkoutViewModel = checkoutViewModel,
                             onQuantityChange = { newQuantity ->

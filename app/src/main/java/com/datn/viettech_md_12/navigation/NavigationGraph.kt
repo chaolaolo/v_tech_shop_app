@@ -109,11 +109,18 @@ fun NavigationGraph(startDestination: String = "home") {
                 )
             }
 
-            composable("payment_ui/product/{productId}") { backStackEntry ->
+            composable("payment_ui/product/{productId}/{quantity}", arguments = listOf(
+                navArgument("productId") { type = NavType.StringType },
+                navArgument("quantity") {
+                    type = NavType.IntType
+                    defaultValue = 1
+                }
+            )) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
                 PaymentUI(
                     navController = navController,
                     productId = productId,
+                    quantity = backStackEntry.arguments?.getInt("quantity") ?: 1,
                     fromCart = false // Thêm flag để phân biệt
                 )
             }

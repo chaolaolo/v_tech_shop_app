@@ -4,13 +4,9 @@ import MyButton
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.net.Uri
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,15 +15,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,24 +42,28 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -67,11 +71,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -80,45 +85,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStore
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
-import com.datn.viettech_md_12.data.model.Image
-import com.datn.viettech_md_12.data.model.ProductModel
+import com.datn.viettech_md_12.component.product_detail_components.toColor
 import com.datn.viettech_md_12.screen.authentication.LoginScreen
 import com.datn.viettech_md_12.screen.authentication.RegisterScreen
-import com.datn.viettech_md_12.viewmodel.CartViewModel
-import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import com.google.accompanist.flowlayout.FlowRow
-import com.google.accompanist.flowlayout.MainAxisAlignment
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -144,6 +138,11 @@ fun ProductDetailScreen(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val simpleSnackbarHostState = remember { SnackbarHostState() }
+    val bottomsheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.Hidden, skipHiddenState = false
+        )
+    )
     val coroutineScope = rememberCoroutineScope()
     val product by viewModel.product.collectAsState()
     val productResponse by viewModel.productResponse.collectAsState()
@@ -194,18 +193,209 @@ fun ProductDetailScreen(
             }
         } else {
             product?.let {
-                Scaffold(
+                BottomSheetScaffold(scaffoldState = bottomsheetScaffoldState,
+                    sheetPeekHeight = 0.dp,
+                    sheetDragHandle = { },
+                    sheetSwipeEnabled = false,
+                    sheetContainerColor = Color(0xfff4f5fd),
+                    sheetContent = {
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 16.dp, end = 16.dp, top = 10.dp)
+                                .fillMaxWidth()
+                                .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f, min = LocalConfiguration.current.screenHeightDp.dp * 0.5f)
+                                .imePadding()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(end = 10.dp)
+                                    .background(color = Color(0xfff4f5fd)),
+                                verticalAlignment = Alignment.Top,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Box(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    ProductSelecting()
+                                }
+                                Icon(Icons.Filled.Close, contentDescription = "Thoát bottomsheet", modifier = Modifier
+                                    .size(20.dp)
+                                    .clickable {
+                                        coroutineScope.launch {
+                                            bottomsheetScaffoldState.bottomSheetState.hide()
+                                        }
+                                    })
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            HorizontalDivider()
+                            Spacer(Modifier.height(8.dp))
+                            // Chọn màu nếu có
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.Transparent)
+                            ) {
+                                var selectedColor by remember { mutableStateOf("HR2") }
+                                Text("Màu sắc", color = Color.DarkGray, fontSize = 14.sp)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    listOf("HR2", "HE67").forEach { color ->
+                                        FilterChip(
+                                            selected = selectedColor == color,
+                                            onClick = { selectedColor = color },
+                                            label = { Text(color) }
+                                        )
+                                    }
+                                }
+                            }
+                            // chọn phiên bản nếu có
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.Transparent)
+                            ) {
+                                var selectedVariant by remember { mutableStateOf("128GB") }
+                                Text("Phiên bản", color = Color.DarkGray, fontSize = 14.sp)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    listOf("128GB", "520GB", "1TB").forEach { variant ->
+                                        FilterChip(
+                                            selected = selectedVariant == variant,
+                                            onClick = { selectedVariant = variant },
+                                            label = { Text(variant) }
+                                        )
+                                    }
+                                }
+                            }
+                            // Chọn số lượng
+                            Spacer(Modifier.height(20.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Số lượng", color = Color.Black, fontSize = 14.sp)
+                                Row(
+                                    modifier = Modifier
+                                        .border(
+                                            width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            if (quantity > 1) {
+                                                quantity--
+                                            }
+                                        },
+                                        modifier = Modifier.size(20.dp),
+                                        enabled = quantity > 1
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Remove, contentDescription = "Decrease",
+                                            tint = if (quantity > 1) Color.Black else Color.Gray
+                                        )
+                                    }
+                                    Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp), color = Color.Black)
+                                    IconButton(
+                                        onClick = {
+                                            if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
+                                                quantity++
+                                            } else if (product!!.productStock == 1) {
+                                                coroutineScope.launch {
+                                                    simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.productStock} trong kho")
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.size(20.dp),
+                                        enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Add, contentDescription = "Increase",
+                                            tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.weight(1f))
+                            HorizontalDivider()
+                            Spacer(Modifier.height(8.dp))
+                            // nút bấm
+                            MyButton(
+                                text = "Thêm vào giỏ hàng",
+                                onClick = {},
+                                modifier = Modifier,
+                                backgroundColor = Color(0xFF21D4B4),
+                                textColor = Color.White,
+//                                enabled = ,
+                            )
+                            Spacer(Modifier.height(12.dp))
+                        }
+                    },
+                    sheetTonalElevation = 16.dp,
+                    sheetShadowElevation = 24.dp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(),
-//            .systemBarsPadding(),
-
-                    topBar = {
+                        .fillMaxHeight()
+                        .windowInsetsPadding(WindowInsets(0, 0, 0, 0)),
+                    snackbarHost = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = 10.dp), contentAlignment = Alignment.TopCenter
+                        ) {
+                            SnackbarHost(
+                                hostState = simpleSnackbarHostState,
+                                snackbar = { data ->
+                                    Snackbar(
+                                        modifier = Modifier.padding(8.dp),
+                                        action = {
+                                            TextButton(
+                                                onClick = { data.dismiss() },
+                                                colors = ButtonDefaults.textButtonColors(
+                                                    contentColor = Color.White
+                                                )
+                                            ) {
+                                                Icon(Icons.Default.Close, contentDescription = "Đóng")
+                                            }
+                                        }
+                                    ) {
+                                        Text(data.visuals.message, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            )
+                        }
+                    }) {
+                    Box(modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Blue)) {
+                        // ảnh sản phẩm chi tiết
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(350.dp)
+                                .padding(bottom = 20.dp)
+                                .background(Color(0xFFF4FDFA)),
+                        ) {
+                            AsyncImage(
+                                model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                contentDescription = "p detail image",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp),
+                                contentScale = ContentScale.Fit,
+                                placeholder = painterResource(R.drawable.logo),
+                                error = painterResource(R.drawable.error_img)
+                            )
+                        }
                         TopAppBar(
-                            title = { Text(text = "") },
+                            title = { },
                             modifier = Modifier
                                 .padding(end = 16.dp)
-                                .systemBarsPadding()
+                                .background(Color.Transparent)
+                                .zIndex(1f)
                                 .shadow(elevation = 0.dp),
                             colors = TopAppBarColors(
                                 containerColor = Color.Transparent,
@@ -257,55 +447,22 @@ fun ProductDetailScreen(
                                 }
                             },
                         )
-                    },
-                    snackbarHost = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top = 10.dp),
-                            contentAlignment = Alignment.TopCenter
-                        ) {
-                            SnackbarHost(hostState = simpleSnackbarHostState)
-                        }
-                    }
-                    ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(350.dp)
-                                .padding(bottom = 20.dp)
-                                .background(Color(0xFFF4FDFA)),
-                        ) {
-                            AsyncImage(
-                                model = "http://103.166.184.249:3056/${product?.productThumbnail}",
-                                contentDescription = "p detail image",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(300.dp),
-                                contentScale = ContentScale.Fit,
-                                placeholder = painterResource(R.drawable.logo),
-                                error = painterResource(R.drawable.error_img)
-                            )
-                        }
                         Log.d("zzzzzzzzzzzzzz", "productThumbnail: ${product?.productThumbnail}")
                         Card(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(top = 300.dp), // Đẩy nội dung lên che hình ảnh
+                                .padding(top = 300.dp)
+                                .shadow(elevation = 4.dp, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)), // Đẩy nội dung lên che hình ảnh
                             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-//                            backgroundColor = Color.White,
-//                            elevation = 8.dp
                         ) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .fillMaxHeight()
-                                    .clip(RoundedCornerShape(20.dp))
+                                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                                     .background(Color.White)
                                     .padding(16.dp)
                                     .verticalScroll(rememberScrollState()),
-//                                verticalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Row {
                                     Box(
@@ -444,7 +601,7 @@ fun ProductDetailScreen(
                                     }
                                 }
 
-                                // chọn màu
+                                // chọn màu, số lượng
                                 Spacer(Modifier.height(4.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -469,21 +626,7 @@ fun ProductDetailScreen(
                                             Row(modifier = Modifier.padding(top = 4.dp)) {
                                                 val colorAttribute = attributes?.first { it.name.equals("Color", ignoreCase = true) }
                                                 colorAttribute?.values?.forEach { colorValue ->
-                                                    // Chuyển đổi colorValue thành Color thực tế
-//                                                    val colorName = colorValue.trim().lowercase()
-//                                                    Log.d("hasColorAttribute", "colorName: $colorName")
-//                                                    val color = when{
-//                                                        colorName.contains("space black") -> Color.Black
-//                                                        colorName.contains("silver") -> Color.Gray
-//                                                        colorName.contains("gold") -> Color(0xFFD4AF37)
-//                                                        colorName.contains("deep blue") -> Color.Blue
-//                                                        // Thêm các màu khác nếu cần
-//                                                        else -> Color.Gray // Màu mặc định
-//                                                    }
                                                     val color = colorValue.toColor()
-//                                                listOf(
-//                                                    Color.Black, Color.Gray, Color.Blue, Color.Magenta
-//                                                ).forEach { color ->
                                                     Box(
                                                         modifier = Modifier
                                                             .size(32.dp)
@@ -492,14 +635,11 @@ fun ProductDetailScreen(
                                                             .padding(8.dp)
                                                             .clickable { /* Handle Color Selection */ })
                                                     Spacer(modifier = Modifier.width(8.dp))
-//                                                }
                                                 }
                                             }
-//                                        }
                                     }
                                     }
                                 // Số lượng
-//                                Spacer(Modifier.height(10.dp))
                                 Row(
                                     modifier = Modifier
                                         .border(
@@ -547,151 +687,6 @@ fun ProductDetailScreen(
 
 
                                 Spacer(Modifier.height(8.dp))
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .fillMaxHeight(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.Bottom
-                                ) {
-                                    MyButton(
-                                        text = "Mua ngay",
-                                        onClick = {
-                                            //check bat dang nhap hoac dang ki moi cho su dung
-                                            val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                                                ?.getString("accessToken", "")
-                                            val isLoggedIn = !token.isNullOrEmpty()
-
-                                            if (!isLoggedIn) {
-                                                showLoginDialog = true
-                                            }else{
-                                                if (product!!.productStock == 0) {
-                                                    showCheckStockDialog = true
-                                                } else {
-                                                    showCheckStockDialog = false
-                                                navController.navigate("payment_ui/product/${product?.id}") // Chuyển đến màn thanh toán
-                                                }
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .border(
-                                                width = 1.dp, brush = SolidColor(Color(0xFF21D4B4)), shape = RoundedCornerShape(12.dp)
-                                            ),
-                                        backgroundColor = Color.White,
-                                        textColor = Color.Black,
-                                    )
-                                    Spacer(Modifier.width(10.dp))
-                                    MyButton(
-                                        text = "Thêm vào giỏ",
-                                        onClick = {
-                                            Log.d("ProductDetailScreen", "productId: " + productId)
-                                                //check bat dang nhap hoac dang ki moi cho su dung
-                                                val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                                                    ?.getString("accessToken", "")
-                                                val isLoggedIn = !token.isNullOrEmpty()
-
-                                                if (!isLoggedIn) {
-                                                    showLoginDialog = true
-                                                } else {
-                                                    if (product!!.productStock == 0) {
-                                                        showCheckStockDialog = true
-                                                    } else {
-                                                        isAddingToCart = true
-                                                        showCheckStockDialog = false
-                                                product?.let { product ->
-                                                Log.d("ProductDetailScreen", "product.id: " + product.id)
-                                                viewModel.addProductToCart(
-                                                    productId = product.id,
-                                                    variantId = "",
-                                                    quantity = quantity,
-                                                    context = contextToCheckLogin,
-                                                    onSuccess = {
-                                                        isAddingToCart = false
-                                                        coroutineScope.launch {
-                                                            snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
-                                                        }
-                                                    },
-                                                    onError = {
-                                                        isAddingToCart = false
-                                                        coroutineScope.launch {
-                                                            simpleSnackbarHostState.showSnackbar("Có lỗi xảy ra khi thêm sản phẩm này vào giỏ hàng.")
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                                    }
-                                            }
-//                                            coroutineScope.launch {
-//                                                Log.d("SnackbarDebug", "Snackbar gọi showSnackbar()")
-//                                                snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
-//                                                Log.d("SnackbarDebug", "Snackbar hiển thị")
-//                                            }
-//                                            Log.d("SnackbarDebug", "ProductDetailUI: Add to cart ok")
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                        backgroundColor = Color.Black,
-                                        textColor = Color.White,
-                                        vectorIcon = Icons.Default.AddShoppingCart
-                                    )
-                                    // Custom Dialog yêu cầu đăng nhập
-                                    if (showLoginDialog) {
-                                        Dialog(onDismissRequest = { showLoginDialog = false }) {
-                                            Card(
-                                                shape = RoundedCornerShape(16.dp),
-                                                elevation = CardDefaults.cardElevation(8.dp),
-                                                colors = CardDefaults.cardColors(containerColor = Color.White),
-                                                modifier = Modifier.width(300.dp)
-                                            ) {
-                                                Column(
-                                                    modifier = Modifier.padding(20.dp),
-                                                    horizontalAlignment = Alignment.Start
-                                                ) {
-                                                    Text(
-                                                        text = "Bạn cần đăng nhập",
-                                                        fontSize = 18.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = Color.Black
-                                                    )
-                                                    Spacer(modifier = Modifier.height(10.dp))
-                                                    Text(
-                                                        text = "Vui lòng đăng nhập hoặc tạo tài khoản để thực hiện hành động này.",
-                                                        fontSize = 14.sp,
-                                                        color = Color.Gray
-                                                    )
-                                                    Spacer(modifier = Modifier.height(20.dp))
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        horizontalArrangement = Arrangement.End
-                                                    ) {
-                                                        TextButton(onClick = {
-                                                            showLoginDialog = false
-                                                            val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
-                                                            contextToCheckLogin?.startActivity(intent)
-                                                        }) {
-                                                            Text("Tạo tài khoản mới")
-                                                        }
-                                                        TextButton(onClick = {
-                                                            showLoginDialog = false
-                                                            val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
-                                                            contextToCheckLogin?.startActivity(intent)
-                                                        }) {
-                                                            Text("Đăng nhập")
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    //thông báo stock đã hết
-                                    if (showCheckStockDialog) {
-                                        ProductStockNotifyDialog(
-                                            onDismiss = { showCheckStockDialog = false },
-                                            navController = navController
-                                        )
-                                    }
-                                }
                                 //add review
                                 if (showAddReviewDialog) {
                                     AddReviewDialog(
@@ -799,8 +794,7 @@ fun ProductDetailScreen(
                                                                         .background(Color.Gray)
                                                                         .clickable {
                                                                             // Khi ấn vào ảnh, mở dialog với ảnh lớn
-                                                                            selectedImageUrl =
-                                                                                fixedUrl
+                                                                            selectedImageUrl = fixedUrl
                                                                             showDialog = true
                                                                         },
                                                                     contentScale = ContentScale.Crop
@@ -826,6 +820,153 @@ fun ProductDetailScreen(
                                 }
                             }
 
+                        }
+                        BottomAppBar(
+                            modifier = Modifier
+                                .zIndex(1f)
+                                .align(Alignment.BottomCenter)
+                                .background(Color(0xfff4f5fd))
+                                .shadow(elevation = 4.dp),
+                        ) {
+                            //nút bấm mua ngay, thêm vào giỏ hàng
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .background(Color.Transparent),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                MyButton(
+                                    text = "Mua ngay",
+                                    onClick = {
+                                        //check bat dang nhap hoac dang ki moi cho su dung
+                                        val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                            ?.getString("accessToken", "")
+                                        val isLoggedIn = !token.isNullOrEmpty()
+
+                                        if (!isLoggedIn) {
+                                            showLoginDialog = true
+                                        } else {
+                                            if (product!!.productStock == 0) {
+                                                showCheckStockDialog = true
+                                            } else if (quantity <= 0) {  // Thêm kiểm tra này
+                                                coroutineScope.launch {
+                                                    simpleSnackbarHostState.showSnackbar("Số lượng phải lớn hơn 0")
+                                                }
+                                            }else {
+                                                showCheckStockDialog = false
+                                                navController.navigate("payment_ui/product/${product?.id}/$quantity") // Chuyển đến màn thanh toán
+                                                Log.d("ProductDetailScreen", "sl: $quantity ")
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .border(
+                                            width = 1.dp, brush = SolidColor(Color(0xFF21D4B4)), shape = RoundedCornerShape(12.dp)
+                                        ),
+                                    backgroundColor = Color(0xFFDFDFDF),
+                                    textColor = Color.Black,
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                MyButton(
+                                    text = "Thêm vào giỏ",
+                                    onClick = {
+                                        Log.d("ProductDetailScreen", "productId: " + productId)
+                                        //check bat dang nhap hoac dang ki moi cho su dung
+                                        val token = contextToCheckLogin?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                            ?.getString("accessToken", "")
+                                        val isLoggedIn = !token.isNullOrEmpty()
+
+                                        if (!isLoggedIn) {
+                                            showLoginDialog = true
+                                        } else if (product!!.productStock == 0) {
+                                            showCheckStockDialog = true
+                                        } else if (productResponse?.variants?.size!! >= 1) {
+                                            coroutineScope.launch { bottomsheetScaffoldState.bottomSheetState.expand() }
+                                        } else {
+                                            isAddingToCart = true
+                                            showCheckStockDialog = false
+                                            product?.let { product ->
+                                                Log.d("ProductDetailScreen", "product.id: " + product.id)
+                                                viewModel.addProductToCart(productId = product.id, variantId = "", quantity = quantity, context = contextToCheckLogin, onSuccess = {
+                                                    isAddingToCart = false
+                                                    coroutineScope.launch {
+                                                        snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
+                                                    }
+                                                }, onError = {
+                                                    isAddingToCart = false
+                                                    coroutineScope.launch {
+                                                        simpleSnackbarHostState.showSnackbar("Có lỗi xảy ra khi thêm sản phẩm này vào giỏ hàng.")
+                                                    }
+                                                })
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    backgroundColor = Color.Black,
+                                    textColor = Color.White,
+                                    vectorIcon = Icons.Default.AddShoppingCart
+                                )
+                                // Custom Dialog yêu cầu đăng nhập
+                                if (showLoginDialog) {
+                                    Dialog(onDismissRequest = { showLoginDialog = false }) {
+                                        Card(
+                                            shape = RoundedCornerShape(16.dp),
+                                            elevation = CardDefaults.cardElevation(8.dp),
+                                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                                            modifier = Modifier.width(300.dp)
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(20.dp),
+                                                horizontalAlignment = Alignment.Start
+                                            ) {
+                                                Text(
+                                                    text = "Bạn cần đăng nhập",
+                                                    fontSize = 18.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.Black
+                                                )
+                                                Spacer(modifier = Modifier.height(10.dp))
+                                                Text(
+                                                    text = "Vui lòng đăng nhập hoặc tạo tài khoản để thực hiện hành động này.",
+                                                    fontSize = 14.sp,
+                                                    color = Color.Gray
+                                                )
+                                                Spacer(modifier = Modifier.height(20.dp))
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.End
+                                                ) {
+                                                    TextButton(onClick = {
+                                                        showLoginDialog = false
+                                                        val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
+                                                        contextToCheckLogin?.startActivity(intent)
+                                                    }) {
+                                                        Text("Tạo tài khoản mới")
+                                                    }
+                                                    TextButton(onClick = {
+                                                        showLoginDialog = false
+                                                        val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
+                                                        contextToCheckLogin?.startActivity(intent)
+                                                    }) {
+                                                        Text("Đăng nhập")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //thông báo stock đã hết
+                                if (showCheckStockDialog) {
+                                    ProductStockNotifyDialog(
+                                        onDismiss = { showCheckStockDialog = false },
+                                        navController = navController
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -1087,12 +1228,32 @@ fun ConfirmDialog(
     )
 }
 
-fun String.toColor(): Color {
-    return when (this.trim().lowercase()) {
-        "space black", "black" -> Color.Black
-        "silver", "gray" -> Color.Gray
-        "gold" -> Color(0xFFD4AF37)
-        "deep blue", "blue" -> Color.Blue
-        else -> Color.Gray
+@Composable
+fun ProductSelecting() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+//        .background(Color(0xfff4f5fd)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //ảnh
+        AsyncImage(
+            model = "https://cdn.tgdd.vn/Products/Images/5698/326091/asus-aio-a3402wvak-i3-wpc080w-thumb-49-600x600.jpg",
+            contentDescription = "ảnh sản phẩm",
+            modifier = Modifier
+                .size(80.dp)
+                .background(Color(0xFFF4F4F4), RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp)),
+            contentScale = ContentScale.Fit,
+            placeholder = painterResource(R.drawable.logo),
+            error = painterResource(R.drawable.error_img),
+//            onError = { Log.e("CartItemTile", "Failed to load image: $imageUrl") }
+        )
+        Spacer(Modifier.width(4.dp))
+        //nội dung sản phẩm
+        Column {
+            Text("Giá tiền ₫", color = Color(0xFF21D4B4), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("Giá tiền ₫", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("Màu sắc, Phiên bản", color = Color.DarkGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
