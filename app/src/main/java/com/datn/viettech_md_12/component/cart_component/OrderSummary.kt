@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,9 +32,6 @@ fun OrderSummary(
     selectedVoucher: DiscountResponse.DiscountModel? = null,
 ) {
     val subtotal = selectedItems.filter { it.isSelected }.sumOf { it.price * it.quantity }
-//    val shippingFee = remember(selectedItems) {
-//        if (selectedItems.any { it.isSelected }) 35000.0 else 0.0
-//    }
     val defaultShippingFee = 35000.0
     val shippingFee = remember(selectedItems, selectedVoucher) {
         val hasSelectedItems = selectedItems.any { it.isSelected }
@@ -63,6 +63,28 @@ fun OrderSummary(
     val total = remember(subtotal, shippingFee, finalDiscountAmount) {
         subtotal + shippingFee - finalDiscountAmount
     }
+
+    val showOutOfStockDialog = remember { mutableStateOf(false) }
+    // AlertDialog thông báo sản phẩm hết hàng
+    if (showOutOfStockDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                showOutOfStockDialog.value = false
+            },
+            title = {
+                Text(text = "Thông báo", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text("Một số sản phẩm trong giỏ hàng đã hết hàng. Vui lòng kiểm tra lại!")
+            },
+            confirmButton = {
+                TextButton(onClick = { showOutOfStockDialog.value = false }) {
+                    Text("Đã hiểu", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -97,10 +119,13 @@ fun OrderSummary(
         MyButton(
             text = "Thanh Toán(${selectedItems.count{it.isSelected}})",
             onClick = {
-//                navController.navigate("payment_ui")
-                val discountCode = selectedVoucher?.code ?: ""
-                navController.navigate("payment_ui/cart/$discountCode") // Chuyển đến màn thanh toán
-                      },
+                if (selectedItems.any { it.isSelected && it.stock == 0 }) {
+                    showOutOfStockDialog.value = true
+                } else {
+                    val discountCode = selectedVoucher?.code ?: ""
+                    navController.navigate("payment_ui/cart/$discountCode")
+                }
+            },
             backgroundColor = Color(0xFF21D4B4),
             textColor = Color.White,
             enabled = if (selectedItems.count{it.isSelected}>0) true else false

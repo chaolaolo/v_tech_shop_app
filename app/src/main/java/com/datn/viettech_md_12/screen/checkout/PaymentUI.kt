@@ -29,7 +29,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,7 +40,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
@@ -130,6 +137,7 @@ fun PaymentUI(
                 isSelected = true,
                 detailsVariantId = "",
                 variant = null,
+                stock = it.productStock,
             )
         }
     }
@@ -196,6 +204,8 @@ fun PaymentUI(
         subtotal + shippingFee - finalDiscountAmount
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val showOutOfStockDialog = remember { mutableStateOf(false) }
     Scaffold(
         modifier = Modifier
             .fillMaxWidth()
@@ -225,6 +235,35 @@ fun PaymentUI(
                 },
                 modifier = Modifier.shadow(elevation = 2.dp),
             )
+        },
+        snackbarHost = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 10.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    snackbar = { data ->
+                        Snackbar(
+                            modifier = Modifier.padding(8.dp),
+                            action = {
+                                TextButton(
+                                    onClick = { data.dismiss() },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        contentColor = Color.White
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Đóng")
+                                }
+                            }
+                        ) {
+                            Text(data.visuals.message, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                )
+            }
         },
     )
     { innerPadding ->
@@ -376,7 +415,8 @@ fun PaymentUI(
                             checkoutViewModel = checkoutViewModel,
                             onQuantityChange = { newQuantity ->
                                 quantityState.value = newQuantity
-                            }
+                            },
+                            snackbarHostState = snackbarHostState,
                         )
                     }
                 }
@@ -469,23 +509,27 @@ fun PaymentUI(
                         val phone = addressData?.phone ?: ""
                         val name = addressData?.full_name ?: ""
                         Log.d("PaymentUI", "address: $address, phone: $phone, name:$name ")
-                        if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
-                            checkoutViewModel.checkout(
-                                address = address,
-                                phone_number = phone,
-                                receiver_name = name,
-                                payment_method = selectedPayOption.apiValue,
-                                discount_code = discount,
-                            )
-                            Log.d(
-                                "PaymentUI",
-                                "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
-                            )
-                            navController.navigate("order_successfully")
+                        if (productsToPay.any { it.isSelected && it.stock == 0 }) {
+                            showOutOfStockDialog.value = true
                         } else {
-                            Toast.makeText(
-                                context, "Vui lòng cung cấp đầy đủ thông tin!", Toast.LENGTH_SHORT
-                            ).show()
+                            if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
+                                checkoutViewModel.checkout(
+                                    address = address,
+                                    phone_number = phone,
+                                    receiver_name = name,
+                                    payment_method = selectedPayOption.apiValue,
+                                    discount_code = discount,
+                                )
+                                Log.d(
+                                    "PaymentUI",
+                                    "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
+                                )
+                                navController.navigate("order_successfully")
+                            } else {
+                                Toast.makeText(
+                                    context, "Vui lòng cung cấp đầy đủ thông tin!", Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     },
                     modifier = Modifier.padding(vertical = 10.dp),
@@ -494,6 +538,24 @@ fun PaymentUI(
                     enabled = productsToPay.isNotEmpty()
                 )
             }
+        }
+        if (showOutOfStockDialog.value) {
+            AlertDialog(
+                onDismissRequest = {
+                    showOutOfStockDialog.value = false
+                },
+                title = {
+                    Text(text = "Thông báo", fontWeight = FontWeight.Bold)
+                },
+                text = {
+                    Text("Xin lỗi một số sản phẩm bạn chọn đã hết hàng. Vui lòng kiểm tra lại!")
+                },
+                confirmButton = {
+                    TextButton(onClick = { showOutOfStockDialog.value = false }) {
+                        Text("Đã hiểu", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
         }
     }
 //    }

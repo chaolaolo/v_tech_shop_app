@@ -34,6 +34,7 @@ data class CartModel(
             @SerializedName("quantity") val quantity: Int,
             @SerializedName("isSelected") var isSelected: Boolean,
             @SerializedName("detailsVariantId") val detailsVariantId: String?,
+            @SerializedName("stock") val stock: Int,
             @SerializedName("variant") val variant: ProductVariant?,
         )
 
@@ -47,6 +48,14 @@ data class CartModel(
             @SerializedName("variantId") val variantId: String,
             @SerializedName("value") val value: String,
             @SerializedName("_id") val _id: String,
+        )
+
+        data class ProductDetails(
+            @SerializedName("name") val name: String,
+            @SerializedName("price") val price: Double,
+            @SerializedName("thumbnail") val thumbnail: String,
+            @SerializedName("stock") val stock: Int,
+            @SerializedName("image_ids") val image_ids: List<String>,
         )
     }
 }

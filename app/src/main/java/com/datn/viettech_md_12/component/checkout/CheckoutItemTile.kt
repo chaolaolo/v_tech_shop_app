@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,7 +52,8 @@ fun CheckoutItemTile(
     product: CartModel.Metadata.CartProduct,
     cartViewModel: CartViewModel,
     checkoutViewModel: CheckoutViewModel,
-    onQuantityChange: (Int) -> Unit
+    onQuantityChange: (Int) -> Unit,
+    snackbarHostState: SnackbarHostState,
 ) {
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
@@ -159,38 +162,47 @@ fun CheckoutItemTile(
                             )
                         }
                         Text(
-                            "${quantityState.value}",
+                            if (product?.stock == 0) "0" else "${quantityState.value}",
                             modifier = Modifier.padding(horizontal = 12.dp),
                             color = Color.Black
                         )
                         IconButton(
                             onClick = {
-//                            onQuantityChange(product.productId, product.quantity + 1)
-//                                if (quantityState.value < (product?.productStock ?: Int.MAX_VALUE)) {
-//                                }
-                                quantityState.value += 1
-                                onQuantityChange(quantityState.value)
-                                coroutineScope.launch {
-                                    cartViewModel.updateProductQuantity(
-                                        productId = product.productId,
-                                        variantId = product.detailsVariantId ?: "",
-                                        newQuantity = quantityState.value,
-                                    )
-                                    checkoutViewModel.refreshSelectedItems()
+                                if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) {
+                                    quantityState.value += 1
+                                    onQuantityChange(quantityState.value)
+                                    coroutineScope.launch {
+                                        cartViewModel.updateProductQuantity(
+                                            productId = product.productId,
+                                            variantId = product.detailsVariantId ?: "",
+                                            newQuantity = quantityState.value,
+                                        )
+                                        checkoutViewModel.refreshSelectedItems()
+                                    }
+                                } else if (product!!.stock == 1) {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.stock} trong kho")
+                                    }
                                 }
                             },
                             modifier = Modifier.size(18.dp),
-//                            enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
+                            enabled = quantityState.value < (product?.stock ?: Int.MAX_VALUE)
                         ) {
                             Icon(
                                 Icons.Default.Add, contentDescription = "Increase",
-//                                tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                tint = if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
                             )
                         }
                     }
                 }
             }
         }
+        if (product.stock == 0) {
+            Text("Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.End)
+                .padding(horizontal = 16.dp))
+        } else {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -215,5 +227,6 @@ fun CheckoutItemTile(
                 fontWeight = FontWeight.W600
             )
         }
+    }
     }
 }
