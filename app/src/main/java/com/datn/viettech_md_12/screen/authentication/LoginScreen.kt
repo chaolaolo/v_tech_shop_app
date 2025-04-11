@@ -193,11 +193,14 @@ fun LoginUser(userViewModel: UserViewModel) {
             onClick = {
                 // Kiểm tra đầu vào
                 if (username.isBlank() || password.isBlank()) {
-                    Toast.makeText(context, "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.validate_login_password), Toast.LENGTH_SHORT).show()
                 } else if (!username.matches(Regex("^[a-zA-Z0-9]+$"))) {
-                    Toast.makeText(context, "Tên đăng nhập không hợp lệ.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.username_failed), Toast.LENGTH_SHORT).show()
                 } else if (password.length < 6) {
-                    Toast.makeText(context, "Mật khẩu phải có ít nhất 6 ký tự.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.validate_pass), Toast.LENGTH_SHORT).show()
                 }  else {
                     // Nếu tất cả kiểm tra hợp lệ, thực hiện đăng nhập
                     isLoading = true
@@ -207,7 +210,8 @@ fun LoginUser(userViewModel: UserViewModel) {
                         context,
                         onSuccess = {
                             isLoading = false
-                            Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,
+                                context.getString(R.string.login_success), Toast.LENGTH_SHORT).show()
                             val intent = Intent(context, MainActivity::class.java).apply {
                                 putExtra("isLoggedIn", true)
                             }
@@ -219,7 +223,8 @@ fun LoginUser(userViewModel: UserViewModel) {
                         onError = { error ->
                             isLoading = false
                             Log.e("dcm_error_signin", error)
-                            Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu.", Toast.LENGTH_SHORT).show()  // Mật khẩu sai
+                            Toast.makeText(context,
+                                context.getString(R.string.logiin_failed), Toast.LENGTH_SHORT).show()  // Mật khẩu sai
                         }
                     )
                 }

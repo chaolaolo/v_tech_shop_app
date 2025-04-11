@@ -8,6 +8,7 @@ import com.datn.viettech_md_12.data.interfaces.ProductService
 import com.datn.viettech_md_12.data.model.MatchVariantRequest
 import com.datn.viettech_md_12.data.model.MatchVariantResponse
 import com.datn.viettech_md_12.data.model.OrderListResponse
+import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.Product
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
@@ -62,6 +63,10 @@ class ProductRepository(
     //hien thi don hang
     suspend fun getUserOrders(userId: String,token: String, clientId: String): Response<OrderListResponse> {
         return apiService.getUserOrders(userId,token, clientId)
+    }
+    //hien thi chi tiet don hang
+    suspend fun getBillById(orderId : String, token: String,clientId: String) :Response<OrderModel>{
+        return apiService.getBillById(orderId,token, clientId)
     }
 
     //matchVariant

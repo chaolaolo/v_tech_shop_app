@@ -125,7 +125,7 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
         ) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (favoriteProducts.isNotEmpty()) {
-                    items(favoriteProducts) { product ->
+                    items(favoriteProducts, key = { it.product.id }) { product ->
                         ItemFavorite(
                             favoriteItem = product,
                             onItemDismissed = { item ->
@@ -145,6 +145,7 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
                             }
                         )
                     }
+
                 } else {
                     item { EmptyWishList() }
                 }

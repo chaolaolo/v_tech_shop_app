@@ -7,6 +7,7 @@ import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.MatchVariantRequest
 import com.datn.viettech_md_12.data.model.MatchVariantResponse
 import com.datn.viettech_md_12.data.model.OrderListResponse
+import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductResponse
@@ -81,6 +82,17 @@ interface ProductService {
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
     ): Response<OrderListResponse>
+    //hien thi chi tiet don hang
+    @Headers(
+        "Content-Type: application/json",
+        "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
+    )
+    @GET("bill/{orderId}")
+    suspend fun getBillById(
+        @Path("orderId") orderId : String,
+        @Header("authorization") token: String,
+        @Header("x-client-id") clientId: String
+    ) : Response<OrderModel>
 
     //matchVariant
     @POST("shop/products/{id}/match-variant")

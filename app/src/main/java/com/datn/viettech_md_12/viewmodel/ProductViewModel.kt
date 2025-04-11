@@ -43,6 +43,11 @@ class ProductViewModel : ViewModel() {
     private val _orders = MutableStateFlow<List<OrderModel>>(emptyList())
     val orders: StateFlow<List<OrderModel>> = _orders
 
+    //hien thi chi tiet don hang
+    private val _selectedOrder = MutableStateFlow<OrderModel?>(null)
+    val selectedOrder: StateFlow<OrderModel?> = _selectedOrder
+
+
     // lưu variantId đã match
     private val _matchedVariantId = MutableStateFlow<String?>(null)
     val matchedVariantId: StateFlow<String?> = _matchedVariantId
@@ -57,7 +62,6 @@ class ProductViewModel : ViewModel() {
     init {
         loadCategories()
         getAllProduct()
-//        getProductById("67cdd20838591fcf41a06e47")
         Log.d("ProductViewModel", _product.value.toString())
     }
 
@@ -160,10 +164,20 @@ class ProductViewModel : ViewModel() {
                     Log.d("dcm_token_id", "Token used: Bearer $token")
                     if (response.isSuccessful) {
                         response.body()?.let {
-                            editor.putBoolean(productId, true) // Lưu trạng thái yêu thích của sản phẩm
+                            editor.putBoolean(
+                                productId,
+                                true
+                            ) // Lưu trạng thái yêu thích của sản phẩm
                             editor.apply()
-                            Log.d("dcm_success_fav", "Thêm vào danh sách yêu thích thành công: ${it.favorite}")
-                            Toast.makeText(context, "Đã thêm vào danh sách yêu thích!", Toast.LENGTH_SHORT).show()
+                            Log.d(
+                                "dcm_success_fav",
+                                "Thêm vào danh sách yêu thích thành công: ${it.favorite}"
+                            )
+                            Toast.makeText(
+                                context,
+                                "Đã thêm vào danh sách yêu thích!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             getFavoriteProducts(context)
                         }
                     } else {
@@ -193,7 +207,7 @@ class ProductViewModel : ViewModel() {
         productId: String,
         variantId: String,
         quantity: Int,
-        context:Context,
+        context: Context,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -261,10 +275,16 @@ class ProductViewModel : ViewModel() {
                     if (response.isSuccessful) {
                         response.body()?.let {
                             _favoriteProducts.value = it.favorites
-                            Log.d("dcm_success_fav_list", "Danh sách sản phẩm yêu thích: ${it.favorites}")
+                            Log.d(
+                                "dcm_success_fav_list",
+                                "Danh sách sản phẩm yêu thích: ${it.favorites}"
+                            )
                         }
                     } else {
-                        Log.e("dcm_error_fav", "Lỗi lấy danh sách yêu thích: ${response.code()} - ${response.message()}")
+                        Log.e(
+                            "dcm_error_fav",
+                            "Lỗi lấy danh sách yêu thích: ${response.code()} - ${response.message()}"
+                        )
                     }
                 } catch (e: UnknownHostException) {
                     Log.e("dcm_error_fav", "Lỗi mạng: Không thể kết nối với máy chủ")
@@ -282,45 +302,59 @@ class ProductViewModel : ViewModel() {
             }
         }
     }
+
     fun removeFromFavorites(productId: String, context: Context) {
         viewModelScope.launch {
             val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
             val token = sharedPreferences.getString("accessToken", "")
             val clientId = sharedPreferences.getString("clientId", "")
-            val apiKey = "c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683" // Đảm bảo apiKey đúng
+            val apiKey =
+                "c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683" // Đảm bảo apiKey đúng
             val editor = sharedPreferences.edit()// luu trang thai cua favorite khi load lai trang
 
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
-                    val response = _repository.removeFromFavorites(productId, token, clientId, apiKey)
+                    val response =
+                        _repository.removeFromFavorites(productId, token, clientId, apiKey)
                     if (response.isSuccessful) {
                         getFavoriteProducts(context)
 
-                        editor.putBoolean(productId, false) // Cập nhật trạng thái yêu thích của sản phẩm
+                        editor.putBoolean(
+                            productId,
+                            false
+                        ) // Cập nhật trạng thái yêu thích của sản phẩm
                         editor.apply()
                     } else {
-                        Log.e("dcm_error_remove", "Lỗi xóa sản phẩm yêu thích: ${response.code()} - ${response.message()}")
+                        Log.e(
+                            "dcm_error_remove",
+                            "Lỗi xóa sản phẩm yêu thích: ${response.code()} - ${response.message()}"
+                        )
                     }
                 } catch (e: Exception) {
                     Log.e("dcm_error_remove", "Lỗi khi xóa yêu thích: ${e.message}")
                 }
             } else {
-                Log.e("dcm_error_remove", "Token hoặc ClientId không tồn tại trong SharedPreferences")
+                Log.e(
+                    "dcm_error_remove",
+                    "Token hoặc ClientId không tồn tại trong SharedPreferences"
+                )
             }
         }
     }
+
     //hien thi don hang
     fun getUserOrders(context: Context) {
         viewModelScope.launch {
             val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
             val token = sharedPreferences.getString("accessToken", "")
             val clientId = sharedPreferences.getString("clientId", "")
-            val userId = sharedPreferences.getString("userId", "")  // bạn cần lưu userId sau khi login
+            val userId =
+                sharedPreferences.getString("userId", "")  // bạn cần lưu userId sau khi login
             Log.d("dcm_debug_order", "Token:$token")
             Log.d("dcm_debug_order", "ClientId: $clientId")
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
-                    val response = _repository.getUserOrders(userId.toString(),token, clientId)
+                    val response = _repository.getUserOrders(userId.toString(), token, clientId)
                     if (response.isSuccessful) {
                         response.body()?.let {
                             _orders.value = it.metadata.bills
@@ -328,7 +362,10 @@ class ProductViewModel : ViewModel() {
                         }
                     } else {
                         // Log chi tiết lỗi từ response.errorBody()
-                        Log.e("dcm_order", "Lỗi lấy danh sách đơn hàng: ${response.code()} - ${response.message()}")
+                        Log.e(
+                            "dcm_order",
+                            "Lỗi lấy danh sách đơn hàng: ${response.code()} - ${response.message()}"
+                        )
                         response.errorBody()?.let {
                             Log.e("dcm_order", "Chi tiết lỗi: ${it.string()}")
                         }
@@ -350,6 +387,41 @@ class ProductViewModel : ViewModel() {
             }
         }
     }
+
+    //hien thi chi tiet don hang
+    fun getOrderById(context: Context, orderId: String) {
+        viewModelScope.launch {
+            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            val token = sharedPreferences.getString("accessToken", "")
+            val clientId = sharedPreferences.getString("clientId", "")
+
+            Log.d("dcm_order_detail", "Gọi API lấy đơn hàng với id: $orderId")
+            Log.d("dcm_order_detail", "Token: $token")
+            Log.d("dcm_order_detail", "ClientId: $clientId")
+
+            if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
+                try {
+                    val response = _repository.getBillById(orderId, token, clientId)
+
+                    if (response.isSuccessful) {
+                        _selectedOrder.value = response.body()
+                        Log.d("dcm_order_detail", "Chi tiết đơn hàng: ${response.body()}")
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("dcm_order_detail", "Lỗi lấy chi tiết đơn hàng: ${response.code()} - ${response.message()}")
+                        Log.e("dcm_order_detail", "ErrorBody: $errorBody")
+                    }
+
+                } catch (e: Exception) {
+                    Log.e("dcm_order_detail", "Lỗi chung: ${e.message}")
+                    e.printStackTrace()
+                }
+            } else {
+                Log.e("dcm_order_detail", "Token hoặc ClientId bị null hoặc rỗng.")
+            }
+        }
+    }
+
 
     fun matchVariant(productId: String, selectedAttributes: Map<String, String>) {
         viewModelScope.launch {

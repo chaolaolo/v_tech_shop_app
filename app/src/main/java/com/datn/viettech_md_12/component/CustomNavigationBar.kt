@@ -52,7 +52,7 @@ fun CustomNavigationBar(navController: NavController, selectedRoute: String) {
     )
 
     NavigationBar(
-        containerColor = if (!isDarkTheme) Color(0xFFFFFFFF) else Color(0xFF1C1B1B),
+        containerColor = if (!isDarkTheme) Color(0xFFFFFFFF) else Color(0xFFFFFFFF),
     ) {
         navigationItems.forEach { item ->
             NavigationBarItem(
@@ -78,7 +78,7 @@ fun CustomNavigationBar(navController: NavController, selectedRoute: String) {
                 onClick = { navController.navigate(item.route) },
                 colors = NavigationBarItemColors(
                     selectedIconColor = if (!isDarkTheme) Color(0xFF21D4B4) else Color(0xFF21D4B4),
-                    selectedTextColor = if (!isDarkTheme) Color(0xFF1C1B1B) else Color(0xFFFFFFFF),
+                    selectedTextColor = if (!isDarkTheme) Color(0xFF1C1B1B) else Color(0xFF21D4B4),
                     selectedIndicatorColor = if (!isDarkTheme) Color.Unspecified else Color.Unspecified,
                     unselectedIconColor = if (!isDarkTheme) Color(0xFF6F7384) else Color(0xFF6F7384),
                     unselectedTextColor = if (!isDarkTheme) Color(0xFF6F7384) else Color(0xFF6F7384),
