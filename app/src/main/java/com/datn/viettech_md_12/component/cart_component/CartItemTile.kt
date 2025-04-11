@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -167,7 +165,7 @@ fun CartItemTile(
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontSize = 14.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 16.sp, color = Color.Black)
                 // Hiển thị danh sách các value của biến thể, cách nhau bởi dấu phẩy
-                val variantValues = product.variant?.values?.joinToString(", ") { it.value } ?: ""
+                val variantValues = product.variant_details?.values?.joinToString(", ") { it.value } ?: ""
                 if(!variantValues.isNullOrEmpty()){
                     Text(variantValues, fontSize = 13.sp, color = Color.Gray,maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 14.sp)
                 }

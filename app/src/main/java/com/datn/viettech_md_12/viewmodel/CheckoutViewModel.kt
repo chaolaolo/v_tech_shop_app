@@ -33,6 +33,8 @@ class CheckoutViewModel(application: Application) : ViewModel(){
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val _isLoadingSelectedCartItem = MutableStateFlow(true)
+    val isLoadingSelectedCartItem: StateFlow<Boolean> = _isLoadingSelectedCartItem
     val _isCheckoutLoading = MutableStateFlow(false)
     val isCheckoutLoading: StateFlow<Boolean> = _isCheckoutLoading
     private val _gettingAddress = MutableStateFlow(true)
@@ -134,7 +136,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     //Get checkout item by items selected in cart
     fun getIsSelectedItemInCart() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _isLoadingSelectedCartItem.value = true
             try {
                 val response = checkoutRepository.getIsSelectedItemInCart(
                     token = token?:"",
@@ -161,7 +163,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
             } catch (e: Exception) {
                 Log.e("getIsSelectedItemInCart", "Lỗi chung: ${e.message}", e)
             } finally {
-                _isLoading.value = false // Kết thúc trạng thái loading
+                _isLoadingSelectedCartItem.value = false // Kết thúc trạng thái loading
             }
         }
     }

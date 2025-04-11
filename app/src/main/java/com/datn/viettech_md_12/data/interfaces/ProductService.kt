@@ -4,10 +4,11 @@ import FavoriteListResponse
 import FavoriteRequest
 import FavoriteResponse
 import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.MatchVariantRequest
+import com.datn.viettech_md_12.data.model.MatchVariantResponse
 import com.datn.viettech_md_12.data.model.OrderListResponse
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
-import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.model.ProductResponse
 import com.datn.viettech_md_12.data.model.SearchResponse
 import retrofit2.Response
@@ -80,4 +81,11 @@ interface ProductService {
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
     ): Response<OrderListResponse>
+
+    //matchVariant
+    @POST("shop/products/{id}/match-variant")
+    suspend fun matchVariant(
+        @Path("id") id: String,
+        @Body request: MatchVariantRequest
+    ): MatchVariantResponse
 }

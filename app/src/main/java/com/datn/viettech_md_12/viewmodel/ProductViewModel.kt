@@ -7,7 +7,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.model.ProductResponse
@@ -43,6 +42,18 @@ class ProductViewModel : ViewModel() {
     //hien thi don hang
     private val _orders = MutableStateFlow<List<OrderModel>>(emptyList())
     val orders: StateFlow<List<OrderModel>> = _orders
+
+    // lưu variantId đã match
+    private val _matchedVariantId = MutableStateFlow<String?>(null)
+    val matchedVariantId: StateFlow<String?> = _matchedVariantId
+    private val _matchedVariantPrice = MutableStateFlow<Double?>(null)
+    val matchedVariantPrice: StateFlow<Double?> = _matchedVariantPrice
+
+    private val _bottomSheetType = MutableStateFlow("")
+    val bottomSheetType: StateFlow<String> = _bottomSheetType
+    fun setBottomSheetType(type: String) {
+        _bottomSheetType.value = type
+    }
     init {
         loadCategories()
         getAllProduct()
@@ -340,5 +351,104 @@ class ProductViewModel : ViewModel() {
         }
     }
 
+    fun matchVariant(productId: String, selectedAttributes: Map<String, String>) {
+        viewModelScope.launch {
+            try {
+                // 1. Chuyển đổi attribute names sang ids
+                val attributes = productResponse.value?.attributes ?: emptyList()
+                val convertedAttrs = selectedAttributes.mapNotNull { (name, value) ->
+                    attributes.find { it.name == name }?._id?.let { id -> id to value }
+                }.toMap()
 
+                Log.d("MatchVariant", "Converted attributes: $convertedAttrs")
+
+                // 2. Thêm fallback nếu không có variant khớp
+                val localVariantId = findMatchingVariantLocal(selectedAttributes)
+                Log.d("MatchVariant", "Product ID: $productId")
+                Log.d("MatchVariant", "Attributes: ${productResponse.value?.attributes}")
+                Log.d("MatchVariant", "Selected Attributes (names): $selectedAttributes")
+                Log.d("MatchVariant", "Converted Attributes (ids): $convertedAttrs")
+                // 3. Gọi API
+                val response = _repository.matchVariant(productId, convertedAttrs)
+                _matchedVariantId.value = response.variant.id
+                _matchedVariantPrice.value = response.variant.price
+                Log.d("MatchVariant", "Matched Variant ID: ${response.variant.id}")
+            } catch (e: Exception) {
+                Log.e("MatchVariant", "Error matching variant", e)
+                // Fallback: Tự match local nếu API fail
+                _matchedVariantId.value = findMatchingVariantLocal(selectedAttributes)
+                _matchedVariantPrice.value = findMatchingVariantPriceLocal(selectedAttributes)
+                if (_matchedVariantId.value == null) {
+                    Log.e("MatchVariant", "No matching variant found")
+                }
+            }
+        }
+    }
+
+    private fun findMatchingVariantLocal(selectedAttributes: Map<String, String>): String? {
+        val variants = productResponse.value?.variants ?: return null
+        val attributes = productResponse.value?.attributes ?: return null
+
+        return variants.firstOrNull { variant ->
+            selectedAttributes.all { (name, value) ->
+                variant.variantDetails.any { detail ->
+                    val attributeId = attributes.find { it.name == name }?._id
+                    detail.variantId == attributeId && detail.value == value
+                }
+            }
+        }?.id
+    }
+
+    private fun findMatchingVariantPriceLocal(selectedAttributes: Map<String, String>): Double? {
+        val variants = productResponse.value?.variants ?: return null
+        val attributes = productResponse.value?.attributes ?: return null
+
+        return variants.firstOrNull { variant ->
+            selectedAttributes.all { (name, value) ->
+                variant.variantDetails.any { detail ->
+                    val attributeId = attributes.find { it.name == name }?._id
+                    detail.variantId == attributeId && detail.value == value
+                }
+            }
+        }?.price
+    }
+
+
+    fun filterValidOptions(
+        selectedAttributes: Map<String, String>
+    ): Map<String, Set<String>> {
+        val variants = productResponse.value?.variants ?: return emptyMap()
+        val attributes = productResponse.value?.attributes ?: return emptyMap()
+
+        val attributeNameToIdMap = attributes.associate { it.name to it._id }
+        val selectedAttrWithIds = selectedAttributes.mapKeys { (name, _) ->
+            attributeNameToIdMap[name] ?: ""
+        }.filterKeys { it.isNotEmpty() }
+
+        val validOptions = mutableMapOf<String, MutableSet<String>>()
+
+        attributes.forEach { attribute ->
+            val attrId = attribute._id
+            val attrName = attribute.name
+            val validValues = mutableSetOf<String>()
+
+            val partialSelection = selectedAttrWithIds.filterKeys { it != attrId }
+
+            val possibleVariants = variants.filter { variant ->
+                partialSelection.all { (id, value) ->
+                    variant.variantDetails.any { it.variantId == id && it.value == value }
+                } && variant.stock > 0
+            }
+
+            possibleVariants.forEach { variant ->
+                variant.variantDetails.find { it.variantId == attrId }?.let { detail ->
+                    validValues.add(detail.value)
+                }
+            }
+
+            validOptions[attrName] = validValues
+        }
+
+        return validOptions
+    }
 }

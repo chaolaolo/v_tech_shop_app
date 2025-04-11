@@ -131,7 +131,6 @@ data class ProductModel(
         )
 
     }
-
 }
 data class ProductResponse(
     val success: Boolean,
@@ -151,3 +150,23 @@ data class SearchResponse(
     val success: Boolean,
     val products: List<ProductModel>
 )
+
+
+data class MatchVariantRequest(
+    @SerializedName("selectedAttributes")
+    val selectedAttributes: Map<String, String>,
+)
+data class MatchVariantResponse(
+    val success: Boolean,
+    @SerializedName("variant")
+    val variant: Variant,
+){
+    data class Variant(
+        @SerializedName("_id")
+        val id: String,
+        val price: Double,
+        val stock: Int,
+        val sku: String
+    )
+
+}

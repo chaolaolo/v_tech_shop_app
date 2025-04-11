@@ -1,7 +1,6 @@
 package com.datn.viettech_md_12.component.checkout
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -37,12 +35,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.viewmodel.CartViewModel
@@ -121,13 +117,14 @@ fun CheckoutItemTile(
                             overflow = TextOverflow.Ellipsis,
                         )
                         val variantValues =
-                            product.variant?.values?.joinToString(", ") { it.value } ?: ""
+                            product.variant_details?.values?.joinToString(", ") { it.value } ?: ""
                         if (!variantValues.isNullOrEmpty()) {
                             Text(
                                 variantValues,
                                 fontSize = 12.sp,
-                                color = Color.Black,
+                                color = Color.Gray,
                                 fontWeight = FontWeight.W500,
+                                lineHeight = 14.sp
                             )
                         }
                         Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500, color = Color.Black)
