@@ -32,6 +32,8 @@ class ProductViewModel : ViewModel() {
     val productResponse = MutableStateFlow<ProductResponse?>(null)
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val _isLoadingFavourite = MutableStateFlow(true)
+    val isLoadingFavourite: StateFlow<Boolean> = _isLoadingFavourite
 
     private val myColorHexList = listOf("FF1C1B1B", "FF08E488", "FF21D4B4")
 
@@ -270,7 +272,7 @@ class ProductViewModel : ViewModel() {
 
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
-                    _isLoading.value = true
+                    _isLoadingFavourite.value = true
                     val response = _repository.getFavoriteProducts(token, clientId)
                     if (response.isSuccessful) {
                         response.body()?.let {
@@ -295,7 +297,7 @@ class ProductViewModel : ViewModel() {
                 } catch (e: Exception) {
                     Log.e("dcm_error_fav", "Lỗi chung: ${e.message}")
                 } finally {
-                    _isLoading.value = false
+                    _isLoadingFavourite.value = false
                 }
             } else {
                 Log.e("dcm_error_fav", "Token hoặc ClientId không tồn tại")
