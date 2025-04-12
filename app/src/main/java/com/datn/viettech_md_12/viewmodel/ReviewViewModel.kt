@@ -16,8 +16,8 @@ class ReviewViewModel(application: Application) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _addReviewResult = MutableStateFlow<Result<ReviewResponseAddUp>?>(null)
-    val addReviewResult: StateFlow<Result<ReviewResponseAddUp>?> = _addReviewResult
+    private val _addReviewResult = MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
+    val addReviewResult: StateFlow<Result<BaseResponse<ReviewResponseAddUp>>?> = _addReviewResult
 
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
     val reviews: StateFlow<List<Review>> = _reviews
@@ -25,8 +25,8 @@ class ReviewViewModel(application: Application) : ViewModel() {
     private val _reviewStats = MutableStateFlow<Result<ReviewStats>?>(null)
     val reviewStats: StateFlow<Result<ReviewStats>?> = _reviewStats
 
-    private val _updateReviewResult = MutableStateFlow<Result<ReviewResponseAddUp>?>(null)
-    val updateReviewResult: StateFlow<Result<ReviewResponseAddUp>?> = _updateReviewResult
+    private val _updateReviewResult = MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
+    val updateReviewResult: StateFlow<Result<BaseResponse<ReviewResponseAddUp>>?> = _updateReviewResult
 
     private val _userReviewStatus = MutableStateFlow<Boolean>(false)
     val userReviewStatus: StateFlow<Boolean> = _userReviewStatus
@@ -62,7 +62,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
         }
     }
 
-    fun updateReview(reviewId: String, contentsReview: String, images: List<String>) {
+    fun updateReview(reviewId: String, contentsReview: String,rating: Int, images: List<String>) {
         val token = sharedPreferences.getString("accessToken", "") ?: ""
         val clientId = sharedPreferences.getString("clientId", "") ?: ""
 
@@ -74,8 +74,9 @@ class ReviewViewModel(application: Application) : ViewModel() {
                     clientId = clientId,
                     reviewId = reviewId,
                     contentsReview = contentsReview,
-                    imageIds = images
-                )
+                    rating = rating,
+                    imageIds = images,
+                    )
                 _updateReviewResult.value = result
             } finally {
                 _isLoading.value = false
@@ -116,6 +117,9 @@ class ReviewViewModel(application: Application) : ViewModel() {
                 _isLoading.value = false
             }
         }
+    }
+    fun getCurrentUserId(): String {
+        return sharedPreferences.getString("clientId", "") ?: ""
     }
 
     fun getReviewStats(productId: String) {

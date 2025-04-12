@@ -15,7 +15,7 @@ class ReviewRepository(private val reviewService: ReviewService) {
         contentsReview: String,
         rating: Int,
         imageIds: List<String>
-    ): Result<ReviewResponseAddUp> {
+    ): Result<BaseResponse<ReviewResponseAddUp>> {
         return try {
             val request = AddReviewRequest(
                 account_id = accountId,
@@ -43,12 +43,14 @@ class ReviewRepository(private val reviewService: ReviewService) {
         clientId: String,
         reviewId: String,
         contentsReview: String,
-        imageIds: List<String>
-    ): Result<ReviewResponseAddUp> {
+        imageIds: List<String>,
+        rating: Int
+    ): Result<BaseResponse<ReviewResponseAddUp>> {
         return try {
             val request = UpdateReviewRequest(
                 contents_review = contentsReview,
-                imageIds = imageIds
+                rating=rating,
+                image_ids = imageIds,
             )
             val response = reviewService.updateReview(reviewId, request, token, clientId)
 

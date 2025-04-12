@@ -38,7 +38,7 @@ interface ReviewService {
         @Body request: AddReviewRequest,
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
-    ): Response<ReviewResponseAddUp>
+    ): Response<BaseResponse<ReviewResponseAddUp>>
 
     // Cập nhật một đánh giá
     @Headers("Content-Type: application/json", "x-api-key: $API_KEY")
@@ -48,5 +48,5 @@ interface ReviewService {
         @Body request: UpdateReviewRequest,
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
-    ): Response<ReviewResponseAddUp>
+    ): Response<BaseResponse<ReviewResponseAddUp>>
 }
