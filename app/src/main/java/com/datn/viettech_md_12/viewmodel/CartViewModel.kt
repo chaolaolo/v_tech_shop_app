@@ -292,15 +292,19 @@ class CartViewModel(application: Application) : ViewModel() {
                     val formatter = DateTimeFormatter.ISO_DATE
 
                     val filteredMetadata = body?.data?.filter { discount ->
+                        val startDateStr = discount.startDate
                         val endDateStr = discount.endDate ?: discount.expirationDate
-                        endDateStr?.let {
-                            try {
-                                val endDate = LocalDate.parse(it.substring(0, 10), formatter)
-                                !endDate.isBefore(currentDate) // Chưa hết hạn
-                            } catch (e: Exception) {
-                                true // Nếu không parse được thì vẫn giữ lại
-                            }
-                        } ?: true // Nếu không có ngày thì giữ lại (giả định là chưa hết hạn)
+                        val isActive = try {
+                            val startDate = startDateStr?.let { LocalDate.parse(it.substring(0, 10), formatter) }
+                            val endDate = endDateStr?.let { LocalDate.parse(it.substring(0, 10), formatter) }
+                            val started = startDate?.let { !currentDate.isBefore(it) } ?: true
+                            val notExpired = endDate?.let { !currentDate.isAfter(it) } ?: true
+
+                            started && notExpired
+                        } catch (e: Exception) {
+                            false
+                        }
+                        isActive
                     } ?: emptyList()
                     val filteredResponse = body?.copy(data = filteredMetadata)
                     _discountState.value = Response.success(filteredResponse)
@@ -322,7 +326,7 @@ class CartViewModel(application: Application) : ViewModel() {
             } catch (e: Exception) {
                 Log.e("getListDisCount", "Lỗi chung: ${e.message}", e)
             } finally {
-                _isLoading.value = false // Kết thúc trạng thái loading
+                _isLoading.value = false
             }
         }
     }
