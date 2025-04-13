@@ -39,6 +39,8 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     val isCheckoutLoading: StateFlow<Boolean> = _isCheckoutLoading
     private val _gettingAddress = MutableStateFlow(true)
     val gettingAddress: StateFlow<Boolean> = _gettingAddress
+    val _paymentUrl = MutableStateFlow<String?>(null)
+    val paymentUrl: StateFlow<String?> = _paymentUrl
 
     private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val token: String? = sharedPreferences.getString("accessToken", null)
@@ -196,12 +198,20 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                 )
 
                 if (response.isSuccessful) {
-                    getIsSelectedItemInCart()
-                    cartService.getCart(
-                        token = token?:"",
-                        userId = userId?:"",
-                        userIdQuery = userId?:""
-                    )
+                    val body = response.body()
+                    if (payment_method == "vnpay" && body?.metadata?.paymentUrl != null) {
+                        // lưu payment URL
+//                        getIsSelectedItemInCart()
+                        _paymentUrl.value = body.metadata.paymentUrl
+                    } else {
+                        getIsSelectedItemInCart()
+                        cartService.getCart(
+                            token = token?:"",
+                            userId = userId?:"",
+                            userIdQuery = userId?:""
+                        )
+                        _paymentUrl.value = null
+                    }
                     val dc = response.body()?.metadata?.discountCode
                     Log.d("checkout", "request: $request")
                     Log.d("checkout", "discount_code: $dc")

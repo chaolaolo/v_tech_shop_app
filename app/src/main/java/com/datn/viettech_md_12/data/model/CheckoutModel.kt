@@ -42,6 +42,7 @@ data class BillResponse(
     @SerializedName("metadata") val metadata: BillMetadata
 ) {
     data class BillMetadata(
+        //cast
         @SerializedName("user_id") val userId: String,
         @SerializedName("products") val products: List<BillProduct>,
         @SerializedName("total") val total: Double,
@@ -55,6 +56,13 @@ data class BillResponse(
         @SerializedName("discount_code") val discountCode: String?,
         @SerializedName("discount_amount") val discountAmount: Int,
         @SerializedName("_id") val id: String,
+        @SerializedName("isPay") val isPay: Boolean,
+
+        //vnpay
+        @SerializedName("code") val code: String,
+        @SerializedName("message") val message: String,
+        @SerializedName("paymentUrl") val paymentUrl: String,
+        @SerializedName("billId") val billId: String,
     ) {
         data class BillProduct(
             @SerializedName("productId") val productId: String,
