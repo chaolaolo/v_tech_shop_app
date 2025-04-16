@@ -195,22 +195,22 @@ fun ProfileHeader() {
 }
 
 fun logout(context: Context) {
-    val sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-
-    // Đặt lại trạng thái đăng nhập = false
-    sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
-
-    // Tạo Intent để chuyển đến màn hình Onboarding
-    val intent = Intent(context, OnbroadingActivity::class.java)
-
-    // Xóa hết backstack
-    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    context.startActivity(intent)
-
-    // Kết thúc Activity hiện tại
-    if (context is Activity) {
-        context.finish()
-    }
+//    val sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+//
+//    // Đặt lại trạng thái đăng nhập = false
+//    sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+//
+//    // Tạo Intent để chuyển đến màn hình Onboarding
+//    val intent = Intent(context, OnbroadingActivity::class.java)
+//
+//    // Xóa hết backstack
+//    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//    context.startActivity(intent)
+//
+//    // Kết thúc Activity hiện tại
+//    if (context is Activity) {
+//        context.finish()
+//    }
 }
 
 @Composable

@@ -89,6 +89,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     response.body()?.let { body ->
                         val token = body.result?.metadata?.tokens?.accessToken
+                        val refreshToken = body.result?.metadata?.tokens?.refreshToken
                         val userId = body.result?.metadata?.account?._id
 
                         Log.d("dcm_debug_signin", "Token nhận được: $token")
@@ -101,6 +102,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                                 context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
+                                .putString("refreshToken", refreshToken)
                                 .putString("clientId", userId)
                                 .putString("userId", userId)  // Lưu userId
                                 .putString("fullname", body.result?.metadata?.account?.full_name)
