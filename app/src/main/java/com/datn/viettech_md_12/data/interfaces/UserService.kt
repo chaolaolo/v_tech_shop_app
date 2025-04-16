@@ -8,6 +8,7 @@ import LoginResponse
 import MessageResponse
 import RegisterRequest
 import RegisterResponse
+import Tokens
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Header
@@ -40,5 +41,10 @@ interface UserService {
 
     @POST("account/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<MessageResponse>
+    @Headers(
+        "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
+    )
+    @POST("access/logout")
+    suspend fun logout(@Body tokens: Tokens): Response<MessageResponse>
 
 }

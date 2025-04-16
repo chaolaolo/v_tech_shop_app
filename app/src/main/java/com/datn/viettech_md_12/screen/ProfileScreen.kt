@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,9 +36,11 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.screen.authentication.OnbroadingActivity
+import com.datn.viettech_md_12.viewmodel.UserViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -154,6 +157,7 @@ fun ProfileHeader() {
     val token = sharedPreferences.getString("accessToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
+    val userViewModel: UserViewModel = viewModel() // Khởi tạo UserViewModel
 
     val isLoggedIn = !token.isNullOrEmpty()&&!fullName.isNullOrEmpty()&&!email.isNullOrEmpty()
 
@@ -184,7 +188,23 @@ fun ProfileHeader() {
         }
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = {
-            logout(context)
+            userViewModel.logout(context = context,
+                onSuccess = { message ->
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    // Tạo Intent để chuyển đến màn hình Onboarding
+                    val intent = Intent(context, OnbroadingActivity::class.java)
+                    // Xóa hết backstack
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    context.startActivity(intent)
+
+                    // Kết thúc Activity hiện tại
+                    if (context is Activity) {
+                        context.finish()
+                    }
+                },
+                onError = { errorMessage ->
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                })
         }) {
             Icon(
                 painter = painterResource(R.drawable.ic_logout_profile),
@@ -194,7 +214,7 @@ fun ProfileHeader() {
     }
 }
 
-fun logout(context: Context) {
+//fun logout(context: Context) {
 //    val sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
 //
 //    // Đặt lại trạng thái đăng nhập = false
@@ -211,7 +231,7 @@ fun logout(context: Context) {
 //    if (context is Activity) {
 //        context.finish()
 //    }
-}
+//}
 
 @Composable
 fun ProfileTitle(title: String) {
