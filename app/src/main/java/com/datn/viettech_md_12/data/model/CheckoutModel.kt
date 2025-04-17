@@ -8,7 +8,10 @@ data class CheckoutModel(
     @SerializedName("phone_number") val phone_number: String,
     @SerializedName("receiver_name") val receiver_name: String,
     @SerializedName("payment_method") val payment_method: String,
-    @SerializedName("discount_code") val discount_code: String? = null
+    @SerializedName("discount_code") val discount_code: String? = null,
+    @SerializedName("detailsVariantId") val detailsVariantId: String? = null,
+    @SerializedName("productId") val productId: String? = null,
+    @SerializedName("quantity") val quantity: Int? = null,
 )
 
 data class AddressModel(

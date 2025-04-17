@@ -242,6 +242,83 @@ class CheckoutViewModel(application: Application) : ViewModel(){
         }
     }
 
+    //checkout now
+    fun checkoutNow(
+        address: String,
+        phone_number: String,
+        receiver_name: String,
+        payment_method: String,
+        discount_code:String,
+        detailsVariantId:String,
+        productId:String,
+        quantity:Int,
+        ) {
+        viewModelScope.launch {
+            Log.d("checkoutNow", "clientId: $userId")
+            _isCheckoutLoading.value = true
+            try {
+                val request = CheckoutModel(
+                    userId = userId ?: "",
+                    address = address,
+                    phone_number = phone_number,
+                    receiver_name = receiver_name,
+                    payment_method = payment_method,
+                    discount_code = discount_code,
+                    detailsVariantId = detailsVariantId,
+                    productId = productId,
+                    quantity = quantity
+                )
+                val response = checkoutRepository.checkoutNow(
+                    token = token ?: "",
+                    clientId = userId ?: "",
+                    request = request,
+                )
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (payment_method == "vnpay" && body?.metadata?.paymentUrl != null) {
+                        // lưu payment URL
+//                        getIsSelectedItemInCart()
+                        _paymentUrl.value = body.metadata.paymentUrl
+                    } else {
+                        getIsSelectedItemInCart()
+                        cartService.getCart(
+                            token = token?:"",
+                            userId = userId?:"",
+                            userIdQuery = userId?:""
+                        )
+                        _paymentUrl.value = null
+                    }
+                    val dc = response.body()?.metadata?.discountCode
+                    Log.d("checkoutNow", "request: $request")
+                    Log.d("checkoutNow", "discount_code: $dc")
+                    Log.d("checkoutNow", "Checkout Success - Raw: ${response.raw()}")
+                    Log.d("checkoutNow", "Checkout Success - Body: ${response.body()}")
+                    Log.d("checkoutNow", "Checkout Success - Headers: ${response.headers()}")
+                } else {
+                    Log.e("checkoutNow", "Checkout Failed: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: UnknownHostException) {
+                val errorMsg = "Lỗi mạng: Không thể kết nối với máy chủ"
+                Log.e("checkoutNow", errorMsg, e)
+            } catch (e: SocketTimeoutException) {
+                val errorMsg = "Lỗi mạng: Đã hết thời gian chờ"
+                Log.e("checkoutNow", errorMsg, e)
+            } catch (e: HttpException) {
+                val errorMsg = "Lỗi HTTP: ${e.message()}"
+                Log.e("checkoutNow", errorMsg, e)
+            } catch (e: JsonSyntaxException) {
+                val errorMsg = "Lỗi dữ liệu: Invalid JSON response"
+                Log.e("checkoutNow", errorMsg, e)
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "Lỗi không xác định"
+                Log.e("checkoutNow", errorMsg, e)
+            } finally {
+                _isCheckoutLoading.value = false
+            }
+        }
+    }
+
 }
 
 

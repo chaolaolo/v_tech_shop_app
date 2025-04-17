@@ -85,6 +85,7 @@ import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 data class PaymentMethod(
     val displayName: String,
@@ -114,6 +115,8 @@ fun PaymentUI(
     val isLoadingProduct by productViewModel.isLoading.collectAsState()
     val isCheckoutLoading by checkoutViewModel.isCheckoutLoading.collectAsState()
     val paymentUrl by checkoutViewModel.paymentUrl.collectAsState()
+    val variantId by productViewModel.matchedVariantId.collectAsState()
+    val productResponse by productViewModel.productResponse.collectAsState()
 
     // Thêm state cho sản phẩm mua ngay
     val product by productViewModel.product.collectAsState()
@@ -142,11 +145,14 @@ fun PaymentUI(
                 quantity = quantityState.intValue,
                 image = it.productThumbnail,
                 isSelected = true,
-                detailsVariantId = "",
+                detailsVariantId = variantId ?: "",
                 variant_details = null,
                 stock = it.productStock,
                 product_details = null,
             )
+            if (productResponse?.attributes?.isNotEmpty() == true) {
+                productViewModel.matchVariant(productId, emptyMap())
+            }
         }
     }
 
@@ -539,13 +545,14 @@ fun PaymentUI(
                                 showOutOfStockDialog.value = true
                             } else {
                                 if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
-                                    checkoutViewModel.checkout(
-                                        address = address,
-                                        phone_number = phone,
-                                        receiver_name = name,
-                                        payment_method = selectedPayOption.apiValue,
-                                        discount_code = discount,
-                                    )
+                                    if(fromCart){
+                                        checkoutViewModel.checkout(
+                                            address = address,
+                                            phone_number = phone,
+                                            receiver_name = name,
+                                            payment_method = selectedPayOption.apiValue,
+                                            discount_code = discount,
+                                        )
                                     Log.d(
                                         "PaymentUI",
                                         "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
@@ -554,6 +561,24 @@ fun PaymentUI(
                                     Log.d("PaymentUI", "selectedPayOption.apiValue: $paymentUrl")
                                     if (selectedPayOption.apiValue != "vnpay") {
                                         navController.navigate("order_successfully")
+                                    }
+                                    }else{
+                                        directPurchaseProduct?.let { product ->
+                                            checkoutViewModel.checkoutNow(
+                                                address = address,
+                                                phone_number = phone,
+                                                receiver_name = name,
+                                                payment_method = selectedPayOption.apiValue,
+                                                discount_code = discount,
+                                                productId = product.productId,
+                                                detailsVariantId = product.detailsVariantId ?: "",
+                                                quantity = product.quantity
+                                            )
+
+                                            if (selectedPayOption.apiValue != "vnpay") {
+                                                navController.navigate("order_successfully")
+                                            }
+                                        }
                                     }
                                 } else {
                                     Toast.makeText(
