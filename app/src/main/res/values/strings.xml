@@ -18,4 +18,18 @@
     <string name="dark_theme">Chủ đề tối</string>
     <string name="title_activity_test_sign_up_api">TestSignUpApi</string>
     <string name="title_activity_splash_screen">SplashScreen</string>
+    <string name="login_success">Đăng nhập thành công!</string>
+    <string name="logiin_failed">Sai tên đăng nhập hoặc mật khẩu.</string>
+    <string name="validate_login_password">Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.</string>
+    <string name="username_failed">Tên đăng nhập không hợp lệ.</string>
+    <string name="validate_pass">Mật khẩu phải có ít nhất 6 ký tự.</string>
+    <string name="validate_check_all">Vui lòng điền đầy đủ thông tin.</string>
+    <string name="validate_user_name_register">Tên đăng nhập không được chứa ký tự đặc biệt.</string>
+    <string name="register_success">Đăng ký thành công!</string>
+    <string name="invalid_full_name">Họ tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng).</string>
+    <string name="invalid_email">Email không đúng định dạng.</string>
+    <string name="password_no_spaces">Mật khẩu không được chứa khoảng trắng.</string>
+    <string name="password_too_short">Mật khẩu phải có ít nhất 6 ký tự.</string>
+    <string name="password_requirements">Mật khẩu phải bao gồm cả chữ cái và số.</string>
+    <string name="order_infomation">Thông tin đơn hàng</string>
 </resources>

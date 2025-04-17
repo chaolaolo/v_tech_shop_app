@@ -39,6 +39,8 @@ fun MyTextField(
             containerColor = Color.White,
             focusedBorderColor = Color(0xFF21D4B4),
             unfocusedBorderColor = Color(0xFFC9C9D3),
+            focusedPlaceholderColor = Color.Black,
+            unfocusedPlaceholderColor = Color.Black,
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Black,
             disabledTextColor = Color.Gray,

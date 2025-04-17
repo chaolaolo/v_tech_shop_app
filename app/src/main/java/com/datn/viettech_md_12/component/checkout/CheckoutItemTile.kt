@@ -1,7 +1,6 @@
 package com.datn.viettech_md_12.component.checkout
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -18,11 +17,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,12 +34,11 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.viewmodel.CartViewModel
@@ -50,6 +52,8 @@ fun CheckoutItemTile(
     product: CartModel.Metadata.CartProduct,
     cartViewModel: CartViewModel,
     checkoutViewModel: CheckoutViewModel,
+    onQuantityChange: (Int) -> Unit,
+    snackbarHostState: SnackbarHostState,
 ) {
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
@@ -60,7 +64,10 @@ fun CheckoutItemTile(
 
     val itemPrice = product.price
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
-    val quantityState = remember { mutableStateOf(product.quantity) }
+    var quantityState by remember { mutableIntStateOf(product.quantity) }
+    LaunchedEffect(quantityState) {
+        onQuantityChange(quantityState)
+    }
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
@@ -105,20 +112,22 @@ fun CheckoutItemTile(
                             product.name,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.W600,
+                            color = Color.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                         val variantValues =
-                            product.variant?.values?.joinToString(", ") { it.value } ?: ""
+                            product.variant_details?.values?.joinToString(", ") { it.value } ?: ""
                         if (!variantValues.isNullOrEmpty()) {
                             Text(
                                 variantValues,
                                 fontSize = 12.sp,
                                 color = Color.Gray,
                                 fontWeight = FontWeight.W500,
+                                lineHeight = 14.sp
                             )
                         }
-                        Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500)
+                        Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500, color = Color.Black)
                     }
                     Row(
                         modifier = Modifier
@@ -133,49 +142,70 @@ fun CheckoutItemTile(
                     ) {
                         IconButton(
                             onClick = {
-//                            if (product.quantity > 1) onQuantityChange(product.productId, product.quantity - 1)
-                                if (quantityState.value > 1) {
-                                    quantityState.value -= 1
+                                if (quantityState > 1) {
+                                    quantityState -= 1
+                                    onQuantityChange(quantityState)
                                     coroutineScope.launch {
                                         cartViewModel.updateProductQuantity(
                                             productId = product.productId,
                                             variantId = product.detailsVariantId ?: "",
-                                            newQuantity = quantityState.value,
+                                            newQuantity = quantityState,
                                         )
                                         // Sau khi cập nhật xong, refresh lại danh sách
                                         checkoutViewModel.refreshSelectedItems()
                                     }
                                 }
                             },
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp),
+                            enabled = quantityState > 1
                         ) {
-                            Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                            Icon(
+                                Icons.Default.Remove, contentDescription = "Decrease",
+                                tint = if (quantityState > 1) Color.Black else Color.Gray
+                            )
                         }
-                        androidx.compose.material.Text(
-                            "${quantityState.value}",
-                            modifier = Modifier.padding(horizontal = 12.dp)
+                        Text(
+                            if (product?.stock == 0) "0" else "${quantityState}",
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = Color.Black
                         )
                         IconButton(
                             onClick = {
-//                            onQuantityChange(product.productId, product.quantity + 1)
-                                quantityState.value += 1
-                                coroutineScope.launch {
-                                    cartViewModel.updateProductQuantity(
-                                        productId = product.productId,
-                                        variantId = product.detailsVariantId ?: "",
-                                        newQuantity = quantityState.value,
-                                    )
-                                    checkoutViewModel.refreshSelectedItems()
+                                if (quantityState < (product?.stock ?: Int.MAX_VALUE)) {
+                                    quantityState += 1
+                                    onQuantityChange(quantityState)
+                                    coroutineScope.launch {
+                                        cartViewModel.updateProductQuantity(
+                                            productId = product.productId,
+                                            variantId = product.detailsVariantId ?: "",
+                                            newQuantity = quantityState,
+                                        )
+                                        checkoutViewModel.refreshSelectedItems()
+                                    }
+                                } else if (product!!.stock == 1) {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.stock} trong kho")
+                                    }
                                 }
                             },
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp),
+                            enabled = quantityState < (product?.stock ?: Int.MAX_VALUE)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Increase")
+                            Icon(
+                                Icons.Default.Add, contentDescription = "Increase",
+                                tint = if (quantityState < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                            )
                         }
                     }
                 }
             }
         }
+        if (product.stock == 0) {
+            Text("Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.End)
+                .padding(horizontal = 16.dp))
+        } else {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -184,7 +214,7 @@ fun CheckoutItemTile(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                "Số lượng ${quantityState.value}, tổng cộng ",
+                "Số lượng ${quantityState}, tổng cộng ",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
                 color = Color.Black
@@ -192,7 +222,7 @@ fun CheckoutItemTile(
             Text(
                 "${
                     NumberFormat.getNumberInstance(Locale("vi", "VN"))
-                        .format(quantityState.value * itemPrice)
+                        .format(quantityState * itemPrice)
                 }₫",
 //             textAlign = TextAlign.End,
                 fontSize = 12.sp,
@@ -200,5 +230,6 @@ fun CheckoutItemTile(
                 fontWeight = FontWeight.W600
             )
         }
+    }
     }
 }

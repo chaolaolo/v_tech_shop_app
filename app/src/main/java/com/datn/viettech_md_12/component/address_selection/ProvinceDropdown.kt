@@ -96,6 +96,7 @@ fun ProvinceDropdown(
                 focusedBorderColor = Color(0xFF21D4B4),
                 unfocusedBorderColor = Color(0xFFE5E6EC),
                 focusedLabelColor = Color(0xFF21D4B4),
+                unfocusedLabelColor = Color.Black,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
                 disabledTextColor = Color.Gray,
@@ -120,7 +121,7 @@ fun ProvinceDropdown(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White, shape = RoundedCornerShape(8.dp)),
-                    placeholder = { Text("Tìm kiếm...", color = Color.Gray) },
+                    placeholder = { Text("Tìm kiếm...") },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
                     },
@@ -129,6 +130,10 @@ fun ProvinceDropdown(
                         containerColor = Color.White,
                         focusedBorderColor = Color(0xFF21D4B4),
                         unfocusedBorderColor = Color(0xFFF4F5FD),
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        unfocusedPlaceholderColor = Color.Black,
                         focusedTextColor = Color.Black,
                         unfocusedTextColor = Color.Black,
                         disabledTextColor = Color.Gray,

@@ -47,6 +47,7 @@ import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -59,6 +60,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SmallTopAppBar
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -164,7 +166,33 @@ fun CartScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 10.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    snackbar = { data ->
+                        Snackbar(
+                            modifier = Modifier.padding(8.dp),
+                            action = {
+                                TextButton(
+                                    onClick = { data.dismiss() },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        contentColor = Color.White
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Đóng")
+                                }
+                            }
+                        ) {
+                            Text(data.visuals.message, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                )
+            }
         },
         sheetPeekHeight = 0.dp,
         sheetDragHandle = { },
@@ -288,14 +316,27 @@ fun CartScreen(
                         MyButton(
                             text = "Xác nhận",
                             onClick = {
-                                selectedVoucherId.value?.let { voucherId ->
-                                    val selectedVoucherId = listDiscount.firstOrNull { it.id == voucherId }
-                                    selectedVoucherId?.let {
-//                                        cartViewModel.applyDiscount(it.code ?: "")
-                                        selectedVoucher.value = it
+                                val enteredCode = voucherCode.value
+                                val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
+                                if (matchingVoucher != null) {
+                                    selectedVoucherId.value = matchingVoucher.id
+                                    selectedVoucher.value = matchingVoucher
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Áp dụng mã thành công!")
+                                    }
+                                    scope.launch { scaffoldState.bottomSheetState.hide() }
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Mã không hợp lệ.")
                                     }
                                 }
-                                scope.launch { scaffoldState.bottomSheetState.hide() }
+//                                selectedVoucherId.value?.let { voucherId ->
+//                                    val selectedVoucherId = listDiscount.firstOrNull { it.id == voucherId }
+//                                    selectedVoucherId?.let {
+////                                        cartViewModel.applyDiscount(it.code ?: "")
+//                                        selectedVoucher.value = it
+//                                    }
+//                                }
                             },
                             modifier = Modifier,
                             backgroundColor = Color.Black,
@@ -375,7 +416,8 @@ fun CartScreen(
                             cartProducts = cart.metadata?.cart_products?: emptyList(),
                             selectedItems = selectedItems,
                             cartViewModel = cartViewModel,
-                            selectedVoucher = selectedVoucher.value
+                            selectedVoucher = selectedVoucher.value,
+                            snackbarHostState = snackbarHostState
                         )
                     }
                 }
@@ -391,6 +433,7 @@ fun CartContent(
     selectedItems: MutableList<String>,
     cartViewModel: CartViewModel,
     selectedVoucher: DiscountResponse.DiscountModel? = null,
+    snackbarHostState: SnackbarHostState
 ) {
     var isDeleting by remember { mutableStateOf(false) }
     // Hiển thị dialog loading khi đang xóa
@@ -443,6 +486,7 @@ fun CartContent(
                         navController,
                         cartViewModel = cartViewModel,
                         onDeletingStateChange = { deleting-> isDeleting = deleting },
+                        snackbarHostState = snackbarHostState
                     )
                 }
             }

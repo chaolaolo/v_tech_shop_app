@@ -5,7 +5,10 @@ import FavoriteRequest
 import FavoriteResponse
 import android.util.Log
 import com.datn.viettech_md_12.data.interfaces.ProductService
+import com.datn.viettech_md_12.data.model.MatchVariantRequest
+import com.datn.viettech_md_12.data.model.MatchVariantResponse
 import com.datn.viettech_md_12.data.model.OrderListResponse
+import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.Product
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
@@ -60,6 +63,31 @@ class ProductRepository(
     //hien thi don hang
     suspend fun getUserOrders(userId: String,token: String, clientId: String): Response<OrderListResponse> {
         return apiService.getUserOrders(userId,token, clientId)
+    }
+    //hien thi chi tiet don hang
+    suspend fun getBillById(orderId : String, token: String,clientId: String) :Response<OrderModel>{
+        return apiService.getBillById(orderId,token, clientId)
+    }
+
+    //matchVariant
+    suspend fun matchVariant(
+        productId: String,
+        attributes: Map<String, String>
+    ): MatchVariantResponse {
+        val request = MatchVariantRequest(selectedAttributes = attributes)
+        // Thêm logging để debug
+        Log.d("MatchVariant", "Sending request: productId=$productId, attributes=$attributes")
+        return try{
+            val response = apiService.matchVariant(
+                id = productId,
+                request = request,
+            )
+            Log.d("MatchVariant", "Response received: $response")
+            response
+        }catch (e: Exception) {
+            Log.e("MatchVariant", "Error: ${e.message}")
+            throw e
+        }
     }
 
 }

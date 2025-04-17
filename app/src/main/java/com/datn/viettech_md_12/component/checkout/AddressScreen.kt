@@ -59,7 +59,7 @@ fun AddressScreen(
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
     val checkoutState by checkoutViewModel.addressState.collectAsState()
-    val isLoading by checkoutViewModel.isLoading.collectAsState()
+    val isLoading by checkoutViewModel.gettingAddress.collectAsState()
     LaunchedEffect(Unit) {
         checkoutViewModel.getAddress()
     }

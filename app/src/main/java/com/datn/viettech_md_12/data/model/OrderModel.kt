@@ -1,5 +1,7 @@
 package com.datn.viettech_md_12.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class OrderListResponse(
     val message: String,
     val statusCode: Int,

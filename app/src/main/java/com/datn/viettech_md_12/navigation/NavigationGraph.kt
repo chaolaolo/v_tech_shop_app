@@ -9,10 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.datn.viettech_md_12.MyApplication
 import com.datn.viettech_md_12.component.CustomNavigationBar
 import com.datn.viettech_md_12.component.checkout.AddressScreen
@@ -30,6 +32,7 @@ import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
 import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
 import com.datn.viettech_md_12.screen.checkout.PaymentUI
 import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
+import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
 import com.datn.viettech_md_12.screen.profile_detail.ShippingScreen
@@ -93,13 +96,42 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("address_screen") { AddressScreen(navController) }
 //            composable("payment_ui") { PaymentUI(navController) }
-            composable("payment_ui/{discount}") { backStackEntry ->
+//            composable("payment_ui/{discount}") { backStackEntry ->
+//                val discount = backStackEntry.arguments?.getString("discount") ?: ""
+//                PaymentUI(navController, discount)
+//            }
+// Thêm 2 route riêng biệt cho 2 trường hợp
+            composable("payment_ui/cart/{discount}") { backStackEntry ->
                 val discount = backStackEntry.arguments?.getString("discount") ?: ""
-                PaymentUI(navController, discount)
+                PaymentUI(
+                    navController = navController,
+                    discount = discount,
+                    fromCart = true // Thêm flag để phân biệt
+                )
+            }
+
+            composable("payment_ui/product/{productId}/{quantity}", arguments = listOf(
+                navArgument("productId") { type = NavType.StringType },
+                navArgument("quantity") {
+                    type = NavType.IntType
+                    defaultValue = 1
+                }
+            )) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId") ?: ""
+                PaymentUI(
+                    navController = navController,
+                    productId = productId,
+                    quantity = backStackEntry.arguments?.getInt("quantity") ?: 1,
+                    fromCart = false // Thêm flag để phân biệt
+                )
             }
             composable("product_detail/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId") ?: ""
                 ProductDetailScreen(navController, productId)
+            }
+            composable("order_detail/{orderId}") { backStackEntry ->
+                val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                OrderDetailScreen( orderId,navController)
             }
             composable("category/{categoryId}") { backStackEntry ->
                 val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""

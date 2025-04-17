@@ -893,6 +893,7 @@ fun DistrictDropdown(
                 focusedBorderColor = Color(0xFF21D4B4),
                 unfocusedBorderColor = Color(0xFFC9C9D3),
                 focusedLabelColor = Color(0xFF21D4B4),
+                unfocusedLabelColor = Color.Black,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
                 disabledTextColor = Color.Gray,
@@ -918,7 +919,7 @@ fun DistrictDropdown(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White, shape = RoundedCornerShape(8.dp)),
-                    placeholder = { Text("Tìm kiếm...", color = Color.Gray) },
+                    placeholder = { Text("Tìm kiếm...") },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
                     },
@@ -927,6 +928,10 @@ fun DistrictDropdown(
                         containerColor = Color.White,
                         focusedBorderColor = Color(0xFF21D4B4),
                         unfocusedBorderColor = Color(0xFFC9C9D3),
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        unfocusedPlaceholderColor = Color.Black,
                         focusedTextColor = Color.Black,
                         unfocusedTextColor = Color.Black,
                         disabledTextColor = Color.Gray,

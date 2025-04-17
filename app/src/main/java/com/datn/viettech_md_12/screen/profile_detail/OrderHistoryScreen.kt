@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -164,8 +165,8 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (page) {
-                    0 -> OngoingOrdersScreen(ongoingOrders)
-                    1 -> CompletedOrdersScreen(completedOrders) // Truyền các đơn hàng đã hoàn thành
+                    0 -> OngoingOrdersScreen(ongoingOrders, navController)
+                    1 -> CompletedOrdersScreen(completedOrders, navController) // Truyền các đơn hàng đã hoàn thành
                 }
             }
         }
@@ -175,41 +176,43 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
 
 
 @Composable
-fun OngoingOrdersScreen(orderList: List<OrderModel>) {
+fun OngoingOrdersScreen(orderList: List<OrderModel>, navController: NavController) {
     if (orderList.isEmpty()) {
         EmptyOrderScreen()
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(orderList) { order ->
-                OrderCard(order)
+                OrderCard(order = order, navController = navController)
             }
         }
     }
 }
 
-
 @Composable
-fun CompletedOrdersScreen(completedOrders: List<OrderModel>) {
+fun CompletedOrdersScreen(completedOrders: List<OrderModel>, navController: NavController) {
     if (completedOrders.isEmpty()) {
         EmptyOrderScreen()
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(completedOrders) { order ->
-                OrderCardCompleted(order)
+                OrderCardCompleted(order = order, navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun OrderCard(order: OrderModel) {
+fun OrderCard(order: OrderModel,navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.products.first().price)
+    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable {
+                navController.navigate("order_detail/${order._id}")
+            }
     ) {
         Box(
             modifier = Modifier
@@ -255,14 +258,17 @@ fun OrderCard(order: OrderModel) {
     }
 }
 @Composable
-fun OrderCardCompleted(order: OrderModel) {
+fun OrderCardCompleted(order: OrderModel,navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.products.first().price)
+    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable {
+                navController.navigate("order_detail/${order._id}")
+            }
     ) {
         Box(
             modifier = Modifier

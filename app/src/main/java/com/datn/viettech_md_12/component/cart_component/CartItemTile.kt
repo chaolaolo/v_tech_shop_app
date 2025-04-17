@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,6 +29,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,7 +67,8 @@ fun CartItemTile(
     onDelete: (String, String) -> Unit,
     navController: NavController,
     cartViewModel: CartViewModel,
-    onDeletingStateChange: (Boolean) -> Unit
+    onDeletingStateChange: (Boolean) -> Unit,
+    snackbarHostState:SnackbarHostState
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val swipeThreshold = 250f
@@ -87,15 +87,13 @@ fun CartItemTile(
     var localIsSelected by remember { mutableStateOf(isSelected) }
     val itemPrice = product.price
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
             .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.5f) },
-                orientation = Orientation.Horizontal
+                state = swipeableState, anchors = anchors, thresholds = { _, _ -> FractionalThreshold(0.5f) }, orientation = Orientation.Horizontal
             )
             .background(
                 if (swipeableState.offset.value < -swipeThreshold / 2) Color.Red else Color.Transparent, shape = RoundedCornerShape(
@@ -104,50 +102,39 @@ fun CartItemTile(
             )
             .clip(RoundedCornerShape(10.dp))
     ) {
-        //nút xóa sp khỏi giỏ hàng
-        Box(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxHeight()
+                .width(100.dp)
+                .background(Color.Transparent)
+                .align(Alignment.CenterEnd)
                 .padding(end = 10.dp)
                 .clickable {
                     onDeletingStateChange(true)
                     onDelete(product.productId, variantIdToUse)
-                    cartViewModel.deleteCartItem(
-                        productId = product.productId,
-                        detailsVariantId = product.detailsVariantId ?: "",
-                        onSuccess = {
-                            // Có thể thêm thông báo thành công
-                            onDeletingStateChange(false)
-                            Log.d("CartItemTile", "Deleting productId: ${product.productId}, variantId: ${product.detailsVariantId}")
-                            Log.d("CartItemTile", "Xóa sản phẩm thành công")
-                        },
-                        onError = { error ->
-                            onDeletingStateChange(false)
-                            Log.e("CartItemTile", "Lỗi khi xóa sản phẩm: $error")
-                            // Có thể hiển thị Snackbar thông báo lỗi
-                        }
-                    )
+                    cartViewModel.deleteCartItem(productId = product.productId, detailsVariantId = product.detailsVariantId ?: "", onSuccess = {
+                        // Có thể thêm thông báo thành công
+                        onDeletingStateChange(false)
+                        Log.d("CartItemTile", "Deleting productId: ${product.productId}, variantId: ${product.detailsVariantId}")
+                        Log.d("CartItemTile", "Xóa sản phẩm thành công")
+                    }, onError = { error ->
+                        onDeletingStateChange(false)
+                        Log.e("CartItemTile", "Lỗi khi xóa sản phẩm: $error")
+                        // Có thể hiển thị Snackbar thông báo lỗi
+                    })
                     Log.d("CartItemTile", "ondelete: clicked")
                 },
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            Row(
-                modifier = Modifier
-                    .height(80.dp),
-                verticalAlignment = Alignment.CenterVertically,
+
             ) {
-                Text(
-                    text = "Xóa",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.White
-                )
-            }
+            Text(
+                text = "Xóa", color = Color.White, fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                Icons.Default.Delete, contentDescription = "Delete", tint = Color.White
+            )
         }
 
         // nội dung của item
@@ -178,56 +165,73 @@ fun CartItemTile(
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontSize = 14.sp, fontWeight = FontWeight.W600, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 16.sp, color = Color.Black)
                 // Hiển thị danh sách các value của biến thể, cách nhau bởi dấu phẩy
-                val variantValues = product.variant?.values?.joinToString(", ") { it.value } ?: ""
+                val variantValues = product.variant_details?.values?.joinToString(", ") { it.value } ?: ""
                 if(!variantValues.isNullOrEmpty()){
                     Text(variantValues, fontSize = 13.sp, color = Color.Gray,maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 14.sp)
                 }
                 Text("$itemPriceFormatted₫", fontSize = 13.sp, color = Color.Black)
-                Row(
-                    modifier = Modifier
-                        .border(
-                            width = 1.dp,
-                            brush = SolidColor(Color(0xFFF4F5FD)),
-                            shape = RoundedCornerShape(6.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(
-                        onClick = {
-                            if (quantityState.value > 1) {
-                                quantityState.value -= 1
-                                coroutineScope.launch {
-                                    cartViewModel.updateProductQuantity(
-                                        productId = product.productId,
-                                        variantId = product.detailsVariantId ?: "",
-                                        newQuantity = quantityState.value,
-                                    )
-                                }
-                            }
-                        },
-                        modifier = Modifier.size(20.dp)
-                    ) {
-                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
-                    }
-                    Text("${quantityState.value}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
-                    IconButton(
-                        onClick = {
-                            quantityState.value += 1
-                            coroutineScope.launch {
-                                cartViewModel.updateProductQuantity(
-                                    productId = product.productId,
-                                    variantId = product.detailsVariantId ?: "",
-                                    newQuantity = quantityState.value,
-                                )
-                            }
-                        },
-                        modifier = Modifier.size(20.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Increase")
-                    }
-                }
+              Row(
+                  verticalAlignment = Alignment.CenterVertically
+              ) {
+                  Row(
+                      modifier = Modifier
+                          .border(
+                              width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(6.dp)
+                          )
+                          .padding(horizontal = 8.dp, vertical = 4.dp),
+                      verticalAlignment = Alignment.CenterVertically,
+                      horizontalArrangement = Arrangement.SpaceBetween
+                  ) {
+                      IconButton(
+                          onClick = {
+                              if (quantityState.value > 1) {
+                                  quantityState.value -= 1
+                                  coroutineScope.launch {
+                                      cartViewModel.updateProductQuantity(
+                                          productId = product.productId,
+                                          variantId = product.detailsVariantId ?: "",
+                                          newQuantity = quantityState.value,
+                                      )
+                                  }
+                              }
+                          },
+                          modifier = Modifier.size(20.dp),
+                          enabled = quantityState.value > 1
+                      ) {
+                          Icon(Icons.Default.Remove, contentDescription = "Decrease",
+                              tint = if (quantityState.value > 1) Color.Black else Color.Gray)
+                      }
+                      Text(if(product?.stock == 0) "0" else "${quantityState.value}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                      IconButton(
+                          onClick = {
+                              if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) {
+                                  quantityState.value += 1
+                                  coroutineScope.launch {
+                                      cartViewModel.updateProductQuantity(
+                                          productId = product.productId,
+                                          variantId = product.detailsVariantId ?: "",
+                                          newQuantity = quantityState.value,
+                                      )
+                                  }
+                              }else if (product!!.stock == 1) {
+                                  coroutineScope.launch {
+                                      snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.stock} trong kho")
+                                  }
+                              }
+                          },
+                          modifier = Modifier.size(20.dp),
+                          enabled = quantityState.value < (product?.stock ?: Int.MAX_VALUE)
+                      ) {
+                          Icon(Icons.Default.Add, contentDescription = "Increase",
+                              tint = if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                          )
+                      }
+                  }
+                  if(product?.stock == 0) {
+                      Spacer(Modifier.width(8.dp))
+                      Text("Hết hàng", color = Color.Red, fontSize = 13.sp)
+                  }
+              }
             }
             Spacer(Modifier.width(4.dp))
             Column(

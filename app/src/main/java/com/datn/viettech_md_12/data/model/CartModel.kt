@@ -34,19 +34,29 @@ data class CartModel(
             @SerializedName("quantity") val quantity: Int,
             @SerializedName("isSelected") var isSelected: Boolean,
             @SerializedName("detailsVariantId") val detailsVariantId: String?,
-            @SerializedName("variant") val variant: ProductVariant?,
+            @SerializedName("stock") val stock: Int,
+            @SerializedName("product_details") val product_details: ProductDetails?,
+            @SerializedName("variant_details") val variant_details: VariantDetail?,
         )
 
-        data class ProductVariant(
-            @SerializedName("variantId") val variantId: String,
-            @SerializedName("sku") val sku: String,
-            @SerializedName("values") val values: List<VariantValue>,
+        data class VariantDetail(
+            @SerializedName("price") val price: Double,
+            @SerializedName("stock") val sku: Int,
+            @SerializedName("variantDetails") val values: List<VariantValue>,
         )
 
         data class VariantValue(
             @SerializedName("variantId") val variantId: String,
             @SerializedName("value") val value: String,
             @SerializedName("_id") val _id: String,
+        )
+
+        data class ProductDetails(
+            @SerializedName("name") val name: String,
+            @SerializedName("price") val price: Double,
+            @SerializedName("thumbnail") val thumbnail: String,
+            @SerializedName("stock") val stock: Int,
+            @SerializedName("image_ids") val image_ids: List<String>,
         )
     }
 }
