@@ -812,7 +812,10 @@ fun ProductDetailScreen(
                                                                 showUpdateDialog = false
                                                                 selectedReview = null
                                                             }
+
                                                         )
+                                                            Log.d("UPDATE_REVIEW", "selectedReview: $selectedReview")
+                                                            Log.d("UPDATE_REVIEW", "imageIds: ${selectedReview!!.images.map { it._id }}")
                                                     }
 
                                                     Divider(modifier = Modifier.padding(vertical = 8.dp))

@@ -36,6 +36,9 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.datn.viettech_md_12.viewmodel.ImageViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun AddReviewDialog(
@@ -45,7 +48,10 @@ fun AddReviewDialog(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
+    val imageViewModel: ImageViewModel = viewModel()
+    val uploadResult by imageViewModel.uploadResult.collectAsState()
+    val imageUploadError by imageViewModel.error.collectAsState()
+    val isImageUploading by imageViewModel.isLoading.collectAsState()
     var rating by remember { mutableStateOf(0) }
     var content by remember { mutableStateOf("") }
 
@@ -98,21 +104,32 @@ fun AddReviewDialog(
                                 val file = uriToFile(context, uri)
                                 val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
                                 val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
-                                val response = ApiClient.imageRepository.uploadImage(body)
-                                if (response.isSuccessful) {
-                                    response.body()?.let { uploadResponse ->
-                                        imageIds.add(uploadResponse.image._id)
-                                    } ?: run {
-                                        toast(context, "Upload ảnh thất bại (null body)")
+
+                                imageViewModel.uploadImage(body)
+                                val maxWaitTime = 10_000L // tối đa 10 giây
+                                val startTime = System.currentTimeMillis()
+                                // Chờ upload xong
+                                while (imageViewModel.isLoading.value) {
+                                    if (System.currentTimeMillis() - startTime > maxWaitTime) {
+                                        toast(context, "Upload ảnh quá lâu, vui lòng thử lại.")
                                         isUploading = false
                                         return@launch
                                     }
+                                    delay(100)
+                                }
+
+                                val uploaded = imageViewModel.uploadResult.value
+                                val uploadError = imageViewModel.error.value
+
+                                if (uploaded != null) {
+                                    imageIds.add(uploaded.image._id)
                                 } else {
-                                    toast(context, "Upload ảnh thất bại!")
+                                    toast(context, uploadError ?: "Upload ảnh thất bại!")
                                     isUploading = false
                                     return@launch
                                 }
                             }
+
                             isUploading = false
                             reviewViewModel.addReview(
                                 productId = productId,

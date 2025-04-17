@@ -28,9 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.viewmodel.ImageViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -52,17 +55,17 @@ fun UpdateReviewDialog(
 
     var rating by remember { mutableStateOf(initialRating) }
     var content by remember { mutableStateOf(initialContent) }
+    val imageViewModel: ImageViewModel = viewModel()
 
     var selectedUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    var uploadedImageUrls by remember { mutableStateOf(initialImageUrls.toMutableList()) }
-    var uploadedImageIds by remember { mutableStateOf(initialImageIds.toMutableList()) }
-
+    val uploadedImageUrls by remember { mutableStateOf(initialImageUrls.toMutableList()) }
+    val uploadedImageIds by remember { mutableStateOf(initialImageIds.toMutableList()) }
+    Log.d("UPDATE_REVIEW", "Review ID: $uploadedImageIds") // <-- Thêm dòng này
     var isUploading by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         selectedUris = if (uris.size > 3) uris.take(3) else uris
-        uploadedImageUrls = mutableListOf() // Ẩn ảnh cũ nếu đã chọn mới
         if (uris.size > 3) {
             Toast.makeText(context, "Tối đa 3 ảnh!", Toast.LENGTH_SHORT).show()
         }
@@ -88,36 +91,52 @@ fun UpdateReviewDialog(
             onConfirm = {
                 showConfirmDialog = false
                 coroutineScope.launch {
+                    val validContentRegex = Regex("^[\\p{L}\\p{N}\\s.,!?\\-()\"']+")
                     if (!validateInput(context, rating, content, selectedUris, uploadedImageUrls)) return@launch
-                    isUploading = true
 
-                    val imageIds = mutableListOf<String>().apply {
-                        if (selectedUris.isEmpty()) {
-                            addAll(uploadedImageIds)
-                        } else {
-                            for (uri in selectedUris) {
-                                val file = uriToFile(context, uri)
-                                val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-                                val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
-                                val response = ApiClient.imageRepository.uploadImage(body)
-                                if (response.isSuccessful) {
-                                    response.body()?.let { add(it.image._id) }
-                                        ?: run {
-                                            toast(context, "Upload ảnh thất bại (null body)")
-                                            isUploading = false
-                                            return@launch
-                                        }
-                                } else {
-                                    toast(context, "Upload ảnh thất bại!")
+                    isUploading = true
+                    val imageIds = mutableListOf<String>()
+
+                    if (selectedUris.isNotEmpty()) {
+                        for (uri in selectedUris) {
+                            val file = uriToFile(context, uri)
+                            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                            val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+                            imageViewModel.uploadImage(body)
+                            val maxWaitTime = 10_000L
+                            val startTime = System.currentTimeMillis()
+                            while (imageViewModel.isLoading.value) {
+                                if (System.currentTimeMillis() - startTime > maxWaitTime) {
+                                    toast(context, "Upload ảnh quá lâu, vui lòng thử lại.")
                                     isUploading = false
                                     return@launch
                                 }
+                                delay(100)
+                            }
+
+                            val uploaded = imageViewModel.uploadResult.value
+                            val uploadError = imageViewModel.error.value
+
+                            if (uploaded != null) {
+                                imageIds.add(uploaded.image._id)
+                            } else {
+                                toast(context, uploadError ?: "Upload ảnh thất bại!")
+                                isUploading = false
+                                return@launch
                             }
                         }
+                    } else {
+                        imageIds.addAll(uploadedImageIds) // Không chọn ảnh mới -> dùng ảnh cũ
                     }
 
                     isUploading = false
-                    reviewViewModel.updateReview(reviewId, content, rating, imageIds)
+                    reviewViewModel.updateReview(
+                        reviewId = reviewId,
+                        contentsReview = content,
+                        rating = rating,
+                        images = if (selectedUris.isNotEmpty()) imageIds else uploadedImageIds
+                    )
                 }
             },
             onDismiss = { showConfirmDialog = false }
@@ -149,7 +168,7 @@ fun UpdateReviewDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
                 if (selectedUris.isEmpty() && uploadedImageUrls.isNotEmpty()) {
-                    Text("Ảnh trước đó:", fontWeight = FontWeight.SemiBold)
+                    Text("Ảnh hiện tại:", fontWeight = FontWeight.SemiBold)
                     ImagePreviewRow(uploadedImageUrls.map {
                         it.replace("http://localhost:", "http://103.166.184.249:")
                     })
@@ -269,3 +288,4 @@ fun validateInput(
         else -> true
     }
 }
+
