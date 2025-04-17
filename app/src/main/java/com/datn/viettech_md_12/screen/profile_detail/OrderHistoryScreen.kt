@@ -63,6 +63,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -83,8 +84,14 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
     val completedOrders = orders.value.filter { it.status == "completed" }
     val ongoingOrders = orders.value.filter { it.status != "completed" }
 
+//    LaunchedEffect(Unit) {
+//        viewModel.getUserOrders(context)
+//    }
     LaunchedEffect(Unit) {
-        viewModel.getUserOrders(context)
+        while (true) {
+            viewModel.getUserOrders(context)
+            delay(3000) // gọi lại mỗi 5 giây (tuỳ chỉnh theo ý bạn)
+        }
     }
 
     Column(
