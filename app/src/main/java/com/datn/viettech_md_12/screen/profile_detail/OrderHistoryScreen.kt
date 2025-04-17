@@ -202,16 +202,19 @@ fun CompletedOrdersScreen(completedOrders: List<OrderModel>, navController: NavC
 }
 
 @Composable
-fun OrderCard(order: OrderModel,navController: NavController) {
+fun OrderCard(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
+    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        .format(order.total ?: 0.0)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable {
-                navController.navigate("order_detail/${order._id}")
+                order._id?.let { id ->
+                    navController.navigate("order_detail/$id")
+                }
             }
     ) {
         Box(
@@ -220,7 +223,7 @@ fun OrderCard(order: OrderModel,navController: NavController) {
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
-                text = order.status,
+                text = order.status ?: "Đang xử lý",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -228,14 +231,13 @@ fun OrderCard(order: OrderModel,navController: NavController) {
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lặp qua các sản phẩm trong đơn hàng
-        order.products.forEach { product ->
+        order.products.orEmpty().forEach { product ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = BASE_URL + product.image,
+                    model = BASE_URL + (product.image ?: ""),
                     contentDescription = "Product Image",
                     modifier = Modifier
                         .size(80.dp)
@@ -248,26 +250,39 @@ fun OrderCard(order: OrderModel,navController: NavController) {
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        text = product.name ?: "Tên sản phẩm",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        text = itemPriceFormatted,
+                        color = Color(0xFFF44336),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
+
 @Composable
-fun OrderCardCompleted(order: OrderModel,navController: NavController) {
+fun OrderCardCompleted(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
+    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        .format(order.total ?: 0.0)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable {
-                navController.navigate("order_detail/${order._id}")
+                order._id?.let { id ->
+                    navController.navigate("order_detail/$id")
+                }
             }
     ) {
         Box(
@@ -276,7 +291,7 @@ fun OrderCardCompleted(order: OrderModel,navController: NavController) {
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
-                text = order.status,
+                text = order.status ?: "Hoàn thành",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -284,14 +299,13 @@ fun OrderCardCompleted(order: OrderModel,navController: NavController) {
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lặp qua các sản phẩm trong đơn hàng
-        order.products.forEach { product ->
+        order.products.orEmpty().forEach { product ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = BASE_URL + product.image,
+                    model = BASE_URL + (product.image ?: ""),
                     contentDescription = "Product Image",
                     modifier = Modifier
                         .size(80.dp)
@@ -304,15 +318,25 @@ fun OrderCardCompleted(order: OrderModel,navController: NavController) {
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        text = product.name ?: "Tên sản phẩm",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        text = itemPriceFormatted,
+                        color = Color(0xFFF44336),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
+
 
 
 
