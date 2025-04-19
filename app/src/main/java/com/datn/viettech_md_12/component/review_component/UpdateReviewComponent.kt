@@ -46,18 +46,24 @@ fun UpdateReviewDialog(
     initialRating: Int,
     initialContent: String,
     initialImageUrls: List<String>,
+    createdAt: String, // 👈 thêm dòng này
     initialImageIds: List<String>,
     reviewViewModel: ReviewViewModel,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val createdAtState by remember { mutableStateOf(createdAt) }
+    val canUpdate by remember(createdAt) {
+        mutableStateOf(isWithinTwoDays(createdAt))
+    }
 
     var rating by remember { mutableStateOf(initialRating) }
     var content by remember { mutableStateOf(initialContent) }
     val imageViewModel: ImageViewModel = viewModel()
 
     var selectedUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+
     val uploadedImageUrls by remember { mutableStateOf(initialImageUrls.toMutableList()) }
     val uploadedImageIds by remember { mutableStateOf(initialImageIds.toMutableList()) }
     Log.d("UPDATE_REVIEW", "Review ID: $uploadedImageIds") // <-- Thêm dòng này
@@ -197,22 +203,27 @@ fun UpdateReviewDialog(
                         Text("Hủy")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = { showConfirmDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
-                    ) {
-                        if (isUploading) {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(Icons.Default.Send, contentDescription = null)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Cập nhật")
+                    if (canUpdate) {
+                        Button(
+                            onClick = { showConfirmDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
+                        ) {
+                            if (isUploading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(Icons.Default.Send, contentDescription = null)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Cập nhật")
+                            }
                         }
+                    } else {
+                        Text("Bạn chỉ có thể cập nhật trong vòng 2 ngày.", color = Color.Gray)
                     }
+
                 }
             }
         }
@@ -289,3 +300,17 @@ fun validateInput(
     }
 }
 
+fun isWithinTwoDays(createdAt: String): Boolean {
+    return try {
+        // Sử dụng định dạng ISO 8601 đầy đủ với timezone offset
+        val formatter = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", java.util.Locale.getDefault())
+        val createdDate = formatter.parse(createdAt)
+        val now = java.util.Date()
+        val diffMillis = now.time - createdDate.time
+        val days = diffMillis / (1000 * 60 * 60 * 24)
+        days <= 2
+    } catch (e: Exception) {
+        Log.e("DATE_PARSE", "Lỗi parse ngày: $e")
+        true // fallback: vẫn cho phép cập nhật nếu lỗi
+    }
+}

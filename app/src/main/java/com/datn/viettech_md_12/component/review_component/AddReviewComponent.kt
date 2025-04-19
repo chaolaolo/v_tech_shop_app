@@ -52,7 +52,7 @@ fun AddReviewDialog(
     val uploadResult by imageViewModel.uploadResult.collectAsState()
     val imageUploadError by imageViewModel.error.collectAsState()
     val isImageUploading by imageViewModel.isLoading.collectAsState()
-    var rating by remember { mutableStateOf(0) }
+    var rating by remember { mutableStateOf(5) }
     var content by remember { mutableStateOf("") }
 
     var selectedUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
