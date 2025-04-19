@@ -11,6 +11,7 @@ import com.datn.viettech_md_12.data.model.OrderListResponse
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.Product
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
+import com.datn.viettech_md_12.data.model.ProductDetailResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductResponse
 import com.datn.viettech_md_12.data.model.SearchResponse
@@ -22,7 +23,7 @@ import retrofit2.Response
 class ProductRepository(
     private val apiService: ProductService
 ) {
-    suspend fun getProductById(id: String): Response<ProductResponse> =
+    suspend fun getProductById(id: String): Response<ProductDetailResponse> =
         apiService.getProductById(id);
 
     suspend fun getAllProducts(): Response<ProductListResponse> = apiService.getAllProducts()

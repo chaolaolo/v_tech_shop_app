@@ -85,7 +85,6 @@ import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 
 data class PaymentMethod(
     val displayName: String,
@@ -116,10 +115,10 @@ fun PaymentUI(
     val isCheckoutLoading by checkoutViewModel.isCheckoutLoading.collectAsState()
     val paymentUrl by checkoutViewModel.paymentUrl.collectAsState()
     val variantId by productViewModel.matchedVariantId.collectAsState()
-    val productResponse by productViewModel.productResponse.collectAsState()
+    val productDetailResponse by productViewModel.productDetailResponse.collectAsState()
 
     // Thêm state cho sản phẩm mua ngay
-    val product by productViewModel.product.collectAsState()
+    val productDetail by productViewModel.productDetail.collectAsState()
     var directPurchaseProduct by remember { mutableStateOf<CartModel.Metadata.CartProduct?>(null) }
     val quantityState = remember { mutableIntStateOf(quantity) }
 
@@ -135,8 +134,8 @@ fun PaymentUI(
     }
 
     // Khi có thông tin sản phẩm (trường hợp mua ngay)
-    LaunchedEffect(key1 = product) {
-        product?.let {
+    LaunchedEffect(key1 = productDetail) {
+        productDetail?.let {
             Log.d("PaymentUI", "Creating product with quantity: $quantity")
             directPurchaseProduct = CartModel.Metadata.CartProduct(
                 productId = it.id,
@@ -150,7 +149,7 @@ fun PaymentUI(
                 stock = it.productStock,
                 product_details = null,
             )
-            if (productResponse?.attributes?.isNotEmpty() == true) {
+            if (productDetailResponse?.attributes?.isNotEmpty() == true) {
                 productViewModel.matchVariant(productId, emptyMap())
             }
         }

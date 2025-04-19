@@ -4,7 +4,6 @@ import MyButton
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -106,8 +105,6 @@ import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.component.product_detail_components.toColor
-import com.datn.viettech_md_12.screen.authentication.LoginScreen
-import com.datn.viettech_md_12.screen.authentication.RegisterScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
@@ -146,11 +143,11 @@ fun ProductDetailScreen(
     )
     val bottomSheetType by viewModel.bottomSheetType.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-    val product by viewModel.product.collectAsState()
-    val productResponse by viewModel.productResponse.collectAsState()
-    val attributes = productResponse?.attributes
-    val variants = productResponse?.variants
-    val defaultVariant = productResponse?.defaultVariant
+    val productDetail by viewModel.productDetail.collectAsState()
+    val productDetailResponse by viewModel.productDetailResponse.collectAsState()
+    val attributes = productDetailResponse?.attributes
+    val variants = productDetailResponse?.variants
+    val defaultVariant = productDetailResponse?.defaultVariant
     val isLoading by viewModel.isLoading.collectAsState()
     var isAddingToCart by remember { mutableStateOf(false) }
     var quantity by remember { mutableStateOf(1) }
@@ -167,14 +164,14 @@ fun ProductDetailScreen(
     var showLoginDialog by remember { mutableStateOf(false) }
     var showCheckStockDialog by remember { mutableStateOf(false) }
 
-    val price = product?.productPrice ?:0.0
+    val price = productDetail?.productPrice ?:0.0
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
 
 
     var isFavorite by remember { mutableStateOf(false) }
     val sharedPreferences =
         context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) //lay trang thai da luu tru
-    if (product != null) {
+    if (productDetail != null) {
         if (sharedPreferences != null) {
             isFavorite = sharedPreferences.getBoolean(productId, false)
         }
@@ -186,7 +183,7 @@ fun ProductDetailScreen(
 
     // Lấy danh sách attributes của sản phẩm
     val productAttributes = attributes?.filter { attr ->
-        product?.attributeIds?.contains(attr._id) == true
+        productDetail?.attributeIds?.contains(attr._id) == true
     } ?: emptyList()
 
     // Hàm để lọc các options hợp lệ
@@ -222,7 +219,7 @@ fun ProductDetailScreen(
                 )
             }
         } else {
-            product?.let {
+            productDetail?.let {
                 BottomSheetScaffold(
                     scaffoldState = bottomsheetScaffoldState,
                     sheetPeekHeight = 0.dp,
@@ -257,7 +254,7 @@ fun ProductDetailScreen(
                                         //ảnh
                                         AsyncImage(
 //                                            model = "https://cdn.tgdd.vn/Products/Images/5698/326091/asus-aio-a3402wvak-i3-wpc080w-thumb-49-600x600.jpg",
-                                            model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                            model = "http://103.166.184.249:3056/${productDetail?.productThumbnail}",
                                             contentDescription = "ảnh sản phẩm",
                                             modifier = Modifier
                                                 .size(80.dp)
@@ -283,14 +280,14 @@ fun ProductDetailScreen(
 //                                                    }
                                                     // giá sp gốc
                                                     else {
-                                                        append(NumberFormat.getNumberInstance(Locale("vi", "VN")).format(product?.productPrice ?: 0))
+                                                        append(NumberFormat.getNumberInstance(Locale("vi", "VN")).format(productDetail?.productPrice ?: 0))
                                                     }
                                                     append(" ₫")
                                                 },
 //                                                "${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(defaultVariant?.price ?: product?.productPrice ?: 0)} ₫",
                                                 color = Color(0xFF21D4B4), fontSize = 16.sp, fontWeight = FontWeight.Bold
                                             )
-                                            Text(product!!.productName, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                            Text(productDetail!!.productName, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                             Text(
                                                 buildString {
                                                     if (selectedAttributes.isNotEmpty()) {
@@ -411,20 +408,20 @@ fun ProductDetailScreen(
                                         Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp), color = Color.Black)
                                         IconButton(
                                             onClick = {
-                                                if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
+                                                if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) {
                                                     quantity++
-                                                } else if (product!!.productStock == 1) {
+                                                } else if (productDetail!!.productStock == 1) {
                                                     coroutineScope.launch {
-                                                        simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.productStock} trong kho")
+                                                        simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${productDetail?.productStock} trong kho")
                                                     }
                                                 }
                                             },
                                             modifier = Modifier.size(20.dp),
-                                            enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
+                                            enabled = quantity < (productDetail?.productStock ?: Int.MAX_VALUE)
                                         ) {
                                             Icon(
                                                 Icons.Default.Add, contentDescription = "Increase",
-                                                tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                                tint = if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
                                             )
                                         }
                                     }
@@ -444,7 +441,7 @@ fun ProductDetailScreen(
                                                 viewModel.matchedVariantId.value?.let { variantId ->
                                                     val selectedVariant = variants?.find { it.id == variantId }
                                                     if (selectedVariant?.stock ?: 0 > 0) {
-                                                        navController.navigate("payment_ui/product/${product?.id}/$quantity?variantId=$variantId")
+                                                        navController.navigate("payment_ui/product/${productDetail?.id}/$quantity?variantId=$variantId")
                                                     } else {
                                                         coroutineScope.launch {
                                                             simpleSnackbarHostState.showSnackbar("Sản phẩm này đã hết hàng")
@@ -477,7 +474,7 @@ fun ProductDetailScreen(
                                                     val selectedVariant = variants?.find { it.id == variantId }
                                                     if (selectedVariant?.stock ?: 0 > 0) {
                                                         isAddingToCart = true
-                                                        product?.let { product ->
+                                                        productDetail?.let { product ->
                                                             viewModel.addProductToCart(
                                                                 productId = product.id,
                                                                 variantId = variantId,
@@ -572,7 +569,7 @@ fun ProductDetailScreen(
                                 .background(Color(0xFFF4FDFA)),
                         ) {
                             AsyncImage(
-                                model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                model = "http://103.166.184.249:3056/${productDetail?.productThumbnail}",
                                 contentDescription = "p detail image",
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -612,12 +609,12 @@ fun ProductDetailScreen(
                                         onClick = {
                                             isFavorite = !isFavorite
                                             if (isFavorite) {
-                                                val productId = product?.id
+                                                val productId = productDetail?.id
                                                 if (productId != null) {
                                                     viewModel.addToFavorites(productId, context)
                                                 }
                                             } else {
-                                                val favoriteId = product?.id
+                                                val favoriteId = productDetail?.id
                                                 if (favoriteId != null) {
                                                     viewModel.removeFromFavorites(favoriteId, context)
                                                 }
@@ -639,7 +636,7 @@ fun ProductDetailScreen(
                                 }
                             },
                         )
-                        Log.d("zzzzzzzzzzzzzz", "productThumbnail: ${product?.productThumbnail}")
+                        Log.d("zzzzzzzzzzzzzz", "productThumbnail: ${productDetail?.productThumbnail}")
                         Card(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -698,12 +695,12 @@ fun ProductDetailScreen(
                                         horizontalAlignment = Alignment.Start
                                     ) {
                                         Text(
-                                            "${product!!.productStock} còn hàng",
+                                            "${productDetail!!.productStock} còn hàng",
                                             fontSize = 12.sp,
                                             color = Color.Gray,
                                         )
                                         Text(
-                                        "${product?.productName}",
+                                        "${productDetail?.productName}",
                                         maxLines = 2,
                                         fontSize = 16.sp,
                                         color = Color.Black,
@@ -761,7 +758,7 @@ fun ProductDetailScreen(
 //                                    mainAxisAlignment = MainAxisAlignment.Center,
                                 ) {
                                     Text(
-                                        text = "${product?.productDescription}",
+                                        text = "${productDetail?.productDescription}",
                                         fontSize = 12.sp,
                                         color = Color.Gray,
                                         modifier = Modifier.padding(top = 8.dp),
@@ -804,7 +801,7 @@ fun ProductDetailScreen(
                                         attributes?.any {it.name.equals("Color", ignoreCase = true)} ?: false
                                     }
                                     Log.d("hasColorAttribute", "hasColorAttribute: $hasColorAttribute")
-                                    Log.d("hasColorAttribute", "product: $product")
+                                    Log.d("hasColorAttribute", "product: $productDetail")
                                     Log.d("hasColorAttribute", "attributes: $attributes")
                                     Log.d("hasColorAttribute", "variants: $variants")
                                     Log.d("hasColorAttribute", "default_variant: $defaultVariant")
@@ -858,20 +855,20 @@ fun ProductDetailScreen(
                                     Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp), color = Color.Black)
                                     IconButton(
                                         onClick = {
-                                            if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
+                                            if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) {
                                                 quantity++
-                                            }else if (product!!.productStock == 1) {
+                                            }else if (productDetail!!.productStock == 1) {
                                                 coroutineScope.launch {
-                                                    simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.productStock} trong kho")
+                                                    simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${productDetail?.productStock} trong kho")
                                                 }
                                             }
                                         },
                                         modifier = Modifier.size(20.dp),
-                                        enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
+                                        enabled = quantity < (productDetail?.productStock ?: Int.MAX_VALUE)
                                     ) {
                                         Icon(
                                             Icons.Default.Add, contentDescription = "Increase",
-                                            tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                            tint = if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
                                         )
                                     }
                                 }
@@ -1040,18 +1037,18 @@ fun ProductDetailScreen(
                                         if (!isLoggedIn) {
                                             showLoginDialog = true
                                         } else {
-                                            if (product!!.productStock == 0) {
+                                            if (productDetail!!.productStock == 0) {
                                                 showCheckStockDialog = true
                                             } else if (quantity <= 0) {
                                                 coroutineScope.launch {
                                                     simpleSnackbarHostState.showSnackbar("Số lượng phải lớn hơn 0")
                                                 }
-                                            } else if (productResponse?.variants?.size!! >= 1) {
+                                            } else if (productDetailResponse?.variants?.size!! >= 1) {
                                                 viewModel.setBottomSheetType("buy_now")
                                                 coroutineScope.launch { bottomsheetScaffoldState.bottomSheetState.expand() }
                                             } else {
                                                 showCheckStockDialog = false
-                                                navController.navigate("payment_ui/product/${product?.id}/$quantity") // Chuyển đến màn thanh toán
+                                                navController.navigate("payment_ui/product/${productDetail?.id}/$quantity") // Chuyển đến màn thanh toán
                                                 Log.d("ProductDetailScreen", "sl: $quantity ")
                                             }
                                         }
@@ -1076,15 +1073,15 @@ fun ProductDetailScreen(
 
                                         if (!isLoggedIn) {
                                             showLoginDialog = true
-                                        } else if (product!!.productStock == 0) {
+                                        } else if (productDetail!!.productStock == 0) {
                                             showCheckStockDialog = true
-                                        } else if (productResponse?.variants?.size!! >= 1) {
+                                        } else if (productDetailResponse?.variants?.size!! >= 1) {
                                             viewModel.setBottomSheetType("add_to_cart")
                                             coroutineScope.launch { bottomsheetScaffoldState.bottomSheetState.expand() }
                                         } else {
                                             isAddingToCart = true
                                             showCheckStockDialog = false
-                                            product?.let { product ->
+                                            productDetail?.let { product ->
                                                 Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(productId = product.id, variantId = "", quantity = quantity, context = contextToCheckLogin, onSuccess = {
                                                     isAddingToCart = false
