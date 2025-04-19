@@ -29,8 +29,6 @@ import com.datn.viettech_md_12.screen.authentication.LoginUser
 import com.datn.viettech_md_12.screen.authentication.OnboardingScreen
 import com.datn.viettech_md_12.screen.authentication.SignUpUser
 import com.datn.viettech_md_12.screen.cart.CartScreen
-import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
-import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
 import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
 import com.datn.viettech_md_12.screen.checkout.PaymentUI
 import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
@@ -91,11 +89,9 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("order_history_screen") { OrderHistoryScreen(navController, viewModel = productViewModel) }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
-            composable("payment") { CheckoutScreen(navController) }
             composable("payment_screen") { PaymentScreen(navController) }
             composable("onb_screen") { OnboardingScreen(navController) }
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
-            composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("address_screen") { AddressScreen(navController) }
             // Thêm 2 route riêng biệt cho 2 trường hợp
             composable("payment_ui/cart/{discount}") { backStackEntry ->
