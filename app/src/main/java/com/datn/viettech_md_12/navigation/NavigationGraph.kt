@@ -25,7 +25,9 @@ import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.SearchScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
+import com.datn.viettech_md_12.screen.authentication.LoginUser
 import com.datn.viettech_md_12.screen.authentication.OnboardingScreen
+import com.datn.viettech_md_12.screen.authentication.SignUpUser
 import com.datn.viettech_md_12.screen.cart.CartScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
 import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
@@ -95,12 +97,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("address_screen") { AddressScreen(navController) }
-//            composable("payment_ui") { PaymentUI(navController) }
-//            composable("payment_ui/{discount}") { backStackEntry ->
-//                val discount = backStackEntry.arguments?.getString("discount") ?: ""
-//                PaymentUI(navController, discount)
-//            }
-// Thêm 2 route riêng biệt cho 2 trường hợp
+            // Thêm 2 route riêng biệt cho 2 trường hợp
             composable("payment_ui/cart/{discount}") { backStackEntry ->
                 val discount = backStackEntry.arguments?.getString("discount") ?: ""
                 PaymentUI(
@@ -141,6 +138,12 @@ fun NavigationGraph(startDestination: String = "home") {
                     categoryId = categoryId,
                     productByCategoryViewModel = viewModel()
                 )
+            }
+            composable("login") {
+                LoginUser(userViewModel, navController)
+            }
+            composable("register") {
+                SignUpUser(userViewModel, navController)
             }
         }
     }

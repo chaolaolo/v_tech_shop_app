@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.viewmodel.UserViewModel
@@ -54,14 +55,14 @@ class RegisterScreen : ComponentActivity() {
         val userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
         enableEdgeToEdge()
         setContent {
-            SignUpUser(userViewModel)
+            SignUpUser(userViewModel, rememberNavController())
         }
     }
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SignUpUser( userViewModel: UserViewModel) {
+fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
@@ -103,8 +104,16 @@ fun SignUpUser( userViewModel: UserViewModel) {
             TextButton(
                 modifier = Modifier,
                 onClick = {
-                    val intent = Intent(context, LoginScreen::class.java)
-                    context.startActivity(intent)
+//                    val intent = Intent(context, LoginScreen::class.java)
+//                    context.startActivity(intent)
+                    if (navController.currentBackStackEntry != null) {
+                        navController.navigate("login") {
+                            // This will keep the screen before register in the back stack
+                            launchSingleTop = true
+                        }
+                    }else{
+                        context.startActivity(Intent(context, LoginScreen::class.java))
+                    }
                 },
                 contentPadding = PaddingValues(0.dp)
             ) {
@@ -275,8 +284,17 @@ fun SignUpUser( userViewModel: UserViewModel) {
                                 isLoading = false
                                 Toast.makeText(context,
                                     context.getString(R.string.register_success), Toast.LENGTH_SHORT).show()
-                                val intent = Intent(context, LoginScreen::class.java)
-                                context.startActivity(intent)
+//                                val intent = Intent(context, LoginScreen::class.java)
+//                                context.startActivity(intent)
+                                if (navController.currentBackStackEntry != null) {
+                                    navController.navigate("login") {
+                                        // Xóa màn hình đăng ký khỏi back stack
+                                        popUpTo("register") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }else{
+                                    context.startActivity(Intent(context, LoginScreen::class.java))
+                                }
                             },
                             onError = { error ->
                                 isLoading = false

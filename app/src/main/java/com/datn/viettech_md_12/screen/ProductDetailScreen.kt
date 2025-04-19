@@ -1137,15 +1137,21 @@ fun ProductDetailScreen(
                                                 ) {
                                                     TextButton(onClick = {
                                                         showLoginDialog = false
-                                                        val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
-                                                        contextToCheckLogin?.startActivity(intent)
+//                                                        val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
+//                                                        contextToCheckLogin?.startActivity(intent)
+                                                        navController.navigate("register")
                                                     }) {
                                                         Text("Tạo tài khoản mới")
                                                     }
                                                     TextButton(onClick = {
                                                         showLoginDialog = false
-                                                        val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
-                                                        contextToCheckLogin?.startActivity(intent)
+//                                                        val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
+//                                                        contextToCheckLogin?.startActivity(intent)
+                                                        navController.navigate("login") {
+                                                            launchSingleTop = true
+                                                            //lưu route của màn này trong backstack
+                                                            restoreState = true
+                                                        }
                                                     }) {
                                                         Text("Đăng nhập")
                                                     }
