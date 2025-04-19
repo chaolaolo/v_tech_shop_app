@@ -147,7 +147,7 @@ class CheckoutViewModel(application: Application) : ViewModel(){
                 )
                 if (response.isSuccessful) {
                     response.body()?.let {cartModel->
-                        val selectedItems = cartModel.metadata?.cart_products?.filter { it.isSelected == true } ?: emptyList()
+                        val selectedItems = cartModel.metadata?.cart_products?.filter { it.isSelected } ?: emptyList()
                         _selectedCartItems.value = selectedItems
                         Log.d("getIsSelectedItemInCart", "Fetch Cart Success: ${selectedItems.size}")
                     }

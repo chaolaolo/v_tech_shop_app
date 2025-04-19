@@ -123,7 +123,7 @@ fun OrderSummary(
                     showOutOfStockDialog.value = true
                 } else {
                     val discountCode = selectedVoucher?.code ?: ""
-                    navController.navigate("payment_ui/cart/$discountCode")
+                    navController.navigate("payment_ui/$discountCode")
                 }
             },
             backgroundColor = Color(0xFF21D4B4),
