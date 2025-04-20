@@ -631,6 +631,13 @@ fun ProductDetailScreen(
                                 ) {
                                     IconButton(
                                         onClick = {
+                                            val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                                    ?.getString("accessToken", "")
+                                            val isLoggedIn = !token.isNullOrEmpty()
+                                            if (!isLoggedIn) {
+                                                showLoginDialog = true
+                                                return@IconButton
+                                            }
                                             isFavorite = !isFavorite
                                             if (isFavorite) {
                                                 val productId = productDetail?.id

@@ -55,7 +55,6 @@ import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
-// ... (imports giữ nguyên)
 
 @Composable
 fun OrderDetailScreen(
@@ -213,15 +212,15 @@ fun OrderDetailScreen(
 
                     Divider()
 
-                    val firstProduct = currentOrder.products?.firstOrNull()
-                    if (firstProduct != null) {
+                    //hien thi nhieu anh don hang
+                    currentOrder.products?.forEach { product ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(12.dp)
                         ) {
                             AsyncImage(
-                                model = "$BASE_URL${firstProduct.image}",
+                                model = "$BASE_URL${product.image}",
                                 contentDescription = null,
                                 modifier = Modifier
                                     .height(80.dp)
@@ -233,7 +232,7 @@ fun OrderDetailScreen(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = firstProduct.name ?: "",
+                                    text = product.name ?: "",
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
                                     maxLines = 1,
@@ -242,19 +241,22 @@ fun OrderDetailScreen(
                                 )
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = "x${firstProduct.quantity}",
+                                    text = "x${product.quantity}",
                                     fontSize = 13.sp,
                                     color = Color.Black
                                 )
                             }
 
                             Text(
-                                text = formatter.format(firstProduct.price ?: 0.0),
+                                text = formatter.format(product.price ?: 0.0),
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 14.sp
                             )
                         }
+
+                        Divider()
                     }
+
 
                     Divider()
 

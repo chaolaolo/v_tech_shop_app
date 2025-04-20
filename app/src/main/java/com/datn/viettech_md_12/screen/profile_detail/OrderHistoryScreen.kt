@@ -34,13 +34,19 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -48,6 +54,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,6 +70,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -83,8 +91,14 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
     val completedOrders = orders.value.filter { it.status == "completed" }
     val ongoingOrders = orders.value.filter { it.status != "completed" }
 
+//    LaunchedEffect(Unit) {
+//        viewModel.getUserOrders(context)
+//    }
     LaunchedEffect(Unit) {
-        viewModel.getUserOrders(context)
+        while (true) {
+            viewModel.getUserOrders(context)
+            delay(3000) // gọi lại mỗi 5 giây (tuỳ chỉnh theo ý bạn)
+        }
     }
 
     Column(
@@ -202,41 +216,45 @@ fun CompletedOrdersScreen(completedOrders: List<OrderModel>, navController: NavC
 }
 
 @Composable
-fun OrderCard(order: OrderModel,navController: NavController) {
+fun OrderCard(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
+    val totalFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        .format(order.total ?: 0.0)
+
+    var showMore by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable {
-                navController.navigate("order_detail/${order._id}")
-            }
+            .background(Color.White, shape = RoundedCornerShape(12.dp))
+            .shadow(1.dp, RoundedCornerShape(12.dp))
+            .padding(12.dp)
     ) {
+        // Trạng thái đơn hàng
         Box(
             modifier = Modifier
                 .background(Color(0xFFE63946), shape = RoundedCornerShape(8.dp))
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
-                text = order.status,
+                text = order.status ?: "Đang xử lý",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
+
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lặp qua các sản phẩm trong đơn hàng
-        order.products.forEach { product ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        val products = order.products ?: emptyList()
+        val firstProduct = products.firstOrNull()
+
+        if (firstProduct != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(
-                    model = BASE_URL + product.image,
-                    contentDescription = "Product Image",
+                    model = BASE_URL + (firstProduct.image ?: ""),
+                    contentDescription = "Ảnh sản phẩm",
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(12.dp))
@@ -245,54 +263,143 @@ fun OrderCard(order: OrderModel,navController: NavController) {
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Column {
+                    Text(
+                        text = firstProduct.name ?: "Tên sản phẩm",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
+        }
+
+        // Nếu có nhiều hơn 1 sản phẩm thì xử lý hiển thị
+        if (products.size > 1) {
+            if (showMore) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Column {
+                    products.drop(1).forEach { product ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            AsyncImage(
+                                model = BASE_URL + (product.image ?: ""),
+                                contentDescription = "Ảnh sản phẩm",
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.LightGray)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = product.name ?: "Tên sản phẩm",
+                                fontSize = 13.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    TextButton(onClick = { showMore = false }) {
+                        Text(
+                            text = "Ẩn bớt",
+                            fontSize = 12.sp,
+                            color = Color(0xFF1F8BDA)
+                        )
+                    }
+                }
+            } else {
+                TextButton(
+                    onClick = { showMore = true },
+                    modifier = Modifier.padding(start = 92.dp, top = 4.dp)
+                ) {
+                    Text(
+                        text = "Xem thêm (${products.size - 1}) sản phẩm",
+                        fontSize = 12.sp,
+                        color = Color(0xFF1F8BDA)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Tổng tiền
+        Text(
+            text = "Tổng tiền: $totalFormatted",
+            color = Color(0xFF1F8BDA),
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Nút chi tiết đơn hàng
+        Button(
+            onClick = {
+                order._id?.let { id ->
+                    navController.navigate("order_detail/$id")
+                }
+            },
+            modifier = Modifier.align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1F8BDA)
+            )
+        ) {
+            Text("Chi tiết đơn hàng", color = Color.White)
         }
     }
 }
+
+
+
+
 @Composable
-fun OrderCardCompleted(order: OrderModel,navController: NavController) {
+fun OrderCardCompleted(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
+    val totalFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        .format(order.total ?: 0.0)
+
+    var showAllProducts by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable {
-                navController.navigate("order_detail/${order._id}")
-            }
+            .background(Color.White, shape = RoundedCornerShape(12.dp))
+            .shadow(1.dp, RoundedCornerShape(12.dp))
+            .padding(12.dp)
     ) {
+        // Trạng thái đơn hàng
         Box(
             modifier = Modifier
                 .background(Color(0xFF1F8BDA), shape = RoundedCornerShape(8.dp))
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
-                text = order.status,
+                text = order.status ?: "Đang xử lý",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
+
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lặp qua các sản phẩm trong đơn hàng
-        order.products.forEach { product ->
+        val products = order.products ?: emptyList()
+        val displayProducts = if (showAllProducts) products else products.take(1)
+
+        displayProducts.forEach { product ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 4.dp)
             ) {
                 AsyncImage(
-                    model = BASE_URL + product.image,
-                    contentDescription = "Product Image",
+                    model = BASE_URL + (product.image ?: ""),
+                    contentDescription = "Ảnh sản phẩm",
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(12.dp))
@@ -301,18 +408,63 @@ fun OrderCardCompleted(order: OrderModel,navController: NavController) {
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Column {
+                    Text(
+                        text = product.name ?: "Tên sản phẩm",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
+        }
+
+        if (products.size > 1) {
+            val toggleText = if (showAllProducts) "Ẩn bớt" else "Xem thêm"
+            Text(
+                text = toggleText,
+                color = Color(0xFF1F8BDA),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .clickable { showAllProducts = !showAllProducts }
+                    .padding(start = 92.dp, top = 4.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Tổng tiền
+        Text(
+            text = "Tổng tiền: $totalFormatted",
+            color = Color(0xFF1F8BDA),
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Nút Chi tiết đơn hàng
+        Button(
+            onClick = {
+                order._id?.let { id ->
+                    navController.navigate("order_detail/$id")
+                }
+            },
+            modifier = Modifier.align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1F8BDA)
+            )
+        ) {
+            Text("Chi tiết đơn hàng", color = Color.White)
         }
     }
 }
+
+
+
+
 
 
 
