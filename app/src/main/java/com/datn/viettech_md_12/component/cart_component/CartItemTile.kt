@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -107,15 +108,10 @@ fun CartItemTile(
             )
             .clip(RoundedCornerShape(10.dp))
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End,
+        Box(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(100.dp)
-                .background(Color.Transparent)
+                .matchParentSize()
                 .align(Alignment.CenterEnd)
-                .padding(end = 10.dp)
                 .clickable {
                     onDeletingStateChange(true)
                     onDelete(product.productId, variantIdToUse)
@@ -131,8 +127,16 @@ fun CartItemTile(
                     })
                     Log.d("CartItemTile", "ondelete: clicked")
                 },
-
-            ) {
+        ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+                .fillMaxHeight()
+                .background(Color.Transparent)
+                .align(Alignment.CenterEnd)
+                .padding(end = 10.dp)
+        ) {
             Text(
                 text = "Xóa", color = Color.White, fontWeight = FontWeight.Bold
             )
@@ -140,6 +144,7 @@ fun CartItemTile(
             Icon(
                 Icons.Default.Delete, contentDescription = "Delete", tint = Color.White
             )
+        }
         }
 
         // nội dung của item

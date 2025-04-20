@@ -32,6 +32,7 @@ import com.datn.viettech_md_12.screen.cart.CartScreen
 import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
 import com.datn.viettech_md_12.screen.checkout.PaymentUI
 import com.datn.viettech_md_12.screen.checkout.checkout_cart.PaymentCartUI
+import com.datn.viettech_md_12.screen.checkout.checkout_now.PaymentNowUI
 import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
@@ -100,6 +101,27 @@ fun NavigationGraph(startDestination: String = "home") {
                 PaymentCartUI(
                     navController = navController,
                     discount = discount,
+                )
+            }
+            composable("payment_now/product/{productId}/{quantity}/{variantId}", arguments = listOf(
+                navArgument("productId") { type = NavType.StringType },
+                navArgument("quantity") {
+                    type = NavType.IntType
+                    defaultValue = 1
+                },
+                navArgument("variantId") {
+                    type = NavType.StringType
+//                    nullable = true
+                }
+            )) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId") ?: ""
+                val variantId = backStackEntry.arguments?.getString("variantId") ?: ""
+                val quantity = backStackEntry.arguments?.getInt("quantity") ?: 1
+                PaymentNowUI(
+                    navController = navController,
+                    productId = productId,
+                    quantity = quantity,
+                    variantId = variantId
                 )
             }
             // Thêm 2 route riêng biệt cho 2 trường hợp

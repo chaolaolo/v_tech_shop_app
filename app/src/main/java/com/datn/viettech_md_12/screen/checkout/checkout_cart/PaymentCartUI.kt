@@ -9,6 +9,7 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +32,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -55,21 +58,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
 import com.datn.viettech_md_12.data.model.CartModel
@@ -81,6 +91,9 @@ import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -361,30 +374,14 @@ fun PaymentCartUI(
                             .padding(start = 16.dp, end = 16.dp, top = 4.dp)
                             .nestedScroll(rememberNestedScrollInteropConnection())
                     ) {
-//                if (productsToPay.isNotEmpty()) {
                         items(selectedCartItems ?: emptyList()) { item ->
-                            CheckoutItemTile(
+                            CheckoutCartItemTile(
                                 product = item,
                                 cartViewModel = cartViewModel,
                                 checkoutViewModel = checkoutViewModel,
-                                onQuantityChange = { newQuantity ->
-                                    quantityState.value = newQuantity
-                                },
                                 snackbarHostState = snackbarHostState,
                             )
                         }
-//                } else {
-//                    item {
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp),
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            Text("Không có sản phẩm nào được chọn")
-//                        }
-//                    }
-//                }
                     }
                 }
                 //Tóm tắt đơn hàng
@@ -472,14 +469,51 @@ fun PaymentCartUI(
                         onClick = {
                             checkoutViewModel._isCheckoutLoading.value = true
                             val addressData = checkoutState?.body()?.data
-                            val address = addressData?.address ?: ""
-                            val phone = addressData?.phone ?: ""
-                            val name = addressData?.full_name ?: ""
+                            val address = addressData?.address?.trim() ?: ""
+                            val phone = addressData?.phone?.trim() ?: ""
+                            val name = addressData?.full_name?.trim() ?: ""
                             Log.d("PaymentUI", "address: $address, phone: $phone, name:$name ")
                             if (selectedCartItems?.any { it.isSelected && it.stock == 0 } == true) {
                                 showOutOfStockDialog.value = true
                             } else {
-                                if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
+                                when {
+                                    address.isNullOrBlank() || address == "null" -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Vui lòng thiết lập địa chỉ giao hàng",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    phone.isNullOrBlank() || address == "null" -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Vui lòng thiết lập số điện thoại",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    name.isNullOrBlank() || address == "null" -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Vui lòng thiết lập Họ tên",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    !phone.matches(Regex("^[0-9]{10,11}\$")) -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Số điện thoại không hợp lệ (phải có 10 số)",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    else -> {
                                     checkoutViewModel.checkout(
                                         address = address,
                                         phone_number = phone,
@@ -494,12 +528,14 @@ fun PaymentCartUI(
 //                                    navController.navigate("order_successfully")
                                     Log.d("PaymentUI", "selectedPayOption.apiValue: $paymentUrl")
                                     if (selectedPayOption.apiValue != "vnpay") {
-                                        navController.navigate("order_successfully")
+                                        navController.navigate("order_successfully") {
+                                            popUpTo("cart") {
+                                                inclusive = false
+                                            }
+                                            launchSingleTop = true
+                                        }
                                     }
-                                } else {
-                                    Toast.makeText(
-                                        context, "Vui lòng cung cấp đầy đủ thông tin!", Toast.LENGTH_SHORT
-                                    ).show()
+                                    }
                                 }
                             }
                         },
@@ -549,4 +585,197 @@ fun PaymentCartUI(
         }
     }
 //    }
+}
+
+
+@Composable
+fun CheckoutCartItemTile(
+    product: CartModel.Metadata.CartProduct,
+    cartViewModel: CartViewModel,
+    checkoutViewModel: CheckoutViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    val imageUrl = if (product.image.startsWith("http")) {
+        product.image
+    } else {
+        "http://103.166.184.249:3056/${product.image.replace("\\", "/")}"
+    }
+    Log.d("CheckoutItemTile", "Loading image from URL: $imageUrl")
+
+    val itemPrice = product.price
+    val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
+    var currentQuantity by remember { mutableIntStateOf(product.quantity) }
+    LaunchedEffect(product.quantity) {
+        currentQuantity = product.quantity
+    }
+    val coroutineScope = rememberCoroutineScope()
+    Column(
+        modifier = Modifier
+            .padding(bottom = 4.dp)
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .padding(bottom = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(start = 4.dp, end = 6.dp, top = 4.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(Color(0xFFF4F4F4), RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.error_img),
+                onError = { Log.e("CheckoutItemTile", "Failed to load image: $imageUrl") }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            product.name,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W600,
+                            color = Color.Black,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        val variantValues =
+                            product.variant_details?.values?.joinToString(", ") { it.value } ?: ""
+                        if (!variantValues.isNullOrEmpty()) {
+                            Text(
+                                variantValues,
+                                fontSize = 12.sp,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.W500,
+                                lineHeight = 14.sp
+                            )
+                        }
+                        Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500, color = Color.Black)
+                    }
+                    Row(
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                brush = SolidColor(Color(0xFFF4F5FD)),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(
+                            onClick = {
+                                if (currentQuantity > 1) {
+                                    val newQuantity = currentQuantity - 1
+                                    currentQuantity = newQuantity
+                                    coroutineScope.launch {
+                                        cartViewModel.updateProductQuantity(
+                                            productId = product.productId,
+                                            variantId = product.detailsVariantId ?: "",
+                                            newQuantity = newQuantity,
+                                        )
+                                        // Sau khi cập nhật xong, refresh lại danh sách
+                                        checkoutViewModel.refreshSelectedItems()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(18.dp),
+                            enabled = currentQuantity > 1
+                        ) {
+                            Icon(
+                                Icons.Default.Remove, contentDescription = "Decrease",
+                                tint = if (currentQuantity > 1) Color.Black else Color.Gray
+                            )
+                        }
+                        Text(
+                            if (product?.stock == 0) "0" else "$currentQuantity",
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = Color.Black
+                        )
+                        IconButton(
+                            onClick = {
+                                if (currentQuantity < (product.stock ?: Int.MAX_VALUE)) {
+                                    val newQuantity = currentQuantity + 1
+                                    currentQuantity = newQuantity
+                                    coroutineScope.launch {
+                                        cartViewModel.updateProductQuantity(
+                                            productId = product.productId,
+                                            variantId = product.detailsVariantId ?: "",
+                                            newQuantity = newQuantity,
+                                        )
+                                        checkoutViewModel.refreshSelectedItems()
+                                    }
+                                } else if (product.stock == 1) {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.stock} trong kho")
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(18.dp),
+                            enabled = currentQuantity < (product.stock ?: Int.MAX_VALUE)
+                        ) {
+                            Icon(
+                                Icons.Default.Add, contentDescription = "Increase",
+                                tint = if (currentQuantity < (product.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        HorizontalDivider(
+            thickness = 0.3.dp,
+            color = Color.Gray
+        )
+        if (product.stock == 0) {
+            Text(
+                "Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.End)
+                    .padding(horizontal = 16.dp)
+            )
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(end = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    "Số lượng ${currentQuantity}, tổng cộng ",
+//             textAlign = TextAlign.End,
+                    fontSize = 12.sp,
+                    color = Color.Black
+                )
+                Text(
+                    "${
+                        NumberFormat.getNumberInstance(Locale("vi", "VN"))
+                            .format(currentQuantity * itemPrice)
+                    }₫",
+//             textAlign = TextAlign.End,
+                    fontSize = 12.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.W600
+                )
+            }
+        }
+    }
 }

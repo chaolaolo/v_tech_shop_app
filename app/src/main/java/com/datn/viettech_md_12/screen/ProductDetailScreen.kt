@@ -440,8 +440,12 @@ fun ProductDetailScreen(
                                             if (selectedAttributes.size == productAttributes.size) {
                                                 viewModel.matchedVariantId.value?.let { variantId ->
                                                     val selectedVariant = variants?.find { it.id == variantId }
-                                                    if (selectedVariant?.stock ?: 0 > 0) {
-                                                        navController.navigate("payment_ui/product/${productDetail?.id}/$quantity?variantId=$variantId")
+                                                    if ((selectedVariant?.stock ?: 0) > 0) {
+                                                        navController.navigate("payment_now/product/${productId}/$quantity/${variantId}")
+//                                                        navController.navigate("payment_ui/product/${productDetail?.id}/$quantity?variantId=$variantId")
+                                                        coroutineScope.launch {
+                                                            bottomsheetScaffoldState.bottomSheetState.hide()
+                                                        }
                                                     } else {
                                                         coroutineScope.launch {
                                                             simpleSnackbarHostState.showSnackbar("Sản phẩm này đã hết hàng")
@@ -1048,7 +1052,8 @@ fun ProductDetailScreen(
                                                 coroutineScope.launch { bottomsheetScaffoldState.bottomSheetState.expand() }
                                             } else {
                                                 showCheckStockDialog = false
-                                                navController.navigate("payment_ui/product/${productDetail?.id}/$quantity") // Chuyển đến màn thanh toán
+                                                navController.navigate("payment_now/product/${productId}/$quantity/\"\"")
+//                                                navController.navigate("payment_ui/product/${productDetail?.id}/$quantity") // Chuyển đến màn thanh toán
                                                 Log.d("ProductDetailScreen", "sl: $quantity ")
                                             }
                                         }

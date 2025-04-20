@@ -281,12 +281,6 @@ class CheckoutViewModel(application: Application) : ViewModel(){
 //                        getIsSelectedItemInCart()
                         _paymentUrl.value = body.metadata.paymentUrl
                     } else {
-                        getIsSelectedItemInCart()
-                        cartService.getCart(
-                            token = token?:"",
-                            userId = userId?:"",
-                            userIdQuery = userId?:""
-                        )
                         _paymentUrl.value = null
                     }
                     val dc = response.body()?.metadata?.discountCode
