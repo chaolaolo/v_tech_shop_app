@@ -4,15 +4,22 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import android.content.Context
+import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.datn.viettech_md_12.navigation.NavigationGraph
@@ -36,6 +43,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             VietTech_MD_12Theme {
+                RequestNotificationPermission()
                 // Điều hướng dựa trên trạng thái đăng nhập và đã xem onboarding
                 val startDestination = when {
                     isLoggedIn -> "home" // Nếu đã đăng nhập, đi đến màn Home
@@ -43,6 +51,31 @@ class MainActivity : ComponentActivity() {
                     else -> "onb_screen" // Nếu chưa xem onboarding, đi đến Onboarding
                 }
                 NavigationGraph(startDestination = startDestination)
+            }
+        }
+    }
+}
+@Composable
+fun RequestNotificationPermission() {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("NotificationPermission", "Đã cấp quyền thông báo")
+        } else {
+            Log.d("NotificationPermission", "Từ chối quyền thông báo")
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                launcher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }

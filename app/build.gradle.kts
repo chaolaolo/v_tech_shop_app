@@ -69,4 +69,5 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-pager:0.30.1")
     implementation ("com.google.accompanist:accompanist-pager-indicators:0.30.1")
     implementation ("com.airbnb.android:lottie-compose:6.1.0")
+    implementation ("com.onesignal:OneSignal:[4.8.5, 5.0.0)")
 }
