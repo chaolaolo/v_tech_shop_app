@@ -118,6 +118,7 @@ fun PaymentNowUI(
     val paymentUrl by checkoutViewModel.paymentUrl.collectAsState()
     var quantityState by remember { mutableIntStateOf(quantity) }
     var showProduct by remember { mutableStateOf(true) }
+    val addressData = checkoutState?.body()?.data
 
     val productDetail by productViewModel.productDetail.collectAsState()
     val productDetailResponse by productViewModel.productDetailResponse.collectAsState()
@@ -288,26 +289,25 @@ fun PaymentNowUI(
                             .weight(1f)
                             .padding(horizontal = 2.dp)
                     ) {
-                            val addressData = checkoutState?.body()?.data
                             Row {
                                 Text(
-                                    if (addressData?.full_name.isNullOrEmpty()) "Chưa có tên" else addressData?.full_name
-                                        ?: "Chưa có tên",
+                                    if (addressData?.full_name.isNullOrEmpty() || addressData?.full_name == "null") "" else addressData?.full_name
+                                        ?: "",
                                     color = Color.Black,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.W600,
                                 )
                                 Spacer(Modifier.width(2.dp))
                                 Text(
-                                    "(${if (addressData?.phone.isNullOrEmpty()) "Chưa có số điện thoại" else addressData?.phone ?: "Chưa có số điện thoại"})",
+                                    "(${if (addressData?.phone.isNullOrEmpty() || addressData?.phone == "null") "" else addressData?.phone ?: ""})",
                                     color = Color.Black,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.W600,
                                 )
                             }
                             Text(
-                                if (addressData?.address.isNullOrEmpty()) "Chưa có địa chỉ" else addressData?.address
-                                    ?: "Chưa có địa chỉ",
+                                if (addressData?.address.isNullOrEmpty() || addressData?.address == "null") "" else addressData?.address
+                                    ?: "",
                                 color = Color(0xFF1A1A1A),
                                 fontSize = 14.sp,
                                 maxLines = 2,
@@ -366,21 +366,7 @@ fun PaymentNowUI(
                     ) {
                         CircularProgressIndicator(color = Color(0xFF21D4B4))
                     }
-                }else if (!showProduct)  {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                            .background(Color(0xfff4f5fd))
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Đơn hàng của bạn đã được gửi thành công!",
-                            color = Color.Black,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold)
-                    }
-                }else if (productDetail != null){
+                } else if (productDetail != null){
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
@@ -504,7 +490,7 @@ fun PaymentNowUI(
                                         checkoutViewModel._isCheckoutLoading.value = false
                                     }
 
-                                    phone.isNullOrBlank() || address == "null" -> {
+                                    phone.isNullOrBlank() || phone == "null" -> {
                                         Toast.makeText(
                                             context,
                                             "Vui lòng thiết lập số điện thoại",
@@ -513,7 +499,7 @@ fun PaymentNowUI(
                                         checkoutViewModel._isCheckoutLoading.value = false
                                     }
 
-                                    name.isNullOrBlank() || address == "null" -> {
+                                    name.isNullOrBlank() || name == "null" -> {
                                         Toast.makeText(
                                             context,
                                             "Vui lòng thiết lập Họ tên",

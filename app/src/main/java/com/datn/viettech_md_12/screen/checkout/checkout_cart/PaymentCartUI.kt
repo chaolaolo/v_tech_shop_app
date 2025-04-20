@@ -290,23 +290,23 @@ fun PaymentCartUI(
                         val addressData = checkoutState?.body()?.data
                         Row {
                             Text(
-                                if (addressData?.full_name.isNullOrEmpty()) "Chưa có tên" else addressData?.full_name
-                                    ?: "Chưa có tên",
+                                if (addressData?.full_name.isNullOrEmpty() || addressData?.full_name == "null") "" else addressData?.full_name
+                                    ?: "",
                                 color = Color.Black,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.W600,
                             )
                             Spacer(Modifier.width(2.dp))
                             Text(
-                                "(${if (addressData?.phone.isNullOrEmpty()) "Chưa có số điện thoại" else addressData?.phone ?: "Chưa có số điện thoại"})",
+                                "(${if (addressData?.phone.isNullOrEmpty() || addressData?.phone == "null") "" else addressData?.phone ?: ""})",
                                 color = Color.Black,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.W600,
                             )
                         }
                         Text(
-                            if (addressData?.address.isNullOrEmpty()) "Chưa có địa chỉ" else addressData?.address
-                                ?: "Chưa có địa chỉ",
+                            if (addressData?.address.isNullOrEmpty() || addressData?.address == "null") "" else addressData?.address
+                                ?: "",
                             color = Color(0xFF1A1A1A),
                             fontSize = 14.sp,
                             maxLines = 2,
