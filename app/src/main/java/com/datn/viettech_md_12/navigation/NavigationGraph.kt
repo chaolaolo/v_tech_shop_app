@@ -25,12 +25,14 @@ import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.SearchScreen
 import com.datn.viettech_md_12.screen.WishlistScreen
+import com.datn.viettech_md_12.screen.authentication.LoginUser
 import com.datn.viettech_md_12.screen.authentication.OnboardingScreen
+import com.datn.viettech_md_12.screen.authentication.SignUpUser
 import com.datn.viettech_md_12.screen.cart.CartScreen
-import com.datn.viettech_md_12.screen.checkout.CheckoutReviewItemsScreen
-import com.datn.viettech_md_12.screen.checkout.CheckoutScreen
 import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
 import com.datn.viettech_md_12.screen.checkout.PaymentUI
+import com.datn.viettech_md_12.screen.checkout.checkout_cart.PaymentCartUI
+import com.datn.viettech_md_12.screen.checkout.checkout_now.PaymentNowUI
 import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
@@ -89,18 +91,40 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("order_history_screen") { OrderHistoryScreen(navController, viewModel = productViewModel) }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
-            composable("payment") { CheckoutScreen(navController) }
             composable("payment_screen") { PaymentScreen(navController) }
             composable("onb_screen") { OnboardingScreen(navController) }
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
-            composable("review_items") { CheckoutReviewItemsScreen(navController) }
             composable("address_screen") { AddressScreen(navController) }
-//            composable("payment_ui") { PaymentUI(navController) }
-//            composable("payment_ui/{discount}") { backStackEntry ->
-//                val discount = backStackEntry.arguments?.getString("discount") ?: ""
-//                PaymentUI(navController, discount)
-//            }
-// Thêm 2 route riêng biệt cho 2 trường hợp
+            //mới nhất(tách 2 màn thanh toán riêng)
+            composable("payment_ui/{discount}") { backStackEntry ->
+                val discount = backStackEntry.arguments?.getString("discount") ?: ""
+                PaymentCartUI(
+                    navController = navController,
+                    discount = discount,
+                )
+            }
+            composable("payment_now/product/{productId}/{quantity}/{variantId}", arguments = listOf(
+                navArgument("productId") { type = NavType.StringType },
+                navArgument("quantity") {
+                    type = NavType.IntType
+                    defaultValue = 1
+                },
+                navArgument("variantId") {
+                    type = NavType.StringType
+//                    nullable = true
+                }
+            )) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId") ?: ""
+                val variantId = backStackEntry.arguments?.getString("variantId") ?: ""
+                val quantity = backStackEntry.arguments?.getInt("quantity") ?: 1
+                PaymentNowUI(
+                    navController = navController,
+                    productId = productId,
+                    quantity = quantity,
+                    variantId = variantId
+                )
+            }
+            // Thêm 2 route riêng biệt cho 2 trường hợp
             composable("payment_ui/cart/{discount}") { backStackEntry ->
                 val discount = backStackEntry.arguments?.getString("discount") ?: ""
                 PaymentUI(
@@ -141,6 +165,12 @@ fun NavigationGraph(startDestination: String = "home") {
                     categoryId = categoryId,
                     productByCategoryViewModel = viewModel()
                 )
+            }
+            composable("login") {
+                LoginUser(userViewModel, navController)
+            }
+            composable("register") {
+                SignUpUser(userViewModel, navController)
             }
         }
     }

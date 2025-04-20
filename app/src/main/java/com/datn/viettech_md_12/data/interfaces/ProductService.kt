@@ -9,6 +9,7 @@ import com.datn.viettech_md_12.data.model.MatchVariantResponse
 import com.datn.viettech_md_12.data.model.OrderListResponse
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
+import com.datn.viettech_md_12.data.model.ProductDetailResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.ProductResponse
 import com.datn.viettech_md_12.data.model.SearchResponse
@@ -30,7 +31,7 @@ interface ProductService {
 ////        "x-client-id: 65e4a201d4a1d6b87e4e3f11"
 //    )
     @GET("shop/products/{id}")
-    suspend fun getProductById(@Path("id") id: String): Response<ProductResponse>
+    suspend fun getProductById(@Path("id") id: String): Response<ProductDetailResponse>
 
     @GET("shop/products") //hien thi tat ca san pham
     suspend fun getAllProducts(): Response<ProductListResponse>

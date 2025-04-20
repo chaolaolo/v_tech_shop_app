@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen.checkout
+package com.datn.viettech_md_12.screen.checkout.checkout_now
 
 import MyButton
 import android.annotation.SuppressLint
@@ -8,8 +8,8 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,7 +32,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -41,8 +43,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -54,128 +54,116 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.component.checkout.CheckoutItemTile
-import com.datn.viettech_md_12.data.model.CartModel
+import com.datn.viettech_md_12.data.model.ProductDetailModel
+import com.datn.viettech_md_12.data.model.ProductModel
+import com.datn.viettech_md_12.screen.checkout.PayMethodItem
+import com.datn.viettech_md_12.screen.checkout.PaymentMethod
+import com.datn.viettech_md_12.screen.checkout.formatCurrency
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
-
-data class PaymentMethod(
-    val displayName: String,
-    val imageRes: Int = 1,
-    val apiValue: String,
-)
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "RememberReturnType")
 @Composable
-fun PaymentUI(
+fun PaymentNowUI(
     navController: NavController,
-    discount: String = "",
     productId: String = "",
-    fromCart: Boolean,
     quantity: Int = 1,
+    variantId: String? = null,
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
-    cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
     productViewModel: ProductViewModel = viewModel(),
 ) {
     Log.d("PaymentUI", "Received quantity: $quantity") // Debug log
+    Log.d("PaymentUI", "Received variantId: $variantId") // Debug log
+    Log.d("PaymentUI", "Received productId: $productId") // Debug log
     val context = LocalContext.current
     val checkoutState by checkoutViewModel.addressState.collectAsState()
     val gettingAddress by checkoutViewModel.gettingAddress.collectAsState()
-    val selectedCartItems by checkoutViewModel.selectedCartItems.collectAsState()
-    val isLoadingCartItems by checkoutViewModel.isCheckoutLoading.collectAsState()
     val isLoadingProduct by productViewModel.isLoading.collectAsState()
     val isCheckoutLoading by checkoutViewModel.isCheckoutLoading.collectAsState()
     val paymentUrl by checkoutViewModel.paymentUrl.collectAsState()
-    val variantId by productViewModel.matchedVariantId.collectAsState()
-    val productDetailResponse by productViewModel.productDetailResponse.collectAsState()
+    var quantityState by remember { mutableIntStateOf(quantity) }
+    var showProduct by remember { mutableStateOf(true) }
+    val addressData = checkoutState?.body()?.data
 
-    // Thêm state cho sản phẩm mua ngay
     val productDetail by productViewModel.productDetail.collectAsState()
-    var directPurchaseProduct by remember { mutableStateOf<CartModel.Metadata.CartProduct?>(null) }
-    val quantityState = remember { mutableIntStateOf(quantity) }
+    val productDetailResponse by productViewModel.productDetailResponse.collectAsState()
+    val matchedVariant by remember(variantId) {
+        derivedStateOf {
+            productDetailResponse?.variants?.find { it.id == variantId }
+        }
+    }
+    Log.d("PaymentUI", "matchedVariant id: ${matchedVariant?.id}") // Debug log
+
+    // Calculate price based on variant or product
+    val productPrice = remember(matchedVariant, productDetail) {
+        matchedVariant?.price ?: productDetail?.productPrice ?: 0.0
+    }
+    // Calculate total price
+    val totalPrice = remember(quantityState, productPrice) {
+        quantityState * productPrice
+    }
+    // Shipping cost - you can adjust this as needed
+    val shippingCost = remember { 35000.0 }
 
     LaunchedEffect(Unit) {
         checkoutViewModel.getAddress()
-        if (fromCart) {
-            checkoutViewModel.getIsSelectedItemInCart()
-        } else {
             if (productId.isNotEmpty()) {
                 productViewModel.getProductById(productId)
             }
-        }
-    }
-
-    // Khi có thông tin sản phẩm (trường hợp mua ngay)
-    LaunchedEffect(key1 = productDetail) {
-        productDetail?.let {
-            Log.d("PaymentUI", "Creating product with quantity: $quantity")
-            directPurchaseProduct = CartModel.Metadata.CartProduct(
-                productId = it.id,
-                name = it.productName,
-                price = it.productPrice,
-                quantity = quantityState.intValue,
-                image = it.productThumbnail,
-                isSelected = true,
-                detailsVariantId = variantId ?: "",
-                variant_details = null,
-                stock = it.productStock,
-                product_details = null,
-            )
-            if (productDetailResponse?.attributes?.isNotEmpty() == true) {
-                productViewModel.matchVariant(productId, emptyMap())
-            }
-        }
     }
 
     LaunchedEffect(paymentUrl) {
         paymentUrl?.let { url ->
             checkoutViewModel._paymentUrl.value = null
             try {
+                showProduct = false
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 context.startActivity(intent)
+                navController.navigate("order_successfully"){
+                    popUpTo("product_detail/$productId") {
+                        inclusive = false
+                    }
+                    launchSingleTop = true
+                }
             } catch (e: ActivityNotFoundException) {
+                showProduct = true
                 Toast.makeText(context, "Không thể mở trình duyệt", Toast.LENGTH_SHORT).show()
             }
-        }
-    }
-
-
-    // Danh sách sản phẩm sẽ hiển thị
-    val productsToPay = remember(selectedCartItems, directPurchaseProduct) {
-        if (fromCart) {
-            // Trường hợp thanh toán từ giỏ hàng
-            selectedCartItems ?: emptyList()
-        } else {
-            // Trường hợp mua ngay
-            listOfNotNull(directPurchaseProduct?.copy(quantity = quantityState.intValue))
         }
     }
 
@@ -185,41 +173,6 @@ fun PaymentUI(
             PaymentMethod("Thanh toán VNPay", R.drawable.vnpay_img, "vnpay")
         )
     var selectedPayOption by remember { mutableStateOf(payOptions[0]) }
-
-    val discountState by cartViewModel.discountState.collectAsState()
-    val listDiscount = discountState?.body()?.data ?: emptyList()
-    val selectedVoucher = remember(discount, listDiscount) {
-        listDiscount.firstOrNull { it.code.trim() == discount.trim() }
-    }
-//    val subtotal = remember(productsToPay, quantityState.value) { productsToPay.sumOf { it.price * quantityState.value } ?: 0.0 }
-    val subtotal = remember(productsToPay) {
-        productsToPay.sumOf { it.price * it.quantity } ?: 0.0
-    }
-    val defaultShippingFee = 35000.0
-    val shippingFee = remember(selectedVoucher) {
-        if (selectedVoucher?.discountType?.lowercase() == "shipping") {
-            if (selectedVoucher?.discountValue == 0.0) {
-                0.0
-            } else {
-                val shippingDiscount = selectedVoucher.discountValue
-                (defaultShippingFee - shippingDiscount).coerceAtLeast(0.0)
-            }
-        } else {
-            defaultShippingFee
-        }
-    }
-    val discountPercentage = selectedVoucher?.discountValue ?: 0.0
-    val discountAmount = remember(subtotal, discountPercentage) {
-        (subtotal * discountPercentage / 100)
-    }
-    val maxDiscountAmount = selectedVoucher?.maxDiscountAmount ?: Double.MAX_VALUE
-    val finalDiscountAmount = remember(discountAmount, maxDiscountAmount) {
-        minOf(discountAmount, maxDiscountAmount)
-    }
-// Tổng thanh toán
-    val total = remember(subtotal, shippingFee, finalDiscountAmount) {
-        subtotal + shippingFee - finalDiscountAmount
-    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val showOutOfStockDialog = remember { mutableStateOf(false) }
@@ -284,16 +237,16 @@ fun PaymentUI(
         },
     )
     { innerPadding ->
-        Log.d("discount", "discount: $discount")
-        Log.d("discount", "selectedVoucher: $selectedVoucher")
-        Log.d("discount", "Available vouchers: ${listDiscount.map { it.code }}")
-        Log.d("discount", "subtotal: $subtotal")
-        Log.d("discount", "discountPercentage: $discountPercentage")
-        Log.d("discount", "discountAmount: $discountAmount")
-        Log.d("discount", "maxDiscountAmount: $maxDiscountAmount")
-        Log.d("discount", "finalDiscountAmount: $finalDiscountAmount")
-        Log.d("discount", "total: $total")
-        Log.d("discount", "Discount State: $discountState")
+//        Log.d("discount", "discount: $discount")
+//        Log.d("discount", "selectedVoucher: $selectedVoucher")
+//        Log.d("discount", "Available vouchers: ${listDiscount.map { it.code }}")
+//        Log.d("discount", "subtotal: $subtotal")
+//        Log.d("discount", "discountPercentage: $discountPercentage")
+//        Log.d("discount", "discountAmount: $discountAmount")
+//        Log.d("discount", "maxDiscountAmount: $maxDiscountAmount")
+//        Log.d("discount", "finalDiscountAmount: $finalDiscountAmount")
+//        Log.d("discount", "total: $total")
+//        Log.d("discount", "Discount State: $discountState")
         if (gettingAddress) {
             Box(
                 modifier = Modifier
@@ -336,26 +289,25 @@ fun PaymentUI(
                             .weight(1f)
                             .padding(horizontal = 2.dp)
                     ) {
-                            val addressData = checkoutState?.body()?.data
                             Row {
                                 Text(
-                                    if (addressData?.full_name.isNullOrEmpty()) "Chưa có tên" else addressData?.full_name
-                                        ?: "Chưa có tên",
+                                    if (addressData?.full_name.isNullOrEmpty() || addressData?.full_name == "null") "" else addressData?.full_name
+                                        ?: "",
                                     color = Color.Black,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.W600,
                                 )
                                 Spacer(Modifier.width(2.dp))
                                 Text(
-                                    "(${if (addressData?.phone.isNullOrEmpty()) "Chưa có số điện thoại" else addressData?.phone ?: "Chưa có số điện thoại"})",
+                                    "(${if (addressData?.phone.isNullOrEmpty() || addressData?.phone == "null") "" else addressData?.phone ?: ""})",
                                     color = Color.Black,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.W600,
                                 )
                             }
                             Text(
-                                if (addressData?.address.isNullOrEmpty()) "Chưa có địa chỉ" else addressData?.address
-                                    ?: "Chưa có địa chỉ",
+                                if (addressData?.address.isNullOrEmpty() || addressData?.address == "null") "" else addressData?.address
+                                    ?: "",
                                 color = Color(0xFF1A1A1A),
                                 fontSize = 14.sp,
                                 maxLines = 2,
@@ -405,7 +357,7 @@ fun PaymentUI(
                     color = Color(0xfff4f5fd)
                 )
                 //Danh sách sản phẩm sẽ thanh toán
-                if ((fromCart && isLoadingCartItems) || (!fromCart && isLoadingProduct)) {
+                if (isLoadingProduct) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -414,7 +366,7 @@ fun PaymentUI(
                     ) {
                         CircularProgressIndicator(color = Color(0xFF21D4B4))
                     }
-                } else {
+                } else if (productDetail != null){
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
@@ -423,32 +375,17 @@ fun PaymentUI(
                             .padding(start = 16.dp, end = 16.dp, top = 4.dp)
                             .nestedScroll(rememberNestedScrollInteropConnection())
                     ) {
-//                if (productsToPay.isNotEmpty()) {
-                        items(productsToPay) { item ->
-                            CheckoutItemTile(
-                                product =
-//                            item.copy(quantity = quantityState.value)
-                                item.copy(quantity = if (!fromCart) quantityState.value else item.quantity),
-                                cartViewModel = cartViewModel,
-                                checkoutViewModel = checkoutViewModel,
+                        item {
+                            CheckoutNowItemTile(
+                                product = productDetail!!,
+                                variant = matchedVariant,
+                                quantity = quantityState,
                                 onQuantityChange = { newQuantity ->
-                                    quantityState.value = newQuantity
+                                    quantityState = newQuantity
                                 },
                                 snackbarHostState = snackbarHostState,
                             )
                         }
-//                } else {
-//                    item {
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp),
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            Text("Không có sản phẩm nào được chọn")
-//                        }
-//                    }
-//                }
                     }
                 }
                 //Tóm tắt đơn hàng
@@ -479,7 +416,7 @@ fun PaymentUI(
                             fontSize = 14.sp,
                         )
                         Text(
-                            "${formatCurrency(subtotal)}₫",
+                            "${formatCurrency(totalPrice)} ₫",
                             color = Color.Black,
                             fontSize = 14.sp,
                         )
@@ -491,25 +428,25 @@ fun PaymentUI(
                             fontSize = 14.sp,
                         )
                         Text(
-                            "${formatCurrency(shippingFee)}₫",
-                            color = if (selectedVoucher?.discountType?.lowercase() == "shipping") Color(0xFF00C2A8) else Color.Black,
+                            "${formatCurrency(shippingCost)} ₫",
+//                            color = if (selectedVoucher?.discountType?.lowercase() == "shipping") Color(0xFF00C2A8) else Color.Black,
                             fontSize = 14.sp,
                         )
                     }
-                    if (finalDiscountAmount > 0) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(
-                                "Giảm giá (${discountPercentage.toInt()}%)",
-                                fontSize = 14.sp,
-                                color = Color(0xFF00C2A8),
-                            )
-                            Text(
-                                "-${formatCurrency(finalDiscountAmount)}₫",
-                                fontSize = 14.sp,
-                                color = Color(0xFF00C2A8),
-                            )
-                        }
-                    }
+//                    if (finalDiscountAmount > 0) {
+//                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+//                            Text(
+//                                "Giảm giá (${discountPercentage.toInt()}%)",
+//                                fontSize = 14.sp,
+//                                color = Color(0xFF00C2A8),
+//                            )
+//                            Text(
+//                                "-${formatCurrency(finalDiscountAmount)}₫",
+//                                fontSize = 14.sp,
+//                                color = Color(0xFF00C2A8),
+//                            )
+//                        }
+//                    }
                     Spacer(Modifier.height(4.dp))
                     HorizontalDivider(Modifier.height(0.5.dp), color = Color.LightGray)
                     Spacer(Modifier.height(4.dp))
@@ -519,13 +456,13 @@ fun PaymentUI(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            "Tổng (${productsToPay.size} mặt hàng)",
+                            "Tổng ($quantityState mặt hàng)",
                             color = Color.Black,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.W600
                         )
                         Text(
-                            "${formatCurrency(total)}₫",
+                            "${formatCurrency(totalPrice + shippingCost)}₫",
                             color = Color.Black,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.W600,
@@ -536,60 +473,78 @@ fun PaymentUI(
                         onClick = {
                             checkoutViewModel._isCheckoutLoading.value = true
                             val addressData = checkoutState?.body()?.data
-                            val address = addressData?.address ?: ""
-                            val phone = addressData?.phone ?: ""
-                            val name = addressData?.full_name ?: ""
+                            val address = addressData?.address?.trim() ?: ""
+                            val phone = addressData?.phone?.trim() ?: ""
+                            val name = addressData?.full_name?.trim() ?: ""
                             Log.d("PaymentUI", "address: $address, phone: $phone, name:$name ")
-                            if (productsToPay.any { it.isSelected && it.stock == 0 }) {
+                            if (productDetail?.productStock == 0) {
                                 showOutOfStockDialog.value = true
                             } else {
-                                if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
-                                    if(fromCart){
-                                        checkoutViewModel.checkout(
+                                when {
+                                    address.isNullOrBlank() || address == "null" -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Vui lòng thiết lập địa chỉ giao hàng",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    phone.isNullOrBlank() || phone == "null" -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Vui lòng thiết lập số điện thoại",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    name.isNullOrBlank() || name == "null" -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Vui lòng thiết lập Họ tên",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    !phone.matches(Regex("^[0-9]{10,11}\$")) -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Số điện thoại không hợp lệ (phải có 10 số)",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        checkoutViewModel._isCheckoutLoading.value = false
+                                    }
+
+                                    else -> {
+                                        checkoutViewModel.checkoutNow(
                                             address = address,
                                             phone_number = phone,
                                             receiver_name = name,
                                             payment_method = selectedPayOption.apiValue,
-                                            discount_code = discount,
+                                            discount_code = "",
+                                            productId = productId,
+                                            detailsVariantId = matchedVariant?.id ?: "",
+                                            quantity = quantityState
                                         )
-                                    Log.d(
-                                        "PaymentUI",
-                                        "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
-                                    )
-//                                    navController.navigate("order_successfully")
-                                    Log.d("PaymentUI", "selectedPayOption.apiValue: $paymentUrl")
-                                    if (selectedPayOption.apiValue != "vnpay") {
-                                        navController.navigate("order_successfully")
-                                    }
-                                    }else{
-                                        directPurchaseProduct?.let { product ->
-                                            checkoutViewModel.checkoutNow(
-                                                address = address,
-                                                phone_number = phone,
-                                                receiver_name = name,
-                                                payment_method = selectedPayOption.apiValue,
-                                                discount_code = discount,
-                                                productId = product.productId,
-                                                detailsVariantId = product.detailsVariantId ?: "",
-                                                quantity = product.quantity
-                                            )
-
-                                            if (selectedPayOption.apiValue != "vnpay") {
-                                                navController.navigate("order_successfully")
+                                        if (selectedPayOption.apiValue != "vnpay") {
+                                            showProduct = false
+                                            navController.navigate("order_successfully") {
+                                                popUpTo("product_detail/$productId") {
+                                                    inclusive = false
+                                                }
+                                                launchSingleTop = true
                                             }
                                         }
                                     }
-                                } else {
-                                    Toast.makeText(
-                                        context, "Vui lòng cung cấp đầy đủ thông tin!", Toast.LENGTH_SHORT
-                                    ).show()
                                 }
                             }
                         },
                         modifier = Modifier.padding(vertical = 10.dp),
                         backgroundColor = Color(0xFF00C2A8),
                         textColor = Color.White,
-                        enabled = productsToPay.isNotEmpty()
+                        enabled = true
                     )
                 }
             }
@@ -634,57 +589,174 @@ fun PaymentUI(
 //    }
 }
 
-fun formatCurrency(amount: Double): String {
-    return "%,.0f".format(amount).replace(",", ".")
-}
 
 @Composable
-fun PayMethodItem(
-    text: String,
-    imageRes: Int,
-    selected: Boolean,
-    onSelected: () -> Unit
+fun CheckoutNowItemTile(
+    product: ProductDetailModel,
+    variant: ProductModel.Variation?,
+    quantity: Int,
+    onQuantityChange: (Int) -> Unit,
+    snackbarHostState: SnackbarHostState,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(30.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Image(
-            painter = painterResource(id = imageRes),
-            contentDescription = "Thanh toán tiền mặt",
-            modifier = Modifier
-                .width(46.dp)
-                .height(25.dp)
-                .background(Color.Transparent)
-                .clip(RoundedCornerShape(4.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(Modifier.width(4.dp))
-        Text(
-            text = text,
-            color = Color.Black,
-            fontSize = 14.sp,
-            modifier = Modifier.weight(1f)
-        )
-        Spacer(Modifier.width(4.dp))
-        RadioButton(
-            selected = selected,
-            onClick = { onSelected() },
-            modifier = Modifier,
-            colors = RadioButtonColors(
-                selectedColor = Color(0xFF21D4B4),
-                unselectedColor = Color.Black,
-                disabledSelectedColor = Color.Transparent,
-                disabledUnselectedColor = Color.Transparent
-            ),
-        )
+    val imageUrl = if (product.productThumbnail.startsWith("http")) {
+        product.productThumbnail
+    } else {
+        "http://103.166.184.249:3056/${product.productThumbnail.replace("\\", "/")}"
     }
-}
+    Log.d("CheckoutItemTile", "Loading image from URL: $imageUrl")
 
-@Composable
-@Preview(showSystemUi = true)
-fun PreviewPayScreen() {
-//    PaymentUI(rememberNavController())
+    val itemPrice = variant?.price ?: product.productPrice
+    val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
+    val variantValues = variant?.variantDetails?.joinToString(", ") { it.value } ?: ""
+    var quantityState by remember { mutableIntStateOf(quantity) }
+    LaunchedEffect(quantityState) {
+        onQuantityChange(quantityState)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    Column(
+        modifier = Modifier
+            .padding(bottom = 4.dp)
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .padding(bottom = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(start = 4.dp, end = 6.dp, top = 4.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(Color(0xFFF4F4F4), RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.error_img),
+                onError = { Log.e("CheckoutItemTile", "Failed to load image: $imageUrl") }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            product.productName,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W600,
+                            color = Color.Black,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (variantValues.isNotEmpty()) {
+                            Text(
+                                variantValues,
+                                fontSize = 12.sp,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.W500,
+                                lineHeight = 14.sp
+                            )
+                        }
+                        Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500, color = Color.Black)
+                    }
+                    Row(
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                brush = SolidColor(Color(0xFFF4F5FD)),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(
+                            onClick = {
+                                if (quantityState > 1) {
+                                    quantityState -= 1
+                                    onQuantityChange(quantityState)
+                                }
+                            },
+                            modifier = Modifier.size(18.dp),
+                            enabled = quantityState > 1
+                        ) {
+                            Icon(
+                                Icons.Default.Remove, contentDescription = "Decrease",
+                                tint = if (quantityState > 1) Color.Black else Color.Gray
+                            )
+                        }
+                        Text(
+                            if (product.productStock == 0) "0" else "${quantityState}",
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = Color.Black
+                        )
+                        IconButton(
+                            onClick = {
+                                if (quantityState < (product.productStock ?: Int.MAX_VALUE)) {
+                                    quantityState += 1
+                                    onQuantityChange(quantityState)
+                                } else if (product.productStock == 1) {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.productStock} trong kho")
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(18.dp),
+                            enabled = quantityState < (product.productStock ?: Int.MAX_VALUE)
+                        ) {
+                            Icon(
+                                Icons.Default.Add, contentDescription = "Increase",
+                                tint = if (quantityState < (product.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        HorizontalDivider(
+            thickness = 0.3.dp,
+            color = Color.Gray
+        )
+        if (product.productStock == 0) {
+            Text("Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.End)
+                .padding(horizontal = 16.dp))
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(end = 16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    "Số lượng ${quantityState}, tổng cộng ",
+                    fontSize = 12.sp,
+                    color = Color.Black
+                )
+                Text(
+                    "${
+                        NumberFormat.getNumberInstance(Locale("vi", "VN"))
+                            .format(quantityState * itemPrice)
+                    }₫",
+                    fontSize = 12.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.W600
+                )
+            }
+        }
+    }
 }

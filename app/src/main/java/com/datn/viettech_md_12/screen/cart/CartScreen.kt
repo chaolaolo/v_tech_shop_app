@@ -47,6 +47,7 @@ import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -71,9 +72,11 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -114,12 +117,14 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.component.cart_component.CartItemTile
 import com.datn.viettech_md_12.component.cart_component.EmptyCart
 import com.datn.viettech_md_12.component.cart_component.OrderSummary
+import com.datn.viettech_md_12.component.cart_component.VoucherBottomSheetContent
 import com.datn.viettech_md_12.component.cart_component.VoucherItem
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.screen.checkout.formatCurrency
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.sql.Timestamp
@@ -199,154 +204,15 @@ fun CartScreen(
         sheetSwipeEnabled = false,
         sheetContainerColor = Color(0xfff4f5fd),
         sheetContent = {
-            Column(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp, top = 10.dp)
-                    .fillMaxWidth()
-                    .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
-                    .imePadding()
-            ) {
-                //Sheet header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                Text(
-                    "Mã giảm giá",
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = "Thoát bottomsheet",
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clickable {
-                                scope.launch {
-                                    scaffoldState.bottomSheetState.hide()
-                                }
-                            }
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                HorizontalDivider()
-                Spacer(Modifier.height(10.dp))
-                //TextField nhập mã
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                MyTextField(
-                    hint = "Nhập mã giảm giá",
-                    value = voucherCode.value,
-                    onValueChange = { voucherCode.value = it },
-                    isPassword = false,
-                    modifier = Modifier.weight(1f)
-                )
-                    Spacer(Modifier.width(4.dp))
-                    Card(
-                        onClick = {
-                            val enteredCode = voucherCode.value
-                            val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
-                            if (matchingVoucher != null) {
-                                selectedVoucherId.value = matchingVoucher.id
-                                selectedVoucher.value = matchingVoucher
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Áp dụng mã thành công!")
-                                }
-                            } else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Mã không hợp lệ.")
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(50.dp),
-                        colors = CardDefaults.cardColors(Color(0xFF21D4B4)),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Transparent),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                "Áp dụng",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    } //Card
-                }
-                Spacer(Modifier.height(10.dp))
-                Text("Voucher dành cho bạn", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                //danh sách mã giảm giá
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xfff4f5fd))
-                        .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
-                ) {
-                    items(listDiscount, key = { it.id ?: "" }) { discount ->
-                        VoucherItem(
-                            voucher = discount,
-                            selectedVoucher = selectedVoucherId.value == discount.id,
-                            onSelectedVoucher = { selectedVoucher ->
-                                // Xử lý khi chọn voucher
-                                selectedVoucherId.value = selectedVoucher.id
-                                voucherCode.value = selectedVoucher.code ?: ""
-                            },
-                        )
-                    }
-                    item {
-                        Spacer(Modifier.height(10.dp))
-                        //Button xác nhận dùng mã
-                        MyButton(
-                            text = "Xác nhận",
-                            onClick = {
-                                val enteredCode = voucherCode.value
-                                val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
-                                if (matchingVoucher != null) {
-                                    selectedVoucherId.value = matchingVoucher.id
-                                    selectedVoucher.value = matchingVoucher
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Áp dụng mã thành công!")
-                                    }
-                                    scope.launch { scaffoldState.bottomSheetState.hide() }
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Mã không hợp lệ.")
-                                    }
-                                }
-//                                selectedVoucherId.value?.let { voucherId ->
-//                                    val selectedVoucherId = listDiscount.firstOrNull { it.id == voucherId }
-//                                    selectedVoucherId?.let {
-////                                        cartViewModel.applyDiscount(it.code ?: "")
-//                                        selectedVoucher.value = it
-//                                    }
-//                                }
-                            },
-                            modifier = Modifier,
-                            backgroundColor = Color.Black,
-                            textColor = Color.White,
-                        )
-                        Spacer(Modifier.height(10.dp))
-                    }
-                }
-
-            }
+            VoucherBottomSheetContent(
+                scaffoldState = scaffoldState,
+                snackbarHostState = snackbarHostState,
+                listDiscount = listDiscount,
+                selectedVoucherId = selectedVoucherId,
+                selectedVoucher = selectedVoucher,
+                voucherCode = voucherCode,
+                scope = scope
+            )
         },
         sheetTonalElevation = 16.dp,
         sheetShadowElevation = 24.dp,
@@ -436,6 +302,7 @@ fun CartContent(
     snackbarHostState: SnackbarHostState
 ) {
     var isDeleting by remember { mutableStateOf(false) }
+    val quantityState = remember { mutableIntStateOf(0) }
     // Hiển thị dialog loading khi đang xóa
     if (isDeleting) {
         Dialog(onDismissRequest = {}) {
@@ -485,8 +352,11 @@ fun CartContent(
                         },
                         navController,
                         cartViewModel = cartViewModel,
-                        onDeletingStateChange = { deleting-> isDeleting = deleting },
-                        snackbarHostState = snackbarHostState
+                        onDeletingStateChange = { deleting -> isDeleting = deleting },
+                        snackbarHostState = snackbarHostState,
+                        onQuantityChange = { newQuantity ->
+                            quantityState.value = newQuantity
+                        },
                     )
                 }
             }
@@ -515,4 +385,3 @@ fun CartPreview() {
         navController = rememberNavController()
     )
 }
-

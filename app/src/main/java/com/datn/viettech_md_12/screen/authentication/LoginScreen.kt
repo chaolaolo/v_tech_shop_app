@@ -53,6 +53,8 @@ import com.datn.viettech_md_12.viewmodel.UserViewModel
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 import android.content.SharedPreferences
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 class LoginScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,7 +62,7 @@ class LoginScreen : ComponentActivity() {
         val userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
         enableEdgeToEdge()
         setContent {
-            LoginUser(userViewModel)
+            LoginUser(userViewModel, rememberNavController())
         }
     }
 }
@@ -73,11 +75,15 @@ fun saveLoginState(context: Context, isLoggedIn: Boolean) {
 }
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginUser(userViewModel: UserViewModel) {
+fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+
+    val previousBackStackEntry = navController.previousBackStackEntry
+    val previousRoute = previousBackStackEntry?.destination?.route
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -212,13 +218,31 @@ fun LoginUser(userViewModel: UserViewModel) {
                             isLoading = false
                             Toast.makeText(context,
                                 context.getString(R.string.login_success), Toast.LENGTH_SHORT).show()
-                            val intent = Intent(context, MainActivity::class.java).apply {
-                                putExtra("isLoggedIn", true)
-                            }
                             saveLoginState(context, true)
-
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong không quay lại màn này
-                            context.startActivity(intent)
+                            Log.d("LoginUser", "previousRoute: $previousRoute")
+                            when {
+                                // quay lại màn hình trước khi mở màn hình đăng ký
+                                previousRoute == "register" -> {
+                                    navController.popBackStack(
+                                        route = "login",
+                                        inclusive = false
+                                    )
+                                    navController.popBackStack()
+                                }
+                                //quay lại màn hình trước đó
+                                !previousRoute.isNullOrEmpty() -> {
+                                    navController.popBackStack()
+                                }
+                                // vào home nếu kh có gì đặc biệt
+                                else -> {
+                                    Log.d("LoginUser", "Navigating to home")
+                                    val intent = Intent(context, MainActivity::class.java).apply {
+                                        putExtra("isLoggedIn", true)
+                                    }
+                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong không quay lại màn này
+                                    context.startActivity(intent)
+                                }
+                            }
                         },
                         onError = { error ->
                             isLoading = false

@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.model.OrderModel
+import com.datn.viettech_md_12.data.model.ProductDetailModel
+import com.datn.viettech_md_12.data.model.ProductDetailResponse
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.model.ProductResponse
 import com.datn.viettech_md_12.data.remote.ApiClient
@@ -29,7 +31,10 @@ class ProductViewModel : ViewModel() {
     val products: StateFlow<List<ProductModel>> = _products
     private val _product = MutableStateFlow<ProductModel?>(null)
     val product: StateFlow<ProductModel?> = _product
+    private val _productDetail = MutableStateFlow<ProductDetailModel?>(null)
+    val productDetail: StateFlow<ProductDetailModel?> = _productDetail
     val productResponse = MutableStateFlow<ProductResponse?>(null)
+    val productDetailResponse = MutableStateFlow<ProductDetailResponse?>(null)
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _isLoadingFavourite = MutableStateFlow(true)
@@ -96,13 +101,17 @@ class ProductViewModel : ViewModel() {
                 val response = productRepository.getProductById(id)
                 if (response.isSuccessful) {
                     response.body()?.let {
-                        _product.value = it.product
-                        productResponse.value = response.body()
+                        _productDetail.value = it.product
+                        productDetailResponse.value = response.body()
                         Log.d("ProductViewModel", "Product loaded: ${it.product.productName}")
+                        Log.d("ProductViewModel", "imageIds: ${it.product.imageIds}")
+                        it.product.imageIds.forEach { image ->
+                            Log.d("ProductViewModel", "Image file_path: ${image.file_path}")
+                        }
                         Log.d("ProductViewModel", "product: ${it.product}")
                         Log.d("ProductViewModel", "attributes: ${it.attributes}")
                         Log.d("ProductViewModel", "variants: ${it.variants}")
-                        Log.d("ProductViewModel", "productResponse: $productResponse")
+                        Log.d("ProductViewModel", "productDetailResponse: $productDetailResponse")
                     }
                 } else {
                     Log.e("ProductViewModel", "Error: ${response.code()} ${response.message()}")
@@ -429,7 +438,7 @@ class ProductViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 // 1. Chuyển đổi attribute names sang ids
-                val attributes = productResponse.value?.attributes ?: emptyList()
+                val attributes = productDetailResponse.value?.attributes ?: emptyList()
                 val convertedAttrs = selectedAttributes.mapNotNull { (name, value) ->
                     attributes.find { it.name == name }?._id?.let { id -> id to value }
                 }.toMap()
@@ -439,7 +448,7 @@ class ProductViewModel : ViewModel() {
                 // 2. Thêm fallback nếu không có variant khớp
                 val localVariantId = findMatchingVariantLocal(selectedAttributes)
                 Log.d("MatchVariant", "Product ID: $productId")
-                Log.d("MatchVariant", "Attributes: ${productResponse.value?.attributes}")
+                Log.d("MatchVariant", "Attributes: ${productDetailResponse.value?.attributes}")
                 Log.d("MatchVariant", "Selected Attributes (names): $selectedAttributes")
                 Log.d("MatchVariant", "Converted Attributes (ids): $convertedAttrs")
                 // 3. Gọi API
@@ -460,8 +469,8 @@ class ProductViewModel : ViewModel() {
     }
 
     private fun findMatchingVariantLocal(selectedAttributes: Map<String, String>): String? {
-        val variants = productResponse.value?.variants ?: return null
-        val attributes = productResponse.value?.attributes ?: return null
+        val variants = productDetailResponse.value?.variants ?: return null
+        val attributes = productDetailResponse.value?.attributes ?: return null
 
         return variants.firstOrNull { variant ->
             selectedAttributes.all { (name, value) ->
@@ -474,8 +483,8 @@ class ProductViewModel : ViewModel() {
     }
 
     private fun findMatchingVariantPriceLocal(selectedAttributes: Map<String, String>): Double? {
-        val variants = productResponse.value?.variants ?: return null
-        val attributes = productResponse.value?.attributes ?: return null
+        val variants = productDetailResponse.value?.variants ?: return null
+        val attributes = productDetailResponse.value?.attributes ?: return null
 
         return variants.firstOrNull { variant ->
             selectedAttributes.all { (name, value) ->
@@ -491,8 +500,8 @@ class ProductViewModel : ViewModel() {
     fun filterValidOptions(
         selectedAttributes: Map<String, String>
     ): Map<String, Set<String>> {
-        val variants = productResponse.value?.variants ?: return emptyMap()
-        val attributes = productResponse.value?.attributes ?: return emptyMap()
+        val variants = productDetailResponse.value?.variants ?: return emptyMap()
+        val attributes = productDetailResponse.value?.attributes ?: return emptyMap()
 
         val attributeNameToIdMap = attributes.associate { it.name to it._id }
         val selectedAttrWithIds = selectedAttributes.mapKeys { (name, _) ->
