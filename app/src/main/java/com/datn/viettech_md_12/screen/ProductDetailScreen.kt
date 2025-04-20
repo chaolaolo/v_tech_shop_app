@@ -103,6 +103,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.component.product_detail_components.toColor
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
@@ -151,6 +152,12 @@ fun ProductDetailScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     var isAddingToCart by remember { mutableStateOf(false) }
     var quantity by remember { mutableStateOf(1) }
+    val listImages = productDetail?.imageIds?.mapNotNull {
+        "http://103.166.184.249:3056/${it.file_path.replace("\\", "/")}"
+    }
+        ?.filter { it.isNotBlank() }
+        ?: emptyList()
+    Log.d("ProductDetailScreen", "listImages: $listImages")
 
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
@@ -204,8 +211,12 @@ fun ProductDetailScreen(
         updateValidOptions(selectedAttributes)
     }
 
-
     Box(modifier = Modifier.fillMaxSize()) {
+        //log imageIds
+        productDetail?.imageIds?.forEach { image ->
+            Log.d("ProductDetailScreen", "Image URL: ${image.url}")
+            Log.d("ProductDetailScreen", "Image Details - ID: ${image._id}, FileName: ${image.file_name}, Path: ${image.file_path}, URL: ${image.url}")
+        }
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -572,6 +583,14 @@ fun ProductDetailScreen(
                                 .padding(bottom = 20.dp)
                                 .background(Color(0xFFF4FDFA)),
                         ) {
+                            if (listImages.isNotEmpty()) {
+                                ProductDetailImageSlider(
+                                    images = listImages,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(300.dp)
+                                )
+                            } else {
                             AsyncImage(
                                 model = "http://103.166.184.249:3056/${productDetail?.productThumbnail}",
                                 contentDescription = "p detail image",
@@ -582,6 +601,7 @@ fun ProductDetailScreen(
                                 placeholder = painterResource(R.drawable.logo),
                                 error = painterResource(R.drawable.error_img)
                             )
+                            }
                         }
                         TopAppBar(
                             title = { },
