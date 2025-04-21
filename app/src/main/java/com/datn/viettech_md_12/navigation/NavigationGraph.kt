@@ -33,6 +33,7 @@ import com.datn.viettech_md_12.screen.checkout.OrderSuccessfullyScreen
 import com.datn.viettech_md_12.screen.checkout.PaymentUI
 import com.datn.viettech_md_12.screen.checkout.checkout_cart.PaymentCartUI
 import com.datn.viettech_md_12.screen.checkout.checkout_now.PaymentNowUI
+import com.datn.viettech_md_12.screen.contact_us.ContactUsUI
 import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
@@ -95,6 +96,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("onb_screen") { OnboardingScreen(navController) }
             composable("order_successfully") { OrderSuccessfullyScreen(navController) }
             composable("address_screen") { AddressScreen(navController) }
+            composable("contact_us") { ContactUsUI(navController) }
             //mới nhất(tách 2 màn thanh toán riêng)
             composable("payment_ui/{discount}") { backStackEntry ->
                 val discount = backStackEntry.arguments?.getString("discount") ?: ""

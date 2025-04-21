@@ -32,4 +32,8 @@
     <string name="password_too_short">Mật khẩu phải có ít nhất 6 ký tự.</string>
     <string name="password_requirements">Mật khẩu phải bao gồm cả chữ cái và số.</string>
     <string name="order_infomation">Thông tin đơn hàng</string>
+
+    <string name="contact_us">Liên hệ</string>
+    <string name="viet_tech_blog">VietTech blog</string>
+
 </resources>
