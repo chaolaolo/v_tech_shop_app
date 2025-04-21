@@ -205,10 +205,11 @@ fun ContactOption(
             .height(64.dp)
             .clickable(onClick = onClick)
             .border(
-                width = 1.dp,
+                width = 0.4.dp,
                 brush = SolidColor(Color(0xFF0EBEA0)),
                 shape = RoundedCornerShape(12.dp)
-            ),
+            )
+        ,
         colors = CardDefaults.cardColors(
             containerColor = Color(0xfff4f5fd)
         ),

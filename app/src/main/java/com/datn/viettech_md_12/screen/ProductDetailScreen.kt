@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,6 +88,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -1058,6 +1060,7 @@ fun ProductDetailScreen(
                                 .align(Alignment.BottomCenter)
                                 .background(Color(0xfff4f5fd))
                                 .shadow(elevation = 4.dp),
+                            containerColor = Color(0xfff4f5fd)
                         ) {
                             //nút bấm mua ngay, thêm vào giỏ hàng
                             Row(
@@ -1229,6 +1232,13 @@ fun ProductDetailScreen(
                             .border(
                                 width = 1.dp, color = Color(0xFF00C4B4), shape = RoundedCornerShape(12.dp)
                             )
+                            .pointerInput(Unit) {
+                                detectVerticalDragGestures { change, dragAmount ->
+                                    if (dragAmount < -10) { // Vuốt lên
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                    }
+                                }
+                            }
                             .padding(10.dp)
                     ) {
                         Row(
