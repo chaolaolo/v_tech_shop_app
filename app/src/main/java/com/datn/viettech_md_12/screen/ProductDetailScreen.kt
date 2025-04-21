@@ -352,6 +352,13 @@ fun ProductDetailScreen(
                                                     val newSelected = selectedAttributes.toMutableMap().apply {
                                                         this[attribute.name] = value
                                                     }
+                                                    if (selectedAttributes[attribute.name] == value) {
+                                                        // Nếu đã chọn, xóa khỏi map để bỏ chọn
+                                                        newSelected.remove(attribute.name)
+                                                    } else {
+                                                        // Nếu chưa chọn, thêm vào map
+                                                        newSelected[attribute.name] = value
+                                                    }
                                                     // Cập nhật selectedAttributes
                                                     selectedAttributes.clear()
                                                     selectedAttributes.putAll(newSelected)
@@ -360,6 +367,10 @@ fun ProductDetailScreen(
                                                     // Gọi matchVariant khi có đủ selectedAttributes
                                                     if (newSelected.size == productAttributes.size) {
                                                         viewModel.matchVariant(productId, newSelected)
+                                                    } else {
+                                                        // Reset matched variant khi không đủ attributes
+                                                        viewModel._matchedVariantId.value = null
+                                                        viewModel._matchedVariantPrice.value = null
                                                     }
                                                 }
                                             },
