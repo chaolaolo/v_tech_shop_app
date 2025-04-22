@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -47,6 +48,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.firebase.messaging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -69,5 +71,8 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-pager:0.30.1")
     implementation ("com.google.accompanist:accompanist-pager-indicators:0.30.1")
     implementation ("com.airbnb.android:lottie-compose:6.1.0")
-    implementation ("com.onesignal:OneSignal:[4.8.5, 5.0.0)")
+//    implementation("com.onesignal:OneSignal:[5.1.6, 5.1.99]")
+    implementation("com.onesignal:OneSignal:4.8.6")
+    implementation ("com.google.accompanist:accompanist-permissions:0.25.1")
+
 }
