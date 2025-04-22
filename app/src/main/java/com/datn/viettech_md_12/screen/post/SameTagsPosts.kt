@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,13 +25,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,13 +39,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,17 +56,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.data.model.AllPostMetadata
-import com.datn.viettech_md_12.data.model.PostMetadata
 import com.datn.viettech_md_12.viewmodel.PostViewModel
 import com.datn.viettech_md_12.viewmodel.PostViewModelFactory
 import java.text.SimpleDateFormat
@@ -76,26 +74,21 @@ import java.util.TimeZone
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostScreen(
+fun SameTagsPosts(
     navController: NavController,
+    tag: String,
     postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
-    var showSearch by remember { mutableStateOf(false) }
-    val searchText = remember { mutableStateOf("") }
-
-    // states lấy từ ViewModel
-    val posts by postViewModel.postState.collectAsState()
+    val posts = remember { mutableStateListOf<AllPostMetadata>() }
     val isLoading by postViewModel.isLoading.collectAsState()
     val errorMessage by postViewModel.errorMessage.collectAsState()
 
-    // Lọc bài đăng dựa trên văn bản tìm kiếm
-    val filteredPosts = remember(searchText.value, posts) {
-        if (searchText.value.isEmpty()) posts
-        else postViewModel.searchPosts(searchText.value)
-    }
-
-    LaunchedEffect(Unit) {
-        postViewModel.getAllPosts()
+    LaunchedEffect(tag) {
+        postViewModel.getSameTagsPosts(tag)
+        { result ->
+            posts.clear()
+            posts.addAll(result)
+        }
     }
     Scaffold(
         modifier = Modifier
@@ -105,7 +98,7 @@ fun PostScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Bài viết", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.Black)
+                    Text(text = "", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.Black)
                 },
                 colors = TopAppBarColors(
                     containerColor = Color.White,
@@ -119,17 +112,17 @@ fun PostScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                actions = {
-                    if (!showSearch) {
-                        IconButton(onClick = { showSearch = !showSearch }) {
-                            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Black)
-                        }
-                    } else {
-                        IconButton(onClick = { showSearch = !showSearch }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Close Search", tint = Color.Black)
-                        }
-                    }
-                },
+//                actions = {
+//                    if (!showSearch) {
+//                        IconButton(onClick = { showSearch = !showSearch }) {
+//                            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Black)
+//                        }
+//                    } else {
+//                        IconButton(onClick = { showSearch = !showSearch }) {
+//                            Icon(Icons.Filled.Close, contentDescription = "Close Search", tint = Color.Black)
+//                        }
+//                    }
+//                },
                 modifier = Modifier.shadow(elevation = 2.dp),
             )
         }
@@ -145,22 +138,36 @@ fun PostScreen(
                     .fillMaxSize()
                     .background(Color.Transparent),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Top
             ) {
-                if (showSearch) {
-                    Row(
-                        modifier = Modifier.background(Color.White),
-
-                        ) {
-                        MyTextField(
-                            hint = "Tìm kiếm..",
-                            value = searchText.value,
-                            onValueChange = { searchText.value = it },
-                            modifier = Modifier.padding(14.dp),
-                            isPassword = false
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        text = "Những bài viết có gắn thẻ ",
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFFFFF59D), RoundedCornerShape(4.dp))
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable {
+                                Log.d("PostDetailScreen", "đã bấm: $tag")
+                            }
+                    ) {
+                        Text(
+                            tag, fontSize = 14.sp, color = Color(0xFFF9A825),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
                 }
+                Spacer(Modifier.height(10.dp))
+                HorizontalDivider(color = Color.LightGray)
+                Spacer(Modifier.height(10.dp))
                 when {
                     isLoading -> {
                         Box(
@@ -170,6 +177,7 @@ fun PostScreen(
                             CircularProgressIndicator(color = Color(0xFF21D4B4))
                         }
                     }
+
                     errorMessage != null -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -183,35 +191,32 @@ fun PostScreen(
                         }
                     }
 
-                    filteredPosts.isEmpty() -> {
+                    posts.isEmpty() -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = if (searchText.value.isEmpty()) "Không có bài viết nào"
-                                else "Không tìm thấy bài viết phù hợp",
+                                text = "Không có bài viết nào với tag \"$tag\"",
                                 color = Color.Gray
                             )
                         }
                     }
 
                     else -> {
-                        Spacer(Modifier.height(4.dp))
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize(1f)
-                                .background(Color(0xfff4f5fd))
-//                                .padding(horizontal = 8.dp)
-                            ,
+                                .background(Color(0xfff4f5fd)),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            items(filteredPosts) { post ->
-                                PostItemTile(
+                            items(posts) { post ->
+                                SameTagsPostsItemTile(
                                     post = post,
                                     onClick = {
                                         navController.navigate("post_detail/${post.id}")
-                                    }
+                                    },
+                                    highlightTag = tag
                                 )
                             }
                         }
@@ -225,8 +230,9 @@ fun PostScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PostItemTile(
+fun SameTagsPostsItemTile(
     post: AllPostMetadata,
+    highlightTag: String,
     onClick: () -> Unit,
 ) {
     fun formatTime(createdAt: String): String {
@@ -283,14 +289,84 @@ fun PostItemTile(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // thời gian đăng
-                Text(
-                    text = formatTime(post.createdAt),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+
+                FlowRow(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    //danh mục
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.Folder,
+                            contentDescription = "Folder icon",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            post.category.name ?: "",
+                            color = Color.DarkGray,
+                            fontSize = 14.sp
+                        )
+                    }
+                    // thời gian đăng
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = "|",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black,
+                        fontSize = 14.sp
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = formatTime(post.createdAt),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Outlined.Sell,
+                        contentDescription = "Folder icon",
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 6.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Log.d("SameTagsPostsItemTile", "tags: ${post.tags}")
+                        post.tags.forEach { tag ->
+                            val isHighlighted = tag.lowercase() == highlightTag.lowercase()
+                            val backgroundColor = if (isHighlighted) Color(0xFFFFF59D) else Color(0xFF21D4B4).copy(alpha = 0.1f)
+                            val textColor = if (isHighlighted) Color(0xFFF9A825) else Color(0xFF21D4B4)
+                            Box(
+                                modifier = Modifier
+                                    .background(backgroundColor, RoundedCornerShape(2.dp))
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .clickable {}
+                            ) {
+                                Text(
+                                    tag, fontSize = 10.sp, color = textColor,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 // Meta description
                 Text(
@@ -315,18 +391,9 @@ fun PostItemTile(
                 onError = {
                     Log.e("PostItemTile", "Failed to load image")
                     Log.e("PostItemTile", "http://103.166.184.249:3056/${post.thumbnail.file_path.replace("\\", "/")}")
-                          },
+                },
                 onSuccess = { Log.d("PostItemTile", "Loaded image successfully: http://103.166.184.249:3056/${post.thumbnail.file_path.replace("\\", "/")}") }
             )
         }
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun PreviewPostScreen() {
-//    PostScreen(
-//        rememberNavController(),
-//        postViewModel = null
-//    )
 }

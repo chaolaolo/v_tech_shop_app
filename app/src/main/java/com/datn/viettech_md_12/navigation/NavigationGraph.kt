@@ -36,6 +36,7 @@ import com.datn.viettech_md_12.screen.checkout.checkout_now.PaymentNowUI
 import com.datn.viettech_md_12.screen.contact_us.ContactUsUI
 import com.datn.viettech_md_12.screen.post.PostDetailScreen
 import com.datn.viettech_md_12.screen.post.PostScreen
+import com.datn.viettech_md_12.screen.post.SameTagsPosts
 import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
@@ -103,6 +104,10 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("post_detail/{postId}") { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostDetailScreen(navController, postId = postId)
+            }
+            composable("same_tags_posts/{tag}") { backStackEntry ->
+                val tag = backStackEntry.arguments?.getString("tag") ?: ""
+                SameTagsPosts(navController, tag = tag)
             }
             //mới nhất(tách 2 màn thanh toán riêng)
             composable("payment_ui/{discount}") { backStackEntry ->

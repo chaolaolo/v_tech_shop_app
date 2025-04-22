@@ -121,6 +121,46 @@ class PostViewModel(application: Application) : ViewModel() {
         }
     }
 
+    fun getSameTagsPosts(tag: String, onResult: (List<AllPostMetadata>) -> Unit) {
+        viewModelScope.launch {
+            Log.d("getSameTagsPosts", "userId: $clientId")
+            Log.d("getSameTagsPosts", "token: $token")
+            _isLoading.value = true
+            _errorMessage.value = null
+            try {
+                val response = postRepository.getAllPosts(
+                    token = token ?: "",
+                    clientId = clientId ?: ""
+                )
+                if (response.isSuccessful) {
+                    response.body()?.let { apiResponse ->
+                        val sameTagPosts = apiResponse.metadata.posts.filter { post ->
+                            post.tags.any { it.equals(tag, ignoreCase = true) }
+                        }
+                        onResult(sameTagPosts)
+                        Log.d("getSameTagsPosts", "Filtered posts with tag '$tag': ${sameTagPosts.size} found")
+                    }
+                } else {
+                    val errorMsg = "Fetch posts failed: ${response.code()} - ${response.message()}"
+                    _errorMessage.value = errorMsg
+                    Log.e("getSameTagsPosts", errorMsg)
+                }
+            } catch (e: UnknownHostException) {
+                handleError("Lỗi mạng: Không thể kết nối với máy chủ", e)
+            } catch (e: SocketTimeoutException) {
+                handleError("Lỗi mạng: Đã hết thời gian chờ", e)
+            } catch (e: HttpException) {
+                handleError("Lỗi HTTP: ${e.message()}", e)
+            } catch (e: JsonSyntaxException) {
+                handleError("Lỗi dữ liệu: Invalid JSON response", e)
+            } catch (e: Exception) {
+                handleError("Lỗi không xác định: ${e.message}", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     private fun handleError(message: String, exception: Exception) {
         _errorMessage.value = message
         Log.e("getAllPosts", message, exception)

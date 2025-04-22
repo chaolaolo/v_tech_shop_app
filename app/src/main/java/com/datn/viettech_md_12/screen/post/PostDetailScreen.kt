@@ -320,7 +320,7 @@ fun PostDetailScreen(
                                         .background(Color(0xFF21D4B4).copy(alpha = 0.1f), RoundedCornerShape(4.dp))
                                         .clip(RoundedCornerShape(4.dp))
                                         .clickable {
-//                                        navController.navigate("posts_by_tag/${tag.id}")
+                                        navController.navigate("same_tags_posts/${tag}")
                                             Log.d("PostDetailScreen", "đã bấm: $tag")
                                         }
                                 ) {
@@ -450,7 +450,7 @@ fun RelatedProductItemTile(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Star, contentDescription = "icon rate", tint = Color.Yellow)
+                        Icon(Icons.Default.Star, contentDescription = "icon rate", tint = Color(0xFFFFD700))
                         Text("${product.productRatingsAverage}", fontSize = 12.sp, color = Color.Black)
                     }
                 }
