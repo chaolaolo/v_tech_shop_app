@@ -106,6 +106,16 @@ fun ProfileScreen(navController: NavController) {
             item { DividerItem() }
             item {
                 ProfileItem(
+                    R.drawable.ic_post,
+                    stringResource(R.string.viet_tech_post),
+                    onClick = {
+                        navController.navigate("post_screen")
+                    }
+                )
+            }
+            item { DividerItem() }
+            item {
+                ProfileItem(
                     R.drawable.ic_policy_profile,
                     stringResource(R.string.privacy_policy),
                     onClick = {
