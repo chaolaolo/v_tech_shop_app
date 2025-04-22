@@ -28,49 +28,49 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         // Khởi tạo OneSignal
-        OneSignal.initWithContext(this)
-        OneSignal.setAppId("29ae4e65-bafd-49fb-8c3b-cde54d2bf2bb")
-
-        // Đăng ký Observer để theo dõi trạng thái đăng ký
-        OneSignal.addSubscriptionObserver { stateChanges ->
-            if (stateChanges.to.isSubscribed) {
-                val playerId = stateChanges.to.userId
-                val userId = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE).getString("userId", null)
-
-                if (!playerId.isNullOrEmpty() && !userId.isNullOrEmpty()) {
-                    Log.d("dcm_onesignal", "OneSignal playerId READY: $playerId")
-                    setExternalUserId(userId)  // Gọi setExternalUserId thay vì gửi lên server
-                }
-            }
-        }
-
-        // Lấy playerId và userId sau khi OneSignal được khởi tạo
-        val playerId = OneSignal.getDeviceState()?.userId
-        val userId = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE).getString("userId", null)
-
-        if (!playerId.isNullOrEmpty() && !userId.isNullOrEmpty()) {
-            Log.d("dcm_onesignal", "Player ID: $playerId")
-            setExternalUserId(userId)  // Gọi setExternalUserId thay vì gửi lên server
-            OneSignal.sendTag("externalUserId", userId)
-        } else {
-            Log.w("dcm_onesignal", "Player ID hoặc userId là null. OneSignal chưa khởi tạo xong?")
-        }
-
-        // Cấu hình xử lý khi nhận thông báo trong foreground
-        OneSignal.setNotificationWillShowInForegroundHandler { event ->
-            val notification = event.notification
-            val title = notification.title
-            val body = notification.body
-            Log.d("dcm_onesignal", "Thông báo nhận: $title - $body")
-            event.complete(notification)
-        }
-
-        // Cấu hình xử lý khi người dùng nhấn vào thông báo
-        OneSignal.setNotificationOpenedHandler { result ->
-            val notification = result.notification
-            val actionId = result.action?.actionId
-            Log.d("dcm_onesignal", "Thông báo được mở: ${notification.title}, actionId: $actionId")
-        }
+//        OneSignal.initWithContext(this)
+//        OneSignal.setAppId("29ae4e65-bafd-49fb-8c3b-cde54d2bf2bb")
+//
+//        // Đăng ký Observer để theo dõi trạng thái đăng ký
+//        OneSignal.addSubscriptionObserver { stateChanges ->
+//            if (stateChanges.to.isSubscribed) {
+//                val playerId = stateChanges.to.userId
+//                val userId = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE).getString("userId", null)
+//
+//                if (!playerId.isNullOrEmpty() && !userId.isNullOrEmpty()) {
+//                    Log.d("dcm_onesignal", "OneSignal playerId READY: $playerId")
+//                    setExternalUserId(userId)  // Gọi setExternalUserId thay vì gửi lên server
+//                }
+//            }
+//        }
+//
+//        // Lấy playerId và userId sau khi OneSignal được khởi tạo
+//        val playerId = OneSignal.getDeviceState()?.userId
+//        val userId = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE).getString("userId", null)
+//
+//        if (!playerId.isNullOrEmpty() && !userId.isNullOrEmpty()) {
+//            Log.d("dcm_onesignal", "Player ID: $playerId")
+//            setExternalUserId(userId)  // Gọi setExternalUserId thay vì gửi lên server
+//            OneSignal.sendTag("externalUserId", userId)
+//        } else {
+//            Log.w("dcm_onesignal", "Player ID hoặc userId là null. OneSignal chưa khởi tạo xong?")
+//        }
+//
+//        // Cấu hình xử lý khi nhận thông báo trong foreground
+//        OneSignal.setNotificationWillShowInForegroundHandler { event ->
+//            val notification = event.notification
+//            val title = notification.title
+//            val body = notification.body
+//            Log.d("dcm_onesignal", "Thông báo nhận: $title - $body")
+//            event.complete(notification)
+//        }
+//
+//        // Cấu hình xử lý khi người dùng nhấn vào thông báo
+//        OneSignal.setNotificationOpenedHandler { result ->
+//            val notification = result.notification
+//            val actionId = result.action?.actionId
+//            Log.d("dcm_onesignal", "Thông báo được mở: ${notification.title}, actionId: $actionId")
+//        }
 
         // Khởi tạo các ViewModel
         productViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(ProductViewModel::class.java)
@@ -79,9 +79,9 @@ class MyApplication : Application() {
         userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
     }
 
-    private fun setExternalUserId(userId: String) {
-        OneSignal.setExternalUserId(userId)
-        Log.d("dcm_onesignal", "External user ID đã được gán: $userId")
-    }
+//    private fun setExternalUserId(userId: String) {
+//        OneSignal.setExternalUserId(userId)
+//        Log.d("dcm_onesignal", "External user ID đã được gán: $userId")
+//    }
 
 }
