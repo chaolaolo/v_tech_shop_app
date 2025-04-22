@@ -56,10 +56,10 @@ class ProductViewModel : ViewModel() {
 
 
     // lưu variantId đã match
-    private val _matchedVariantId = MutableStateFlow<String?>(null)
-    val matchedVariantId: StateFlow<String?> = _matchedVariantId
-    private val _matchedVariantPrice = MutableStateFlow<Double?>(null)
-    val matchedVariantPrice: StateFlow<Double?> = _matchedVariantPrice
+     var _matchedVariantId = MutableStateFlow<String?>(null)
+    var matchedVariantId: StateFlow<String?> = _matchedVariantId
+     var _matchedVariantPrice = MutableStateFlow<Double?>(null)
+    var matchedVariantPrice: StateFlow<Double?> = _matchedVariantPrice
 
     private val _bottomSheetType = MutableStateFlow("")
     val bottomSheetType: StateFlow<String> = _bottomSheetType

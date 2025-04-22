@@ -669,11 +669,12 @@ fun CheckoutCartItemTile(
                         }
                         Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500, color = Color.Black)
                     }
+                    Spacer(Modifier.width(4.dp))
                     Row(
                         modifier = Modifier
                             .border(
                                 width = 1.dp,
-                                brush = SolidColor(Color(0xFFF4F5FD)),
+                                brush = SolidColor(Color(0xFFC9C9D3)),
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 6.dp, vertical = 3.dp),
@@ -761,7 +762,6 @@ fun CheckoutCartItemTile(
             ) {
                 Text(
                     "Số lượng ${currentQuantity}, tổng cộng ",
-//             textAlign = TextAlign.End,
                     fontSize = 12.sp,
                     color = Color.Black
                 )
@@ -770,7 +770,6 @@ fun CheckoutCartItemTile(
                         NumberFormat.getNumberInstance(Locale("vi", "VN"))
                             .format(currentQuantity * itemPrice)
                     }₫",
-//             textAlign = TextAlign.End,
                     fontSize = 12.sp,
                     color = Color.Black,
                     fontWeight = FontWeight.W600

@@ -96,6 +96,26 @@ fun ProfileScreen(navController: NavController) {
             item { ProfileTitle(stringResource(R.string.support_information)) }
             item {
                 ProfileItem(
+                    R.drawable.ic_support_agent,
+                    stringResource(R.string.contact_us),
+                    onClick = {
+                        navController.navigate("contact_us")
+                    }
+                )
+            }
+            item { DividerItem() }
+            item {
+                ProfileItem(
+                    R.drawable.ic_post,
+                    stringResource(R.string.viet_tech_post),
+                    onClick = {
+                        navController.navigate("post_screen")
+                    }
+                )
+            }
+            item { DividerItem() }
+            item {
+                ProfileItem(
                     R.drawable.ic_policy_profile,
                     stringResource(R.string.privacy_policy),
                     onClick = {

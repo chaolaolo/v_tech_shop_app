@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,6 +88,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -103,6 +105,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.component.product_detail_components.toColor
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
@@ -151,6 +154,12 @@ fun ProductDetailScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     var isAddingToCart by remember { mutableStateOf(false) }
     var quantity by remember { mutableStateOf(1) }
+    val listImages = productDetail?.imageIds?.mapNotNull {
+        "http://103.166.184.249:3056/${it.file_path.replace("\\", "/")}"
+    }
+        ?.filter { it.isNotBlank() }
+        ?: emptyList()
+    Log.d("ProductDetailScreen", "listImages: $listImages")
 
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
@@ -204,8 +213,12 @@ fun ProductDetailScreen(
         updateValidOptions(selectedAttributes)
     }
 
-
     Box(modifier = Modifier.fillMaxSize()) {
+        //log imageIds
+        productDetail?.imageIds?.forEach { image ->
+            Log.d("ProductDetailScreen", "Image URL: ${image.url}")
+            Log.d("ProductDetailScreen", "Image Details - ID: ${image._id}, FileName: ${image.file_name}, Path: ${image.file_path}, URL: ${image.url}")
+        }
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -341,6 +354,13 @@ fun ProductDetailScreen(
                                                     val newSelected = selectedAttributes.toMutableMap().apply {
                                                         this[attribute.name] = value
                                                     }
+                                                    if (selectedAttributes[attribute.name] == value) {
+                                                        // Nếu đã chọn, xóa khỏi map để bỏ chọn
+                                                        newSelected.remove(attribute.name)
+                                                    } else {
+                                                        // Nếu chưa chọn, thêm vào map
+                                                        newSelected[attribute.name] = value
+                                                    }
                                                     // Cập nhật selectedAttributes
                                                     selectedAttributes.clear()
                                                     selectedAttributes.putAll(newSelected)
@@ -349,6 +369,10 @@ fun ProductDetailScreen(
                                                     // Gọi matchVariant khi có đủ selectedAttributes
                                                     if (newSelected.size == productAttributes.size) {
                                                         viewModel.matchVariant(productId, newSelected)
+                                                    } else {
+                                                        // Reset matched variant khi không đủ attributes
+                                                        viewModel._matchedVariantId.value = null
+                                                        viewModel._matchedVariantPrice.value = null
                                                     }
                                                 }
                                             },
@@ -572,6 +596,14 @@ fun ProductDetailScreen(
                                 .padding(bottom = 20.dp)
                                 .background(Color(0xFFF4FDFA)),
                         ) {
+                            if (listImages.isNotEmpty()) {
+                                ProductDetailImageSlider(
+                                    images = listImages,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(300.dp)
+                                )
+                            } else {
                             AsyncImage(
                                 model = "http://103.166.184.249:3056/${productDetail?.productThumbnail}",
                                 contentDescription = "p detail image",
@@ -582,6 +614,7 @@ fun ProductDetailScreen(
                                 placeholder = painterResource(R.drawable.logo),
                                 error = painterResource(R.drawable.error_img)
                             )
+                            }
                         }
                         TopAppBar(
                             title = { },
@@ -1027,6 +1060,7 @@ fun ProductDetailScreen(
                                 .align(Alignment.BottomCenter)
                                 .background(Color(0xfff4f5fd))
                                 .shadow(elevation = 4.dp),
+                            containerColor = Color(0xfff4f5fd)
                         ) {
                             //nút bấm mua ngay, thêm vào giỏ hàng
                             Row(
@@ -1198,6 +1232,13 @@ fun ProductDetailScreen(
                             .border(
                                 width = 1.dp, color = Color(0xFF00C4B4), shape = RoundedCornerShape(12.dp)
                             )
+                            .pointerInput(Unit) {
+                                detectVerticalDragGestures { change, dragAmount ->
+                                    if (dragAmount < -10) { // Vuốt lên
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                    }
+                                }
+                            }
                             .padding(10.dp)
                     ) {
                         Row(
