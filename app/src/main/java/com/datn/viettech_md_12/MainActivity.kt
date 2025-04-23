@@ -1,10 +1,16 @@
 package com.datn.viettech_md_12
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.os.Build
 import android.os.Bundle
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -19,13 +25,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.datn.viettech_md_12.MainActivity.Companion.CHANNEL_ID
+import com.datn.viettech_md_12.MainActivity.Companion.CHANNEL_NAME
 import com.datn.viettech_md_12.navigation.NavigationGraph
 import com.datn.viettech_md_12.ui.theme.VietTech_MD_12Theme
+import com.onesignal.OSNotificationReceivedEvent
 import com.onesignal.OneSignal
 class MainActivity : ComponentActivity() {
+    companion object{
+        const val CHANNEL_ID ="viettech_notification_channel"
+        const val CHANNEL_NAME  ="Thông báo VietTech"
+    }
     @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("WrongConstant")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,14 +73,17 @@ class MainActivity : ComponentActivity() {
         } else {
             Log.w("dcm_onesignal", "Player ID hoặc userId là null. OneSignal chưa khởi tạo xong?")
         }
-
+createNotificationChannel(context = this)
         // Cấu hình xử lý khi nhận thông báo trong foreground
-        OneSignal.setNotificationWillShowInForegroundHandler { event ->
-            val notification = event.notification
-            val title = notification.title
-            val body = notification.body
-            Log.d("dcm_onesignal", "Thông báo nhận: $title - $body")
-            event.complete(notification)
+        OneSignal.setNotificationWillShowInForegroundHandler {
+            event ->
+//            val notification = event.notification
+//            val title = notification.title
+//            val body = notification.body
+//            Log.d("dcm_onesignal", "Thông báo nhận: $title - $body")
+//            event.complete(notification)
+            showCustomNotification(this, event)
+
         }
 
         // Cấu hình xử lý khi người dùng nhấn vào thông báo
@@ -127,7 +147,62 @@ fun RequestNotificationPermission() {
         }
     }
 }
+private fun createNotificationChannel(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val importance = NotificationManager.IMPORTANCE_HIGH
+        val channel = NotificationChannel(MainActivity.CHANNEL_ID, MainActivity.CHANNEL_NAME, importance).apply {
+            description = "Kênh thông báo chính của ứng dụng VietTech"
+            enableLights(true)
+            lightColor = Color.BLUE
+            enableVibration(true)
+        }
 
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+}
+
+
+private fun showCustomNotification(context: Context,event: OSNotificationReceivedEvent){
+    val notification = event.notification
+    val title = notification.title ?: "Thông báo mới"
+    val message = notification.body ?: "Bạn có một thông báo mới từ VietTech"
+    Log.d("dcm_onesignal", "Thông báo nhận: $title - $message")
+    val intent = Intent(context, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    val pendingIntent = PendingIntent.getActivity(
+        context, 0, intent,
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
+    val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+        .setSmallIcon(R.drawable.notification)
+        .setContentTitle(title)
+        .setContentText(message)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setAutoCancel(true)
+        .setContentIntent(pendingIntent)
+        .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+
+    with(NotificationManagerCompat.from(context)) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        notify(System.currentTimeMillis().toInt(), builder.build())
+    }
+    event.complete(null)
+}
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
 @Composable
 fun PreviewCustomBanner() {

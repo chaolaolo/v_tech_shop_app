@@ -106,7 +106,7 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
     LaunchedEffect(Unit) {
         while (true) {
             viewModel.getUserOrders(context)
-            delay(3000) // gọi lại mỗi 5 giây (tuỳ chỉnh theo ý bạn)
+            delay(2000) // gọi lại mỗi 5 giây (tuỳ chỉnh theo ý bạn)
         }
     }
 
