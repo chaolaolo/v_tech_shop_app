@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12
 
+import NotificationModel
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -36,6 +37,8 @@ import com.datn.viettech_md_12.MainActivity.Companion.CHANNEL_ID
 import com.datn.viettech_md_12.MainActivity.Companion.CHANNEL_NAME
 import com.datn.viettech_md_12.navigation.NavigationGraph
 import com.datn.viettech_md_12.ui.theme.VietTech_MD_12Theme
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.onesignal.OSNotificationReceivedEvent
 import com.onesignal.OneSignal
 class MainActivity : ComponentActivity() {
@@ -73,7 +76,7 @@ class MainActivity : ComponentActivity() {
         } else {
             Log.w("dcm_onesignal", "Player ID hoặc userId là null. OneSignal chưa khởi tạo xong?")
         }
-createNotificationChannel(context = this)
+              createNotificationChannel(context = this)
         // Cấu hình xử lý khi nhận thông báo trong foreground
         OneSignal.setNotificationWillShowInForegroundHandler {
             event ->
@@ -168,6 +171,16 @@ private fun showCustomNotification(context: Context,event: OSNotificationReceive
     val title = notification.title ?: "Thông báo mới"
     val message = notification.body ?: "Bạn có một thông báo mới từ VietTech"
     Log.d("dcm_onesignal", "Thông báo nhận: $title - $message")
+    // Lưu thông báo vào SharedPreferences
+    val prefs = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE)
+    val notificationsJson = prefs.getString("notification_list", "[]")
+    val listType = object : TypeToken<MutableList<NotificationModel>>() {}.type
+    val list: MutableList<NotificationModel> = Gson().fromJson(notificationsJson, listType)
+
+    list.add(NotificationModel(title, message, System.currentTimeMillis()))
+    val updatedJson = Gson().toJson(list)
+    prefs.edit().putString("notification_list", updatedJson).apply()
+
     val intent = Intent(context, MainActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
