@@ -4,29 +4,51 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,9 +57,22 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.component.review_component.uriToFile
 import com.datn.viettech_md_12.screen.authentication.OnbroadingActivity
+import com.datn.viettech_md_12.viewmodel.ImageViewModel
+import com.datn.viettech_md_12.viewmodel.UserViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -154,9 +189,92 @@ fun ProfileHeader() {
     val token = sharedPreferences.getString("accessToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
+    val isLoggedIn = !token.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
+    val accountId = sharedPreferences.getString("clientId", "") ?: ""
+    val imageViewModel: ImageViewModel = viewModel()
+    val userViewModel: UserViewModel = viewModel()
 
-    val isLoggedIn = !token.isNullOrEmpty()&&!fullName.isNullOrEmpty()&&!email.isNullOrEmpty()
+    var profileImage by remember { mutableStateOf<String?>(null) }
+    var selectedUri by remember { mutableStateOf<Uri?>(null) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
+    // Lấy dữ liệu avatar lần đầu
+    LaunchedEffect(Unit) {
+        userViewModel.fetchAccountById(
+            id = accountId,
+            onSuccess = {
+                val newAvatarUrl = userViewModel.accountDetail.value?.profile_image?.url
+                    ?.replace("http://localhost:", "http://103.166.184.249:")
+                if (!newAvatarUrl.isNullOrEmpty()) {
+                    profileImage = newAvatarUrl
+                }
+            },
+            onError = {
+                Log.e("ProfileHeader", "Không thể lấy thông tin user: $it")
+            }
+        )
+    }
+
+    // Launcher chọn ảnh từ thư viện
+    val imageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            if (uri != null) {
+                selectedUri = uri
+                showConfirmDialog = true
+            } else {
+                Toast.makeText(context, "Vui lòng chọn một ảnh!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    // Dialog xác nhận khi chọn ảnh
+    if (showConfirmDialog) {
+        ConfirmDialogProfile(
+            onConfirm = {
+                showConfirmDialog = false
+                selectedUri?.let { uri ->
+                    coroutineScope.launch {
+                        val result = uploadSingleImage(context, uri, imageViewModel)
+                        result.onSuccess { imageId ->
+                            userViewModel.updateProfileImage(
+                                context = context,
+                                imageId = imageId,
+                                onSuccess = {
+                                    userViewModel.fetchAccountById(
+                                        id = accountId,
+                                        onSuccess = {
+                                            val newAvatarUrl = userViewModel.accountDetail.value?.profile_image?.url
+                                                ?.replace("http://localhost:", "http://103.166.184.249:")
+                                            if (!newAvatarUrl.isNullOrEmpty()) {
+                                                profileImage = newAvatarUrl
+                                            }
+                                        },
+                                        onError = {
+                                            Log.e("ProfileHeader", "Không thể reload avatar sau khi cập nhật: $it")
+                                        }
+                                    )
+                                    Toast.makeText(context, "Cập nhật ảnh đại diện thành công!", Toast.LENGTH_SHORT).show()
+                                },
+                                onError = {
+                                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }.onFailure {
+                            Toast.makeText(context, it.message ?: "Lỗi không xác định khi upload ảnh", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            },
+                    onDismiss = {
+                showConfirmDialog = false
+                selectedUri = null
+            }
+        )
+    }
+
+    // UI phần header
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -164,12 +282,46 @@ fun ProfileHeader() {
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(R.drawable.user_home),
-            contentDescription = null,
-            modifier = Modifier.size(60.dp)
-        )
+        val avatarUrl = profileImage ?: ""
+
+        Box(
+            modifier = Modifier
+                .size(80.dp),
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            AsyncImage(
+                model = avatarUrl,
+                contentDescription = "Avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .border(2.dp, Color.White, CircleShape)
+                    .background(Color.White)
+                    .shadow(4.dp, CircleShape, clip = false)
+            )
+
+            Icon(
+                imageVector = Icons.Default.CameraAlt,
+                contentDescription = "Chọn ảnh",
+                tint = Color.Black,
+                modifier = Modifier
+                    .size(26.dp)
+                    .offset(x = 4.dp, y = 4.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = LocalIndication.current
+                    ) {
+                        imageLauncher.launch("image/*")
+                    }
+                    .padding(4.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.width(15.dp))
+
         Column {
             Text(
                 text = if (isLoggedIn) fullName!! else "Họ và tên",
@@ -182,13 +334,14 @@ fun ProfileHeader() {
                 fontSize = 18.sp
             )
         }
+
         Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = {
-            logout(context)
-        }) {
+
+        IconButton(onClick = { logout(context) }) {
             Icon(
                 painter = painterResource(R.drawable.ic_logout_profile),
-                contentDescription = null, tint = Color.White
+                contentDescription = null,
+                tint = Color.White
             )
         }
     }
@@ -269,4 +422,55 @@ fun DividerItem() {
 @Composable
 fun ProfileScreenPreview() {
 
+}
+suspend fun uploadSingleImage(
+    context: Context,
+    uri: Uri,
+    imageViewModel: ImageViewModel
+): Result<String> {
+    return try {
+        val file = uriToFile(context, uri)
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+        imageViewModel.uploadImage(body)
+
+        val maxWaitTime = 10_000L
+        val startTime = System.currentTimeMillis()
+
+        while (imageViewModel.isLoading.value) {
+            if (System.currentTimeMillis() - startTime > maxWaitTime) {
+                return Result.failure(Exception("Upload ảnh quá lâu, vui lòng thử lại."))
+            }
+            delay(100)
+        }
+
+        imageViewModel.uploadResult.value?.let {
+            Result.success(it.image._id)
+        } ?: Result.failure(Exception(imageViewModel.error.value ?: "Upload ảnh thất bại!"))
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
+
+@Composable
+fun ConfirmDialogProfile(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Xác nhận cập nhật ảnh đại diện") },
+        text = { Text("Bạn có chắc chắn muốn cập nhật ảnh đại diện này không?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Đồng ý")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        }
+    )
 }

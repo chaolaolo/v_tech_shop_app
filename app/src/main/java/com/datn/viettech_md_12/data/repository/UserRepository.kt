@@ -29,4 +29,12 @@ class UserRepository (
             )
         )
     }
+    suspend fun updateProfileImage(request: UpdateImageToAccountRequest): Response<UpdateImageToAccountResponse> {
+        return apiService.updateProfileImage(request)
+    }
+    suspend fun getAccountById(id: String): Response<AccountDetailResponse> {
+        return apiService.getAccountById(id)
+    }
+
+
 }
