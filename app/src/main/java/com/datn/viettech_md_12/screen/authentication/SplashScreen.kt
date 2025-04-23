@@ -1,5 +1,8 @@
 package com.datn.viettech_md_12.screen.authentication
 
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.PermissionState
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -48,6 +51,8 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.datn.viettech_md_12.MainActivity
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.screen.authentication.ui.theme.VietTech_MD_12Theme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 import kotlinx.coroutines.delay
 
 class SplashScreen : ComponentActivity() {
@@ -66,9 +71,31 @@ class SplashScreen : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Splash() {
     val context = LocalContext.current
+
+    // Kiểm tra quyền thông báo
+    val permission = Manifest.permission.POST_NOTIFICATIONS
+    val permissionState = rememberPermissionState(permission)
+
+    // Yêu cầu quyền nếu chưa được cấp
+    LaunchedEffect(key1 = true) {
+        if (!permissionState.status.isGranted) {
+            permissionState.launchPermissionRequest()  // Yêu cầu quyền
+        }
+    }
+
+    // Log thông báo trạng thái quyền
+    LaunchedEffect(key1 = permissionState.status.isGranted) {
+        if (permissionState.status.isGranted) {
+            Log.d("Permission", "dm tao cap quyen roi ")
+        } else {
+            Log.d("Permission", "dm quen chua cap quyen")
+        }
+    }
+
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
     val progress by animateLottieCompositionAsState(
         composition = composition,

@@ -21,7 +21,7 @@ fun CustomTopAppBar(
     title: String,
     iconLogo: Int,
     icon1: Int?,
-    icon2: Int,
+    icon2: Int?,
     navController: NavController,
     actionTitle1: String,
     actionTitle2: String
@@ -55,13 +55,15 @@ fun CustomTopAppBar(
             }
 
             IconButton(onClick = {
-                if (actionTitle2 == "back") {
-                    navController.popBackStack()
-                } else {
                     navController.navigate(actionTitle2)
-                }
             }) {
-                Icon(painter = painterResource(icon2), contentDescription = "more")
+                icon2?.let { painterResource(it) }?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "notification",
+                        modifier = Modifier.size(25.dp)
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.smallTopAppBarColors(

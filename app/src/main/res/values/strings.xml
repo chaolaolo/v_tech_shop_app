@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VietTech_MD_12</string>
+    <string name="app_name">VietTech</string>
     <string name="title_activity_cart_screen">CartScreen</string>
     <string name="title_activity_sign_up_screen">SignUpScreen</string>
     <string name="title_activity_sign_in_screen">SignInScreen</string>

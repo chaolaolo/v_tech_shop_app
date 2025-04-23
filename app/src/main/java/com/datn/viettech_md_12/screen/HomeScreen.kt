@@ -45,10 +45,10 @@ fun HomeScreen(
                 title = "ietTech",
                 iconLogo = R.drawable.ic_logo,
                 icon1 = R.drawable.search,
-                icon2 = R.drawable.ic_profile,
+                icon2 = R.drawable.notification,
                 navController = navController,
                 actionTitle1 = "search",
-                actionTitle2 = "profile",
+                actionTitle2 = "notification",
             )
         },
         containerColor = Color.White,

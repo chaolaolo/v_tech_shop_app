@@ -34,6 +34,7 @@ import com.datn.viettech_md_12.screen.checkout.PaymentUI
 import com.datn.viettech_md_12.screen.checkout.checkout_cart.PaymentCartUI
 import com.datn.viettech_md_12.screen.checkout.checkout_now.PaymentNowUI
 import com.datn.viettech_md_12.screen.contact_us.ContactUsUI
+import com.datn.viettech_md_12.screen.notification.NotificationScreen
 import com.datn.viettech_md_12.screen.post.PostDetailScreen
 import com.datn.viettech_md_12.screen.post.PostScreen
 import com.datn.viettech_md_12.screen.post.SameTagsPosts
@@ -101,6 +102,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("address_screen") { AddressScreen(navController) }
             composable("contact_us") { ContactUsUI(navController) }
             composable("post_screen") { PostScreen(navController) }
+            composable("notification") { NotificationScreen(navController) }
             composable("post_detail/{postId}") { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostDetailScreen(navController, postId = postId)
