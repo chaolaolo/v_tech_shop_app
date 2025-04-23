@@ -11,3 +11,7 @@ data class ImageModel(
     val createdAt: String,
     val updatedAt: String
 )
+data class UploadImageResponse(
+    val success: Boolean,
+    val image: ImageModel
+)

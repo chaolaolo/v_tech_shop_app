@@ -12,12 +12,6 @@ interface ReviewService {
             "c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
     }
 
-    // Upload hình ảnh
-    @Multipart
-    @POST("image/upload")
-    suspend fun uploadImage(
-        @Part file: MultipartBody.Part
-    ): Response<ImageUploadResponse>
 
     // Lấy danh sách đánh giá của sản phẩm
     @GET("review/getReviewsByProduct/{productId}")
@@ -38,7 +32,7 @@ interface ReviewService {
         @Body request: AddReviewRequest,
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
-    ): Response<ReviewResponseAddUp>
+    ): Response<BaseResponse<ReviewResponseAddUp>>
 
     // Cập nhật một đánh giá
     @Headers("Content-Type: application/json", "x-api-key: $API_KEY")
@@ -48,5 +42,5 @@ interface ReviewService {
         @Body request: UpdateReviewRequest,
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
-    ): Response<ReviewResponseAddUp>
+    ): Response<BaseResponse<ReviewResponseAddUp>>
 }

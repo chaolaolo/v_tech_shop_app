@@ -16,8 +16,8 @@ class ReviewViewModel(application: Application) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _addReviewResult = MutableStateFlow<Result<ReviewResponseAddUp>?>(null)
-    val addReviewResult: StateFlow<Result<ReviewResponseAddUp>?> = _addReviewResult
+    private val _addReviewResult = MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
+    val addReviewResult: StateFlow<Result<BaseResponse<ReviewResponseAddUp>>?> = _addReviewResult
 
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
     val reviews: StateFlow<List<Review>> = _reviews
@@ -25,8 +25,8 @@ class ReviewViewModel(application: Application) : ViewModel() {
     private val _reviewStats = MutableStateFlow<Result<ReviewStats>?>(null)
     val reviewStats: StateFlow<Result<ReviewStats>?> = _reviewStats
 
-    private val _updateReviewResult = MutableStateFlow<Result<ReviewResponseAddUp>?>(null)
-    val updateReviewResult: StateFlow<Result<ReviewResponseAddUp>?> = _updateReviewResult
+    private val _updateReviewResult = MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
+    val updateReviewResult: StateFlow<Result<BaseResponse<ReviewResponseAddUp>>?> = _updateReviewResult
 
     private val _userReviewStatus = MutableStateFlow<Boolean>(false)
     val userReviewStatus: StateFlow<Boolean> = _userReviewStatus
@@ -35,7 +35,6 @@ class ReviewViewModel(application: Application) : ViewModel() {
         application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
     fun addReview(
-        accountId: String,
         productId: String,
         contentsReview: String,
         rating: Int,
@@ -50,7 +49,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
                 val result = _repository.addReview(
                     token = token,
                     clientId = clientId,
-                    accountId = accountId,
+                    accountId = clientId,
                     productId = productId,
                     contentsReview = contentsReview,
                     rating = rating,
@@ -62,31 +61,8 @@ class ReviewViewModel(application: Application) : ViewModel() {
             }
         }
     }
-// test
-fun addReviewWithFixedImageId(productId: String, contentsReview: String, rating: Int) {
-    val token = sharedPreferences.getString("accessToken", "") ?: ""
-    val clientId = sharedPreferences.getString("clientId", "") ?: ""
 
-    viewModelScope.launch {
-        _isLoading.value = true
-        try {
-            val result = _repository.addReview(
-                token = token,
-                clientId = clientId,
-                accountId = clientId,
-                productId = productId,
-                contentsReview = contentsReview,
-                rating = rating,
-                imageIds = listOf("67f2043a4c6573cb98bd844f") // ảnh cố định
-            )
-            _addReviewResult.value = result
-        } finally {
-            _isLoading.value = false
-        }
-    }
-}
-
-    fun updateReview(reviewId: String, contentsReview: String, images: List<String>) {
+    fun updateReview(reviewId: String, contentsReview: String,rating: Int, images: List<String>) {
         val token = sharedPreferences.getString("accessToken", "") ?: ""
         val clientId = sharedPreferences.getString("clientId", "") ?: ""
 
@@ -98,8 +74,9 @@ fun addReviewWithFixedImageId(productId: String, contentsReview: String, rating:
                     clientId = clientId,
                     reviewId = reviewId,
                     contentsReview = contentsReview,
-                    imageIds = images
-                )
+                    rating = rating,
+                    imageIds = images,
+                    )
                 _updateReviewResult.value = result
             } finally {
                 _isLoading.value = false
@@ -140,6 +117,9 @@ fun addReviewWithFixedImageId(productId: String, contentsReview: String, rating:
                 _isLoading.value = false
             }
         }
+    }
+    fun getCurrentUserId(): String {
+        return sharedPreferences.getString("clientId", "") ?: ""
     }
 
     fun getReviewStats(productId: String) {

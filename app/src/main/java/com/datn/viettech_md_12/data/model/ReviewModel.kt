@@ -1,5 +1,7 @@
 package com.datn.viettech_md_12.data.model
 
+import android.media.Image
+
 // Review chứa thông tin về đánh giá sản phẩm, bao gồm ảnh và rating
 data class Review(
     val _id: String,
@@ -10,7 +12,7 @@ data class Review(
     val contents_review: String,
     val createdAt: String,
     val updatedAt: String,
-    val images: List<Image>,  // Danh sách ảnh đi kèm đánh giá
+    val images: List<ImageModel>,  // Danh sách ảnh đi kèm đánh giá
     val rating: Int  // Đánh giá sao
 )
 
@@ -20,7 +22,7 @@ data class ReviewStats(
     val averageRating: Float  // Điểm đánh giá trung bình
 )
 
-// Thông tin ảnh với các thuộc tính như ID, tên tệp, đường dẫn tệp,...
+//// Thông tin ảnh với các thuộc tính như ID, tên tệp, đường dẫn tệp,...
 data class Image(
     val id: String,
     val fileName: String,
@@ -33,7 +35,7 @@ data class Image(
 // Phản hồi sau khi upload ảnh, trả về ảnh vừa tải lên
 data class ImageUploadResponse(
     val success: Boolean,
-    val data: Image  // Vì mỗi lần chỉ trả về một ảnh
+    val data: ImageModel  // Vì mỗi lần chỉ trả về một ảnh
 )
 
 
@@ -41,6 +43,10 @@ data class ImageUploadResponse(
 data class ReviewResponse(
     val success: Boolean,
     val data: List<Review>  // Danh sách các đánh giá
+)
+data class BaseResponse<T>(
+    val success: Boolean,
+    val data: T?
 )
 
 // Phản hồi từ API chứa thông tin các đánh giá
@@ -68,5 +74,6 @@ data class AddReviewRequest(
 // Yêu cầu cập nhật review, chỉ truyền vào nội dung và danh sách ảnh mới
 data class UpdateReviewRequest(
     val contents_review: String,  // Nội dung mới của đánh giá
-    val imageIds: List<String>,  // Danh sách ID của ảnh
+    val image_ids: List<String>,
+    val rating: Int,// Danh sách ID của ảnh
 )

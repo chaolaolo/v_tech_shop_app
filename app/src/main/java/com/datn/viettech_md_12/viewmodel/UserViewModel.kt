@@ -1,9 +1,11 @@
 package com.datn.viettech_md_12.viewmodel
 
+import AccountDetail
 import ChangePasswordRequest
 import LoginRequest
 import RegisterRequest
 import Tokens
+import UpdateImageToAccountRequest
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -108,12 +110,13 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                                 .putString("userId", userId)  // Lưu userId
                                 .putString("fullname", body.result?.metadata?.account?.full_name)
                                 .putString("email", body.result?.metadata?.account?.email)
+                                .putString("profile_image", body.result?.metadata?.profile_image)
                                 .apply()
-
                             // Kiểm tra lại token sau khi lưu
                             val savedToken = sharedPreferences.getString("accessToken", null)
                             Log.d("dcm_debug_signin", "Token đã lưu: $savedToken")
-
+                            val profileImage = body.result?.metadata?.profile_image
+                            Log.d("dcm_debug_signin", "Ảnh đại diện nhận được: $profileImage")
                             onSuccess()
                         } else {
                             onError("Lỗi hệ thống: Không nhận được token từ server!")
@@ -221,6 +224,66 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Log.e("dcm_logout", "Exception: ${e.message}")
                 onError("Đã xảy ra lỗi: ${e.message}")
+            }
+        }
+    }
+
+    fun updateProfileImage(
+        context: Context,
+        imageId: String,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val accountId = sharedPreferences.getString("clientId", "") ?: ""
+
+                val request = UpdateImageToAccountRequest(
+                    accountId = accountId,
+                    imageId = imageId
+                )
+
+                val response = userRepository.updateProfileImage(request)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val newImageUrl = response.body()?.account?.profile_image?.url
+                    Log.d("UpdateProfileImage", "Success: New URL = $newImageUrl")
+
+                    // Lưu ảnh đại diện mới vào SharedPreferences (nếu muốn)
+                    sharedPreferences.edit().putString("profile_image", newImageUrl).apply()
+
+                    onSuccess("Cập nhật ảnh đại diện thành công!")
+                } else {
+                    val error = response.errorBody()?.string()
+                    Log.e("UpdateProfileImage", "Failed: code=${response.code()}, error=$error")
+                    onError("Cập nhật ảnh đại diện thất bại!")
+                }
+            } catch (e: Exception) {
+                Log.e("UpdateProfileImage", "Exception: ${e.message}")
+                onError("Lỗi hệ thống: ${e.message}")
+            }
+        }
+
+    }
+    val accountDetail = mutableStateOf<AccountDetail?>(null)
+    val accountDetailError = mutableStateOf<String?>(null)
+
+    fun fetchAccountById(
+        id: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = userRepository.getAccountById(id)
+                if (response.isSuccessful && response.body()?.status == "success") {
+                    accountDetail.value = response.body()?.data
+                    onSuccess()
+                } else {
+                    onError("Không thể lấy thông tin tài khoản")
+                }
+            } catch (e: Exception) {
+                onError("Lỗi: ${e.message}")
             }
         }
     }

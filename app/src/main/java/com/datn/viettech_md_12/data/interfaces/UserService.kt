@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.data.interfaces
 
+import AccountDetailResponse
 import ChangePasswordRequest
 import ChangePasswordResponse
 import ForgotPasswordRequest
@@ -9,11 +10,16 @@ import MessageResponse
 import RegisterRequest
 import RegisterResponse
 import Tokens
+import UpdateImageToAccountRequest
+import UpdateImageToAccountResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface UserService {
     @Headers(
@@ -47,4 +53,13 @@ interface UserService {
     @POST("access/logout")
     suspend fun logout(@Body tokens: Tokens): Response<MessageResponse>
 
+    @PUT("image/update-image-to-account")
+    suspend fun updateProfileImage(
+        @Body request: UpdateImageToAccountRequest
+    ): Response<UpdateImageToAccountResponse>
+
+    @GET("account/{id}")
+    suspend fun getAccountById(
+        @Path("id") id: String
+    ): Response<AccountDetailResponse>
 }

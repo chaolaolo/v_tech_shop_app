@@ -4,8 +4,13 @@ import MyButton
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +18,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -43,10 +49,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
@@ -104,16 +112,32 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.component.product_detail_components.toColor
+import com.datn.viettech_md_12.component.review_component.AddReviewDialog
+import com.datn.viettech_md_12.component.review_component.UpdateReviewDialog
+import com.datn.viettech_md_12.data.model.Image
+import com.datn.viettech_md_12.data.model.Review
+import com.datn.viettech_md_12.screen.authentication.LoginScreen
+import com.datn.viettech_md_12.screen.authentication.RegisterScreen
+import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -174,6 +198,9 @@ fun ProductDetailScreen(
     var showCheckStockDialog by remember { mutableStateOf(false) }
 
     val price = productDetail?.productPrice ?:0.0
+    val currentAccountId = reviewViewModel.getCurrentUserId()
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var selectedReview by remember { mutableStateOf<Review?>(null) }
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
 
 
@@ -212,6 +239,7 @@ fun ProductDetailScreen(
         }
         updateValidOptions(selectedAttributes)
     }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         //log imageIds
@@ -770,12 +798,12 @@ fun ProductDetailScreen(
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                     }
-                                        Text(
-                                            "$itemPriceFormatted₫",
-                                            fontSize = 14.sp,
-                                            color = Color.Black,
-                                            fontWeight = FontWeight.Bold,
-                                        )
+                                    Text(
+                                        "$itemPriceFormatted₫",
+                                        fontSize = 14.sp,
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold,
+                                    )
 
                                 }
                                 //Đánh giá
@@ -828,7 +856,8 @@ fun ProductDetailScreen(
                                         overflow = TextOverflow.Ellipsis,
                                         onTextLayout = { layoutResult ->
                                             textLayoutResult.value = layoutResult
-                                            showMoreVisible = layoutResult.hasVisualOverflow && !isExpanded
+                                            showMoreVisible =
+                                                layoutResult.hasVisualOverflow && !isExpanded
                                         }
                                     )
                                     if (showMoreVisible) {
@@ -860,14 +889,19 @@ fun ProductDetailScreen(
                                     verticalAlignment = Alignment.Bottom
                                 ) {
                                     val hasColorAttribute = remember(attributes) {
-                                        attributes?.any {it.name.equals("Color", ignoreCase = true)} ?: false
+                                        attributes?.any {
+                                            it.name.equals(
+                                                "Color",
+                                                ignoreCase = true
+                                            )
+                                        } ?: false
                                     }
                                     Log.d("hasColorAttribute", "hasColorAttribute: $hasColorAttribute")
                                     Log.d("hasColorAttribute", "product: $productDetail")
                                     Log.d("hasColorAttribute", "attributes: $attributes")
                                     Log.d("hasColorAttribute", "variants: $variants")
                                     Log.d("hasColorAttribute", "default_variant: $defaultVariant")
-                                    if(hasColorAttribute){
+                                    if (hasColorAttribute) {
                                         Column {
                                             Text(
                                                 text = "Color",
@@ -875,7 +909,12 @@ fun ProductDetailScreen(
                                                 modifier = Modifier.padding(top = 10.dp)
                                             )
                                             Row(modifier = Modifier.padding(top = 4.dp)) {
-                                                val colorAttribute = attributes?.first { it.name.equals("Color", ignoreCase = true) }
+                                                val colorAttribute = attributes?.first {
+                                                    it.name.equals(
+                                                        "Color",
+                                                        ignoreCase = true
+                                                    )
+                                                }
                                                 colorAttribute?.values?.forEach { colorValue ->
                                                     val color = colorValue.toColor()
                                                     Box(
@@ -888,7 +927,7 @@ fun ProductDetailScreen(
                                                     Spacer(modifier = Modifier.width(8.dp))
                                                 }
                                             }
-                                    }
+                                        }
                                     }
                                 // Số lượng
                                 Row(
@@ -943,6 +982,7 @@ fun ProductDetailScreen(
                                     AddReviewDialog(
                                         productId = productId,
                                         reviewViewModel = reviewViewModel,
+                                        navController=navController,
                                         onDismiss = { showAddReviewDialog = false }
                                     )
                                 }
@@ -953,8 +993,10 @@ fun ProductDetailScreen(
                                     Text("Thêm đánh giá")
                                 }
                                 // review màn
+                                var showUpdateDialog by remember { mutableStateOf(false) }
+                                var selectedReview by remember { mutableStateOf<Review?>(null) }
+
                                 if (reviews.isEmpty()) {
-                                    // Nếu không có review, hiển thị một thông báo
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -972,97 +1014,184 @@ fun ProductDetailScreen(
                                 } else {
                                     LazyColumn(modifier = Modifier.height(300.dp)) {
                                         items(reviews) { review ->
-                                            Row(
+                                            Column(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(8.dp)
                                             ) {
-                                                // Avatar của người đánh giá
-                                                val avatarUrl = review.avatar.replace(
-                                                    "http://localhost:",
-                                                    "http://103.166.184.249:"
-                                                )
-                                                AsyncImage(
-                                                    model = avatarUrl,
-                                                    contentDescription = "Avatar",
-                                                    modifier = Modifier
-                                                        .size(40.dp)
-                                                        .clip(CircleShape)
-                                                        .background(Color.LightGray),
-                                                    contentScale = ContentScale.Crop
-                                                )
-
-                                                Spacer(modifier = Modifier.width(8.dp))
-
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    // Tên người đánh giá
-                                                    Text(
-                                                        text = review.username,
-                                                        fontWeight = FontWeight.Bold
+                                                // ✅ Dòng 1: Avatar + Tên người dùng
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    val avatarUrl = review.avatar.replace(
+                                                        "http://localhost:",
+                                                        "http://103.166.184.249:"
                                                     )
 
-                                                    // Xếp hạng sao
-                                                    Row {
-                                                        repeat(5) { index ->
-                                                            Icon(
-                                                                Icons.Filled.Star,
-                                                                contentDescription = "Star",
-                                                                tint = if (index < review.rating) Color(
-                                                                    0xFFFFD700
-                                                                ) else Color.Gray,
-                                                                modifier = Modifier.size(16.dp)
+                                                    // Ảnh đại diện kiểu TikTok Shop
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(36.dp)
+                                                            .clip(CircleShape)
+                                                            .border(
+                                                                width = 1.dp,
+                                                                color = Color(0xFFE0E0E0),
+                                                                shape = CircleShape
+                                                            ) // viền mỏng nhẹ giống TikTok Shop
+                                                    ) {
+                                                        AsyncImage(
+                                                            model = avatarUrl,
+                                                            contentDescription = "Avatar",
+                                                            contentScale = ContentScale.Crop,
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                        )
+                                                    }
+
+                                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                                    val maskedUsername = if (review.username.length >= 4) {
+                                                        val firstTwo = review.username.take(2)
+                                                        val lastTwo = review.username.takeLast(2)
+                                                        "$firstTwo***$lastTwo"
+                                                    } else {
+                                                        review.username
+                                                    }
+
+                                                    Text(
+                                                        text = maskedUsername,
+                                                        fontWeight = FontWeight.Medium,
+                                                        fontSize = 14.sp,
+                                                        color = Color.Black
+                                                    )
+                                                }
+
+
+                                                Spacer(modifier = Modifier.height(4.dp))
+
+                                                // ✅ Dòng 2: Sao đánh giá
+                                                Row {
+                                                    repeat(5) { index ->
+                                                        Icon(
+                                                            Icons.Filled.Star,
+                                                            contentDescription = "Star",
+                                                            tint = if (index < review.rating) Color(
+                                                                0xFFFFD700
+                                                            ) else Color.Gray,
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                    }
+                                                }
+
+                                                Spacer(modifier = Modifier.height(4.dp))
+
+                                                // ✅ Dòng 3: Nội dung đánh giá
+                                                Text(
+                                                    text = review.contents_review,
+                                                    fontSize = 14.sp
+                                                )
+
+                                                Spacer(modifier = Modifier.height(4.dp))
+
+                                                // ✅ Dòng 4: Ảnh đính kèm (nếu có)
+                                                if (review.images.isNotEmpty()) {
+                                                    LazyRow(
+                                                        horizontalArrangement = Arrangement.spacedBy(
+                                                            8.dp
+                                                        ),
+                                                        modifier = Modifier.fillMaxWidth()
+                                                    ) {
+                                                        items(review.images) { image ->
+                                                            val fixedUrl = image.url.replace(
+                                                                "http://localhost:",
+                                                                "http://103.166.184.249:"
+                                                            )
+
+                                                            AsyncImage(
+                                                                model = fixedUrl,
+                                                                contentDescription = "Review Image",
+                                                                modifier = Modifier
+                                                                    .size(90.dp)
+                                                                    .clip(RoundedCornerShape(8.dp))
+                                                                    .background(Color.Gray)
+                                                                    .clickable {
+                                                                        selectedImageUrl = fixedUrl
+                                                                        showDialog = true
+                                                                    },
+                                                                contentScale = ContentScale.Crop
                                                             )
                                                         }
                                                     }
 
-                                                    // Nội dung đánh giá
-                                                    Text(
-                                                        text = review.contents_review,
-                                                        fontSize = 14.sp
-                                                    )
-
-                                                    // Ảnh đính kèm trong review (nếu có)
-                                                    if (review.images.isNotEmpty()) {
-                                                        LazyRow(
-                                                            horizontalArrangement = Arrangement.spacedBy(
-                                                                8.dp
-                                                            ),
-                                                            modifier = Modifier.fillMaxWidth()
-                                                        ) {
-                                                            items(review.images) { image ->
-                                                                val fixedUrl = image.url.replace(
-                                                                    "http://localhost:",
-                                                                    "http://103.166.184.249:"
-                                                                )
-
-                                                                // Hiển thị ảnh trong 1 hàng ngang
-                                                                AsyncImage(
-                                                                    model = fixedUrl,
-                                                                    contentDescription = "Review Image",
-                                                                    modifier = Modifier
-                                                                        .size(100.dp)
-                                                                        .clip(RoundedCornerShape(8.dp))
-                                                                        .background(Color.Gray)
-                                                                        .clickable {
-                                                                            // Khi ấn vào ảnh, mở dialog với ảnh lớn
-                                                                            selectedImageUrl = fixedUrl
-                                                                            showDialog = true
-                                                                        },
-                                                                    contentScale = ContentScale.Crop
-                                                                )
-                                                            }
-                                                        }
-
-                                                        Spacer(modifier = Modifier.height(8.dp)) // Khoảng cách giữa các ảnh
-                                                    }
-
-                                                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                                    Spacer(modifier = Modifier.height(4.dp))
                                                 }
+
+                                                // ✅ Nút cập nhật nếu đúng tài khoản
+                                                if (review.account_id == currentAccountId) {
+                                                    Button(
+                                                        onClick = {
+                                                            selectedReview = review
+                                                            showUpdateDialog = true
+                                                        },
+                                                        colors = ButtonDefaults.buttonColors(
+                                                            containerColor = Color(0xFF1976D2)
+                                                        ),
+                                                        shape = RoundedCornerShape(10.dp),
+                                                        contentPadding = PaddingValues(
+                                                            horizontal = 8.dp,
+                                                            vertical = 4.dp
+                                                        ),
+                                                        modifier = Modifier
+                                                            .padding(top = 4.dp)
+                                                            .height(32.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Edit,
+                                                            contentDescription = null,
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Text(
+                                                            "Cập nhật",
+                                                            color = Color.White,
+                                                            fontSize = 12.sp
+                                                        )
+                                                    }
+                                                }
+
+                                                // ✅ Dialog cập nhật
+                                                if (showUpdateDialog && selectedReview != null) {
+                                                    UpdateReviewDialog(
+                                                        reviewId = selectedReview!!._id,
+                                                        productId = productId,
+                                                        initialRating = selectedReview!!.rating,
+                                                        initialContent = selectedReview!!.contents_review,
+                                                        initialImageUrls = selectedReview!!.images.map { it.url },
+                                                        initialImageIds = selectedReview!!.images.map { it._id },
+                                                        createdAt = selectedReview!!.createdAt,
+                                                        reviewViewModel = reviewViewModel,
+                                                        onDismiss = {
+                                                            showUpdateDialog = false
+                                                            selectedReview = null
+                                                        }
+                                                    )
+                                                    Log.d(
+                                                        "UPDATE_REVIEW",
+                                                        "selectedReview: $selectedReview"
+                                                    )
+                                                    Log.d(
+                                                        "UPDATE_REVIEW",
+                                                        "imageIds: ${selectedReview!!.images.map { it._id }}"
+                                                    )
+                                                }
+
+                                                Divider(modifier = Modifier.padding(vertical = 8.dp))
                                             }
                                         }
                                     }
-
-                                    // Hiển thị Dialog khi showDialog là true
+                                // Hiển thị Dialog khi showDialog là true
                                     if (showDialog) {
                                         ShowImageDialog(imageUrl = selectedImageUrl) {
                                             showDialog = false // Đóng dialog khi ấn ra ngoài
@@ -1343,137 +1472,6 @@ fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
     }
 }
 
-@Composable
-fun AddReviewDialog(
-    productId: String,
-    reviewViewModel: ReviewViewModel,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    var rating by remember { mutableStateOf(0) }
-    var content by remember { mutableStateOf("") }
-
-    val addReviewResult by reviewViewModel.addReviewResult.collectAsState()
-    val userReviewStatus by reviewViewModel.userReviewStatus.collectAsState()
-
-    var showConfirmDialog by remember { mutableStateOf(false) }
-
-    // Kiểm tra xem người dùng đã đánh giá sản phẩm chưa
-    LaunchedEffect(productId) {
-        reviewViewModel.checkUserReviewStatus(productId)
-    }
-
-    // Nếu người dùng đã có đánh giá, hiển thị thông báo và không cho phép thêm review
-    if (userReviewStatus) {
-        Toast.makeText(context, "Bạn đã thêm đánh giá cho sản phẩm này!", Toast.LENGTH_SHORT).show()
-        return
-    }
-
-    // Sau khi submit review thành công
-    LaunchedEffect(addReviewResult) {
-        addReviewResult?.onSuccess {
-            Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
-            reviewViewModel.getReviewsByProduct(productId)
-            onDismiss()
-        }?.onFailure {
-            Log.e("ADD_REVIEW", "Error: ${it.message}")
-            Toast.makeText(context, "Gửi đánh giá thất bại!", Toast.LENGTH_SHORT).show()
-            onDismiss()
-        }
-    }
-
-    // Dialog xác nhận gửi
-    if (showConfirmDialog) {
-        ConfirmDialog(
-            onConfirm = {
-                showConfirmDialog = false
-
-                coroutineScope.launch {
-                    if (content.isBlank() || rating == 0) {
-                        Toast.makeText(context, "Vui lòng nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
-                        return@launch
-                    }
-
-                    // Gửi review với ảnh ID cố định
-                    reviewViewModel.addReviewWithFixedImageId(
-                        productId = productId,
-                        contentsReview = content,
-                        rating = rating
-                    )
-                }
-            },
-            onDismiss = { showConfirmDialog = false }
-        )
-    }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            tonalElevation = 8.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    repeat(5) { index ->
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clickable { rating = index + 1 }
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("$rating sao")
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    label = { Text("Nội dung đánh giá") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 4
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Hủy")
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    TextButton(
-                        onClick = {
-                            if (content.isBlank() || rating == 0) {
-                                Toast.makeText(context, "Nhập đầy đủ nội dung và số sao", Toast.LENGTH_SHORT).show()
-                            } else {
-                                showConfirmDialog = true
-                            }
-                        },
-                    ) {
-                        Text("Gửi")
-                    }
-                }
-            }
-        }
-    }
-}
 
 // Dialog xác nhận
 @Composable
@@ -1497,3 +1495,5 @@ fun ConfirmDialog(
         }
     )
 }
+
+
