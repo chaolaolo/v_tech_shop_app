@@ -54,8 +54,10 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -92,6 +94,10 @@ import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -105,6 +111,7 @@ fun PaymentCartUI(
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val checkoutState by checkoutViewModel.addressState.collectAsState()
     val gettingAddress by checkoutViewModel.gettingAddress.collectAsState()
     val selectedCartItems by checkoutViewModel.selectedCartItems.collectAsState()
@@ -112,7 +119,12 @@ fun PaymentCartUI(
     val isCheckoutLoading by checkoutViewModel.isCheckoutLoading.collectAsState()
     val paymentUrl by checkoutViewModel.paymentUrl.collectAsState()
 
-    val quantityState = remember { mutableIntStateOf(0) }
+    val quantityState = remember { mutableStateMapOf<String, Int>() }
+    LaunchedEffect(selectedCartItems) {
+        selectedCartItems?.forEach { item ->
+            quantityState[item.productId] = item.quantity
+        }
+    }
 
     LaunchedEffect(Unit) {
         checkoutViewModel.getAddress()
@@ -143,8 +155,12 @@ fun PaymentCartUI(
     val selectedVoucher = remember(discount, listDiscount) {
         listDiscount.firstOrNull { it.code.trim() == discount.trim() }
     }
-    val subtotal = remember(selectedCartItems) {
-        selectedCartItems?.sumOf { it.price * it.quantity } ?: 0.0
+    val subtotal by remember(selectedCartItems) {
+        derivedStateOf {
+            selectedCartItems?.sumOf { item ->
+                item.price * (quantityState[item.productId] ?: item.quantity)
+            } ?: 0.0
+        }
     }
     val defaultShippingFee = 35000.0
     val shippingFee = remember(selectedVoucher) {
@@ -160,16 +176,19 @@ fun PaymentCartUI(
         }
     }
     val discountPercentage = selectedVoucher?.discountValue ?: 0.0
-    val discountAmount = remember(subtotal, discountPercentage) {
-        (subtotal * discountPercentage / 100)
+//    val discountAmount by remember(subtotal, discountPercentage) {
+//        derivedStateOf { (subtotal * discountPercentage / 100) }
+//    }
+    val discountAmount by remember(subtotal, discountPercentage) {
+        derivedStateOf { (subtotal * discountPercentage / 100) }
     }
     val maxDiscountAmount = selectedVoucher?.maxDiscountAmount ?: Double.MAX_VALUE
-    val finalDiscountAmount = remember(discountAmount, maxDiscountAmount) {
-        minOf(discountAmount, maxDiscountAmount)
+    val finalDiscountAmount by remember(discountAmount, maxDiscountAmount) {
+        derivedStateOf { minOf(discountAmount, maxDiscountAmount) }
     }
 // Tổng thanh toán
-    val total = remember(subtotal, shippingFee, finalDiscountAmount) {
-        subtotal + shippingFee - finalDiscountAmount
+    val total by remember(subtotal, shippingFee, finalDiscountAmount) {
+        derivedStateOf { subtotal + shippingFee - finalDiscountAmount }
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -356,16 +375,16 @@ fun PaymentCartUI(
                     color = Color(0xfff4f5fd)
                 )
                 //Danh sách sản phẩm sẽ thanh toán
-                if (isLoadingCartItems) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color(0xFF21D4B4))
-                    }
-                } else {
+//                if (isLoadingCartItems) {
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxSize()
+//                            .padding(16.dp),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+//                    }
+//                } else {
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
@@ -377,13 +396,15 @@ fun PaymentCartUI(
                         items(selectedCartItems ?: emptyList()) { item ->
                             CheckoutCartItemTile(
                                 product = item,
-                                cartViewModel = cartViewModel,
-                                checkoutViewModel = checkoutViewModel,
                                 snackbarHostState = snackbarHostState,
+                                currentQuantity = quantityState[item.productId] ?: item.quantity,
+                                onQuantityChange = { newQuantity ->
+                                    quantityState[item.productId] = newQuantity
+                                },
                             )
                         }
                     }
-                }
+//                }
                 //Tóm tắt đơn hàng
                 Spacer(
                     Modifier
@@ -514,27 +535,50 @@ fun PaymentCartUI(
                                     }
 
                                     else -> {
-                                    checkoutViewModel.checkout(
-                                        address = address,
-                                        phone_number = phone,
-                                        receiver_name = name,
-                                        payment_method = selectedPayOption.apiValue,
-                                        discount_code = discount,
-                                    )
-                                    Log.d(
-                                        "PaymentUI",
-                                        "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
-                                    )
-//                                    navController.navigate("order_successfully")
-                                    Log.d("PaymentUI", "selectedPayOption.apiValue: $paymentUrl")
-                                    if (selectedPayOption.apiValue != "vnpay") {
-                                        navController.navigate("order_successfully") {
-                                            popUpTo("cart") {
-                                                inclusive = false
+                                        coroutineScope.launch {
+                                            try {
+                                                val updateQuantityJobs = selectedCartItems?.map { item ->
+                                                    async {
+                                                        cartViewModel.updateProductQuantity(item.productId, item.detailsVariantId ?: "", quantityState[item.productId] ?: item.quantity)
+                                                        cartViewModel.fetchCart()
+                                                        checkoutViewModel.getIsSelectedItemInCart()
+                                                        Log.d("PaymentUI", "productId ${quantityState[item.productId]}")
+                                                        Log.d("PaymentUI", "detailsVariantId ${item.detailsVariantId}")
+                                                        Log.d("PaymentUI", "item.productId ${item.productId}")
+                                                        Log.d("PaymentUI", "Updated quantity for ${item.productId}: ${quantityState[item.productId]}")
+                                                    }
+                                                }
+                                                // Chờ cho tất cả các cập nhật hoàn thành
+                                                updateQuantityJobs?.let {
+                                                    awaitAll(*it.toTypedArray())
+                                                }
+                                                delay(1000)
+                                                checkoutViewModel.checkout(
+                                                    address = address,
+                                                    phone_number = phone,
+                                                    receiver_name = name,
+                                                    payment_method = selectedPayOption.apiValue,
+                                                    discount_code = discount,
+                                                )
+                                                Log.d(
+                                                    "PaymentUI",
+                                                    "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
+                                                )
+                                                Log.d("PaymentUI", "selectedPayOption.apiValue: $paymentUrl")
+                                                if (selectedPayOption.apiValue != "vnpay") {
+                                                    navController.navigate("order_successfully") {
+                                                        popUpTo("cart") {
+                                                            inclusive = false
+                                                        }
+                                                        launchSingleTop = true
+                                                    }
+                                                }
+                                            } catch (e: Exception) {
+                                                Toast.makeText(context, "Có lỗi xảy ra: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            } finally {
+                                                checkoutViewModel._isCheckoutLoading.value = false
                                             }
-                                            launchSingleTop = true
                                         }
-                                    }
                                     }
                                 }
                             }
@@ -565,7 +609,7 @@ fun PaymentCartUI(
                 }
             )
         }
-        if (isCheckoutLoading) {
+        if (isCheckoutLoading || isCheckoutLoading) {
             Dialog(onDismissRequest = {}) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -591,9 +635,9 @@ fun PaymentCartUI(
 @Composable
 fun CheckoutCartItemTile(
     product: CartModel.Metadata.CartProduct,
-    cartViewModel: CartViewModel,
-    checkoutViewModel: CheckoutViewModel,
     snackbarHostState: SnackbarHostState,
+    currentQuantity: Int,
+    onQuantityChange: (Int) -> Unit,
 ) {
     val imageUrl = if (product.image.startsWith("http")) {
         product.image
@@ -604,10 +648,6 @@ fun CheckoutCartItemTile(
 
     val itemPrice = product.price
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
-    var currentQuantity by remember { mutableIntStateOf(product.quantity) }
-    LaunchedEffect(product.quantity) {
-        currentQuantity = product.quantity
-    }
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
@@ -684,17 +724,10 @@ fun CheckoutCartItemTile(
                         IconButton(
                             onClick = {
                                 if (currentQuantity > 1) {
-                                    val newQuantity = currentQuantity - 1
-                                    currentQuantity = newQuantity
-                                    coroutineScope.launch {
-                                        cartViewModel.updateProductQuantity(
-                                            productId = product.productId,
-                                            variantId = product.detailsVariantId ?: "",
-                                            newQuantity = newQuantity,
-                                        )
-                                        // Sau khi cập nhật xong, refresh lại danh sách
-                                        checkoutViewModel.refreshSelectedItems()
-                                    }
+//                                    val newQuantity = currentQuantity - 1
+//                                    currentQuantity = newQuantity
+//                                    currentQuantity--
+                                    onQuantityChange(currentQuantity - 1)
                                 }
                             },
                             modifier = Modifier.size(18.dp),
@@ -713,16 +746,9 @@ fun CheckoutCartItemTile(
                         IconButton(
                             onClick = {
                                 if (currentQuantity < (product.stock ?: Int.MAX_VALUE)) {
-                                    val newQuantity = currentQuantity + 1
-                                    currentQuantity = newQuantity
-                                    coroutineScope.launch {
-                                        cartViewModel.updateProductQuantity(
-                                            productId = product.productId,
-                                            variantId = product.detailsVariantId ?: "",
-                                            newQuantity = newQuantity,
-                                        )
-                                        checkoutViewModel.refreshSelectedItems()
-                                    }
+//                                    val newQuantity = currentQuantity + 1
+//                                    currentQuantity = newQuantity
+                                    onQuantityChange(currentQuantity + 1)
                                 } else if (product.stock == 1) {
                                     coroutineScope.launch {
                                         snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.stock} trong kho")

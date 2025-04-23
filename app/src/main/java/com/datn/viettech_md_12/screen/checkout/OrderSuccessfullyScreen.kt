@@ -121,7 +121,7 @@ fun OrderSuccessfullyScreen(navController:NavController) {
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Bạn sẽ nhận được thông tin câph nhật  trong hộp thư thông báo.",
+                        "Bạn sẽ nhận được thông tin cập nhật  trong hộp thư thông báo.",
                         color = Color.DarkGray,
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center,

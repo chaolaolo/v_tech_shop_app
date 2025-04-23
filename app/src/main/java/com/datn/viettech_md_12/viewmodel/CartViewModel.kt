@@ -40,6 +40,9 @@ class CartViewModel(application: Application) : ViewModel() {
     private val _discountState = MutableStateFlow<Response<DiscountResponse>?>(null)
     val discountState: StateFlow<Response<DiscountResponse>?> get() = _discountState
 
+    private val _updateQuantityState = MutableStateFlow<Boolean>(false)
+    val updateQuantityState: StateFlow<Boolean> get() = _updateQuantityState
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _isDiscountLoading = MutableStateFlow(true)
@@ -94,7 +97,6 @@ class CartViewModel(application: Application) : ViewModel() {
         variantId: String,
         newQuantity: Int,
     ) {
-//        updateLocalCartState(productId, newQuantity)
         viewModelScope.launch {
 //            _isLoading.value = true
             try {
@@ -107,14 +109,14 @@ class CartViewModel(application: Application) : ViewModel() {
                 )
 
                 if (response.isSuccessful) {
+                    _updateCartState.value = response
+                    updateLocalCartState(productId, newQuantity)
 //                    fetchCart()
                     checkoutService.getIsSelectedItemInCart(
                         token = token ?: "",
                         userId = userId ?: "",
                         userIdQuery = userId ?: ""
                     )
-                    _updateCartState.value = response
-                    updateLocalCartState(productId, newQuantity)
                     Log.d("updateProductQuantity", "Update quantity success")
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Unknown error"
