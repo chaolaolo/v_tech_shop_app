@@ -37,6 +37,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.datn.viettech_md_12.viewmodel.ImageViewModel
 import kotlinx.coroutines.delay
 
@@ -44,6 +45,7 @@ import kotlinx.coroutines.delay
 fun AddReviewDialog(
     productId: String,
     reviewViewModel: ReviewViewModel,
+    navController: NavController,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -76,6 +78,7 @@ fun AddReviewDialog(
         addReviewResult?.onSuccess {
             Log.d("ADD_REVIEW", "Success = ${it.success}, Data = ${it.data}")
             Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
+            navController.navigate("product_detail/${productId}") // Chuyển đến chi tiết sản phẩm
             reviewViewModel.getReviewsByProduct(productId)
             onDismiss()
         }?.onFailure {

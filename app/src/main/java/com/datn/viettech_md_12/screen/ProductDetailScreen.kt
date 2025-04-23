@@ -938,6 +938,7 @@ fun ProductDetailScreen(
                                     AddReviewDialog(
                                         productId = productId,
                                         reviewViewModel = reviewViewModel,
+                                        navController=navController,
                                         onDismiss = { showAddReviewDialog = false }
                                     )
                                 }
