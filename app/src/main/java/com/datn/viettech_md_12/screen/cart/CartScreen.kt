@@ -4,7 +4,9 @@ package com.datn.viettech_md_12.screen.cart
 
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -115,6 +117,7 @@ import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.DashedDivider
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.component.cart_component.CartItemTile
+import com.datn.viettech_md_12.component.cart_component.CartNotLogin
 import com.datn.viettech_md_12.component.cart_component.EmptyCart
 import com.datn.viettech_md_12.component.cart_component.OrderSummary
 import com.datn.viettech_md_12.component.cart_component.VoucherBottomSheetContent
@@ -142,6 +145,9 @@ fun CartScreen(
     navController: NavController,
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
 ) {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    val accessToken = sharedPreferences.getString("accessToken", null)
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden,
@@ -238,19 +244,21 @@ fun CartScreen(
                     }
                 },
                 actions = {
-                    TextButton(
-                        onClick = {
+                    if(!cartState?.body()?.metadata?.cart_products.isNullOrEmpty()){
+                        TextButton(
+                            onClick = {
 //                            isShowVoucherSheet.value = true
-                            scope.launch { scaffoldState.bottomSheetState.expand() }
-                        },
-                        modifier = Modifier.padding(end = 16.dp)
-                    ) {
-                        Text(
-                            text = "Mã giảm giá",
-                            color = Color(0xFF00C2A8),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                        )
+                                scope.launch { scaffoldState.bottomSheetState.expand() }
+                            },
+                            modifier = Modifier.padding(end = 16.dp)
+                        ) {
+                            Text(
+                                text = "Mã giảm giá",
+                                color = Color(0xFF00C2A8),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
                     }
                 },
                 modifier = Modifier.shadow(elevation = 2.dp),
@@ -264,16 +272,19 @@ fun CartScreen(
                 .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Log.d("CartScreen", "accessToken: $accessToken")
             when {
                 isLoading == true -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = Color(0xFF21D4B4))
                     }
                 }
+                accessToken == null ->{
+                    CartNotLogin(navController)
+                }
                 cartState?.body() == null -> {
                 EmptyCart(navController)
-            }
-
+                }
                 else -> {
                     val cartModel = cartState?.body()
                     cartModel?.let { cart ->
