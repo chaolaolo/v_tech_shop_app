@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.screen.profile_detail
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -113,11 +114,11 @@ fun OrderDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFF1ABF79))
+                            .background(Color(0xFF21D4B4))
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "Đơn hàng của bạn",
+                            text = translateOrderStatus(currentOrder.status ?: ""),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -142,11 +143,11 @@ fun OrderDetailScreen(
                             Text(text = "🚚", fontSize = 14.sp)
                             Spacer(modifier = Modifier.width(6.dp))
                             Column {
-                                Text(
-                                    text = currentOrder.status ?: "",
-                                    color = Color(0xFF1ABF79),
-                                    fontSize = 14.sp
-                                )
+//                                Text(
+//                                    text = currentOrder.status ?: "",
+//                                    color = Color(0xFF1ABF79),
+//                                    fontSize = 14.sp
+//                                )
                                 Text(
                                     text = "${currentOrder.createdAt ?: ""} - ${currentOrder.updatedAt ?: ""}",
                                     fontSize = 13.sp,
@@ -335,15 +336,26 @@ fun OrderDetailScreen(
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 6.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Red),
+                    border = BorderStroke(1.dp, Color.Red)
                 ) {
-                    Text("Mua lại", color = Color.White)
+                    Text("Mua lại", color = Color.Red)
                 }
             }
             Spacer(Modifier.height(24.dp))
         }
     }
 }
+fun translateOrderStatus(status: String?): String {
+    return when (status?.lowercase()) {
+        "pending" -> "Đang chờ xử lý"
+        "active" -> "Đang giao hàng"
+        "cancelled" -> "Đơn hàng đã bị hủy"
+        "completed" -> "Đơn hàng hoàn tất"
+        else -> "Không xác định"
+    }
+}
+
 
 
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
