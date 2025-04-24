@@ -67,7 +67,7 @@ class LoginScreen : ComponentActivity() {
     }
 }
 fun saveLoginState(context: Context, isLoggedIn: Boolean) {
-    val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+    val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     with(sharedPreferences.edit()) {
         putBoolean("IS_LOGGED_IN", isLoggedIn)
         apply()

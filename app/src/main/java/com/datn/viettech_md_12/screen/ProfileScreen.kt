@@ -65,11 +65,8 @@ import com.datn.viettech_md_12.component.review_component.uriToFile
 import com.datn.viettech_md_12.screen.authentication.OnbroadingActivity
 import com.datn.viettech_md_12.viewmodel.ImageViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -206,11 +203,12 @@ fun ProfileHeader() {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
-    val token = sharedPreferences.getString("accessToken", null)
+    val accessToken = sharedPreferences.getString("accessToken", null)
+    val refreshToken = sharedPreferences.getString("refreshToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
     val userViewModel: UserViewModel = viewModel() // Khởi tạo UserViewModel
-    val isLoggedIn = !token.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
+    val isLoggedIn = !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
     val accountId = sharedPreferences.getString("clientId", "") ?: ""
     val imageViewModel: ImageViewModel = viewModel()
 
@@ -303,7 +301,6 @@ fun ProfileHeader() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         val avatarUrl = profileImage ?: ""
-
         Box(
             modifier = Modifier
                 .size(80.dp),
@@ -354,29 +351,53 @@ fun ProfileHeader() {
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = {
-            userViewModel.logout(context = context,
-                onSuccess = { message ->
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                    // Tạo Intent để chuyển đến màn hình Onboarding
-                    val intent = Intent(context, OnbroadingActivity::class.java)
-                    // Xóa hết backstack
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    context.startActivity(intent)
+        if (refreshToken.isNullOrEmpty()) {
+            IconButton(onClick = {
+                // Tạo Intent để chuyển đến màn hình Onboarding
+                val intent = Intent(context, OnbroadingActivity::class.java)
+                // Xóa hết backstack
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                context.startActivity(intent)
+                // Kết thúc Activity hiện tại
+                if (context is Activity) {
+                    context.finish()
+                }
+            }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_logout_profile),
+                    contentDescription = null, tint = Color.White
+                )
+            }
+        } else {
+            IconButton(onClick = {
+                userViewModel.logout(context = context,
+                    onSuccess = { message ->
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                        // Đặt lại trạng thái đăng nhập = false
+                        sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+                        // Đặt lại token = null
+                        sharedPrefs.edit().putString("accessToken", null).apply()
+                        // Tạo Intent để chuyển đến màn hình Onboarding
+                        val intent = Intent(context, OnbroadingActivity::class.java)
+                        // Xóa hết backstack
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        context.startActivity(intent)
 
-                    // Kết thúc Activity hiện tại
-                    if (context is Activity) {
-                        context.finish()
-                    }
-                },
-                onError = { errorMessage ->
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                })
-        }) {
-            Icon(
-                painter = painterResource(R.drawable.ic_logout_profile),
-                contentDescription = null, tint = Color.White
-            )
+                        // Kết thúc Activity hiện tại
+                        if (context is Activity) {
+                            context.finish()
+                        }
+                    },
+                    onError = { errorMessage ->
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                    })
+            }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_logout_profile),
+                    contentDescription = null, tint = Color.White
+                )
+            }
         }
     }
 }

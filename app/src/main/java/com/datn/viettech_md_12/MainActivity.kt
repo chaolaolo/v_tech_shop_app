@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
         // Lấy thông tin đăng nhập từ SharedPreferences
-        val sharedPrefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val sharedPrefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val isLoggedIn = sharedPrefs.getBoolean("IS_LOGGED_IN", false)
         val hasSeenOnboarding = sharedPrefs.getBoolean("HAS_SEEN_ONBOARDING", false)
 

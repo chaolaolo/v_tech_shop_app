@@ -102,10 +102,10 @@ fun Splash() {
         iterations = LottieConstants.IterateForever // Lặp animation mãi mãi
     )
     LaunchedEffect(key1 = true) {
-        context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-            .edit().clear().apply()
+//        context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+//            .edit().clear().apply()
         delay(3000)
-        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val isLoggedIn = sharedPreferences.getBoolean("IS_LOGGED_IN", false)
         Log.d("SplashScreen", "isLoggedIn = $isLoggedIn")
 

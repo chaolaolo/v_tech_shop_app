@@ -8,18 +8,20 @@ import Tokens
 import UpdateImageToAccountRequest
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.screen.authentication.LoginScreen
 import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val userRepository = ApiClient.userRepository
     val changePasswordState = mutableStateOf<String?>(null)
-
     fun signUp(
         request: RegisterRequest,
         context: Context,
@@ -196,7 +198,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 val refreshToken = sharedPreferences.getString("refreshToken", null)
 
                 if (refreshToken.isNullOrEmpty()) {
-                    onError("Không tìm thấy refreshToken!")
+                    val intent = Intent(context, LoginScreen::class.java)
+                    context.startActivity(intent)
+//                    onError("Không tìm thấy refreshToken!")
                     return@launch
                 }
 
@@ -207,19 +211,22 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 )
 
                 val response = userRepository.logout(tokens)
-
+                Log.d("dcm_logout", "refreshToken: ${tokens.refreshToken}")
                 if (response.isSuccessful) {
                     val message = response.body()?.message ?: "Đăng xuất thành công"
                     Log.d("dcm_logout", "Success: $message")
+                    Log.d("dcm_logout", "refreshToken 1: ${tokens.refreshToken}")
 
                     // Xoá dữ liệu đã lưu (accessToken, refreshToken, v.v...)
                     sharedPreferences.edit().clear().apply()
 
                     onSuccess(message)
                 } else {
-                    val errorBody = response.errorBody()?.string() ?: "Lỗi không xác định"
-                    Log.e("dcm_logout", "Failed: $errorBody")
-                    onError("Lỗi khi đăng xuất: $errorBody")
+                    val intent = Intent(context, LoginScreen::class.java)
+                    context.startActivity(intent)
+//                    val errorBody = response.errorBody()?.string() ?: "Lỗi không xác định"
+//                    Log.e("dcm_logout", "Failed: $errorBody")
+//                    onError("Lỗi khi đăng xuất: $errorBody")
                 }
             } catch (e: Exception) {
                 Log.e("dcm_logout", "Exception: ${e.message}")
