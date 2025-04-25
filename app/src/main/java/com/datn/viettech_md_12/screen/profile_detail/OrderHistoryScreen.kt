@@ -113,7 +113,7 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color(0xfff9f9f9))
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         Row(
@@ -307,8 +307,7 @@ fun OrderCard(order: OrderModel, navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(Color.White, shape = RoundedCornerShape(12.dp))
-            .shadow(1.dp, RoundedCornerShape(12.dp))
+            .background(Color.White)
             .padding(12.dp)
     ) {
         // Trạng thái đơn hàng
@@ -325,8 +324,23 @@ fun OrderCard(order: OrderModel, navController: NavController) {
 //            )
 //        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(3.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Color.Red, shape = RoundedCornerShape(4.dp))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text("Yêu thích", color = Color.White, fontSize = 10.sp)
+            }
+            Spacer(Modifier.width(6.dp))
+            Text("VietTech", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+        }
+        Spacer(modifier = Modifier.height(5.dp))
         // Sản phẩm đầu tiên
         firstProduct?.let { product ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -375,7 +389,7 @@ fun OrderCard(order: OrderModel, navController: NavController) {
                             model = BASE_URL + (product.image ?: ""),
                             contentDescription = "Ảnh sản phẩm",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(60.dp)
                                 .clip(RoundedCornerShape(6.dp))
                                 .background(Color.LightGray)
                         )
@@ -385,14 +399,14 @@ fun OrderCard(order: OrderModel, navController: NavController) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = product.name ?: "Tên sản phẩm",
-                                fontSize = 13.sp,
+                                fontSize = 14.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "${product.price?.toInt() ?: 0}₫",
-                                fontSize = 12.sp,
+                                fontSize = 13.sp,
                                 color = Color.Gray
                             )
                         }
@@ -403,7 +417,7 @@ fun OrderCard(order: OrderModel, navController: NavController) {
 
                 Text(
                     text = "Ẩn bớt",
-                    color = Color(0xFF1F8BDA),
+                    color = Color(0xFF21D4B4),
                     fontSize = 12.sp,
                     modifier = Modifier
                         .padding(start = 48.dp, top = 4.dp)
@@ -412,7 +426,7 @@ fun OrderCard(order: OrderModel, navController: NavController) {
             } else {
                 Text(
                     text = "Xem thêm (${products.size - 1}) sản phẩm",
-                    color = Color(0xFF1F8BDA),
+                    color = Color(0xFF21D4B4),
                     fontSize = 12.sp,
                     modifier = Modifier
                         .padding(start = 48.dp, top = 4.dp)
@@ -440,7 +454,7 @@ fun OrderCard(order: OrderModel, navController: NavController) {
                 }
             },
             modifier = Modifier.align(Alignment.End),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F8BDA))
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21D4B4))
         ) {
             Text("Chi tiết đơn hàng", color = Color.White)
         }
@@ -464,8 +478,7 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(Color.White, shape = RoundedCornerShape(12.dp))
-            .shadow(1.dp, RoundedCornerShape(12.dp))
+            .background(Color.White)
             .padding(12.dp)
     ) {
         // Trạng thái đơn hàng
@@ -482,7 +495,23 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
 //            )
 //        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(3.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Color.Red, shape = RoundedCornerShape(4.dp))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text("Yêu thích", color = Color.White, fontSize = 10.sp)
+            }
+            Spacer(Modifier.width(6.dp))
+            Text("VietTech", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+        }
+        Spacer(modifier = Modifier.height(5.dp))
 
         // Sản phẩm đầu tiên
         firstProduct?.let { product ->
@@ -560,7 +589,7 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
 
                 Text(
                     text = "Ẩn bớt",
-                    color = Color(0xFF1F8BDA),
+                    color = Color(0xFF21D4B4),
                     fontSize = 12.sp,
                     modifier = Modifier
                         .padding(start = 48.dp, top = 4.dp)
@@ -569,7 +598,7 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
             } else {
                 Text(
                     text = "Xem thêm (${products.size - 1}) sản phẩm",
-                    color = Color(0xFF1F8BDA),
+                    color = Color(0xFF21D4B4),
                     fontSize = 12.sp,
                     modifier = Modifier
                         .padding(start = 48.dp, top = 4.dp)
@@ -597,7 +626,7 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
                 }
             },
             modifier = Modifier.align(Alignment.End),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F8BDA))
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21D4B4))
         ) {
             Text("Chi tiết đơn hàng", color = Color.White)
         }
