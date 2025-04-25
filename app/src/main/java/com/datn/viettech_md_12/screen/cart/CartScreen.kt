@@ -32,6 +32,8 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.progressSemantics
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -70,9 +72,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -109,6 +114,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -173,6 +181,7 @@ fun CartScreen(
         cartViewModel.fetchCart()
         cartViewModel.getListDisCount()
     }
+
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -274,32 +283,35 @@ fun CartScreen(
         ) {
             Log.d("CartScreen", "accessToken: $accessToken")
             when {
-                isLoading == true -> {
+                isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = Color(0xFF21D4B4))
                     }
                 }
-                accessToken == null ->{
+
+                accessToken == null -> {
                     CartNotLogin(navController)
                 }
+
                 cartState?.body() == null -> {
-                EmptyCart(navController)
+                    EmptyCart(navController)
                 }
+
                 else -> {
                     val cartModel = cartState?.body()
                     cartModel?.let { cart ->
                         CartContent(
                             navController = navController,
-                            cartProducts = cart.metadata?.cart_products?: emptyList(),
+                            cartProducts = cart.metadata?.cart_products ?: emptyList(),
                             selectedItems = selectedItems,
                             cartViewModel = cartViewModel,
                             selectedVoucher = selectedVoucher.value,
                             snackbarHostState = snackbarHostState
                         )
                     }
+                    }
                 }
             }
-        }
     }//end scaffold
 }// end cart UI
 

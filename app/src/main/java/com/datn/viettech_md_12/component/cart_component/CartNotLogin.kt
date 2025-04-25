@@ -80,9 +80,10 @@ fun CartNotLogin(
         MyButton(
             text = "Đăng nhập",
             onClick = {
-                context.startActivity(Intent(context, LoginScreen::class.java))
-                if (context is Activity) {
-                    context.finish()
+                navController.navigate("login") {
+                    launchSingleTop = true
+                    //lưu route của màn này trong backstack
+                    restoreState = true
                 }
             },
             modifier = Modifier,
