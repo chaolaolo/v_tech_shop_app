@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -32,7 +33,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -68,12 +71,13 @@ fun CartItemTile(
     navController: NavController,
     cartViewModel: CartViewModel,
     onDeletingStateChange: (Boolean) -> Unit,
-    snackbarHostState:SnackbarHostState
+    snackbarHostState:SnackbarHostState,
+    onQuantityChange: (Int) -> Unit,
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val swipeThreshold = 250f
     val anchors = mapOf(0f to 0, -swipeThreshold to 1)
-    val quantityState = remember { mutableStateOf(product.quantity) }
+    var quantityState by remember { mutableIntStateOf(product.quantity) }
     val coroutineScope = rememberCoroutineScope()
     // Xử lý khi detailsVariantId null thì dùng productId
     val variantIdToUse = product.detailsVariantId ?: product.productId
@@ -87,7 +91,9 @@ fun CartItemTile(
     var localIsSelected by remember { mutableStateOf(isSelected) }
     val itemPrice = product.price
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(itemPrice)
-
+    LaunchedEffect(quantityState) {
+        onQuantityChange(quantityState)
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -102,15 +108,10 @@ fun CartItemTile(
             )
             .clip(RoundedCornerShape(10.dp))
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End,
+        Box(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(100.dp)
-                .background(Color.Transparent)
+                .matchParentSize()
                 .align(Alignment.CenterEnd)
-                .padding(end = 10.dp)
                 .clickable {
                     onDeletingStateChange(true)
                     onDelete(product.productId, variantIdToUse)
@@ -126,8 +127,16 @@ fun CartItemTile(
                     })
                     Log.d("CartItemTile", "ondelete: clicked")
                 },
-
-            ) {
+        ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+                .fillMaxHeight()
+                .background(Color.Transparent)
+                .align(Alignment.CenterEnd)
+                .padding(end = 10.dp)
+        ) {
             Text(
                 text = "Xóa", color = Color.White, fontWeight = FontWeight.Bold
             )
@@ -135,6 +144,7 @@ fun CartItemTile(
             Icon(
                 Icons.Default.Delete, contentDescription = "Delete", tint = Color.White
             )
+        }
         }
 
         // nội dung của item
@@ -184,33 +194,35 @@ fun CartItemTile(
                   ) {
                       IconButton(
                           onClick = {
-                              if (quantityState.value > 1) {
-                                  quantityState.value -= 1
+                              if (quantityState > 1) {
+                                  quantityState -= 1
+                                  onQuantityChange(quantityState)
                                   coroutineScope.launch {
                                       cartViewModel.updateProductQuantity(
                                           productId = product.productId,
                                           variantId = product.detailsVariantId ?: "",
-                                          newQuantity = quantityState.value,
+                                          newQuantity = quantityState,
                                       )
                                   }
                               }
                           },
                           modifier = Modifier.size(20.dp),
-                          enabled = quantityState.value > 1
+                          enabled = quantityState > 1
                       ) {
                           Icon(Icons.Default.Remove, contentDescription = "Decrease",
-                              tint = if (quantityState.value > 1) Color.Black else Color.Gray)
+                              tint = if (quantityState > 1) Color.Black else Color.Gray)
                       }
-                      Text(if(product?.stock == 0) "0" else "${quantityState.value}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                      Text(if(product?.stock == 0) "0" else "${quantityState}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
                       IconButton(
                           onClick = {
-                              if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) {
-                                  quantityState.value += 1
+                              if (quantityState < (product?.stock ?: Int.MAX_VALUE)) {
+                                  quantityState += 1
+                                  onQuantityChange(quantityState)
                                   coroutineScope.launch {
                                       cartViewModel.updateProductQuantity(
                                           productId = product.productId,
                                           variantId = product.detailsVariantId ?: "",
-                                          newQuantity = quantityState.value,
+                                          newQuantity = quantityState,
                                       )
                                   }
                               }else if (product!!.stock == 1) {
@@ -220,10 +232,10 @@ fun CartItemTile(
                               }
                           },
                           modifier = Modifier.size(20.dp),
-                          enabled = quantityState.value < (product?.stock ?: Int.MAX_VALUE)
+                          enabled = quantityState < (product?.stock ?: Int.MAX_VALUE)
                       ) {
                           Icon(Icons.Default.Add, contentDescription = "Increase",
-                              tint = if (quantityState.value < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                              tint = if (quantityState < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
                           )
                       }
                   }

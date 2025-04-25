@@ -3,6 +3,9 @@ package com.datn.viettech_md_12.screen.checkout
 import MyButton
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -110,9 +113,12 @@ fun PaymentUI(
     val isLoadingCartItems by checkoutViewModel.isCheckoutLoading.collectAsState()
     val isLoadingProduct by productViewModel.isLoading.collectAsState()
     val isCheckoutLoading by checkoutViewModel.isCheckoutLoading.collectAsState()
+    val paymentUrl by checkoutViewModel.paymentUrl.collectAsState()
+    val variantId by productViewModel.matchedVariantId.collectAsState()
+    val productDetailResponse by productViewModel.productDetailResponse.collectAsState()
 
     // Thêm state cho sản phẩm mua ngay
-    val product by productViewModel.product.collectAsState()
+    val productDetail by productViewModel.productDetail.collectAsState()
     var directPurchaseProduct by remember { mutableStateOf<CartModel.Metadata.CartProduct?>(null) }
     val quantityState = remember { mutableIntStateOf(quantity) }
 
@@ -128,8 +134,8 @@ fun PaymentUI(
     }
 
     // Khi có thông tin sản phẩm (trường hợp mua ngay)
-    LaunchedEffect(key1 = product) {
-        product?.let {
+    LaunchedEffect(key1 = productDetail) {
+        productDetail?.let {
             Log.d("PaymentUI", "Creating product with quantity: $quantity")
             directPurchaseProduct = CartModel.Metadata.CartProduct(
                 productId = it.id,
@@ -138,11 +144,26 @@ fun PaymentUI(
                 quantity = quantityState.intValue,
                 image = it.productThumbnail,
                 isSelected = true,
-                detailsVariantId = "",
+                detailsVariantId = variantId ?: "",
                 variant_details = null,
                 stock = it.productStock,
                 product_details = null,
             )
+            if (productDetailResponse?.attributes?.isNotEmpty() == true) {
+                productViewModel.matchVariant(productId, emptyMap())
+            }
+        }
+    }
+
+    LaunchedEffect(paymentUrl) {
+        paymentUrl?.let { url ->
+            checkoutViewModel._paymentUrl.value = null
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, "Không thể mở trình duyệt", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -161,7 +182,7 @@ fun PaymentUI(
     val payOptions =
         listOf(
             PaymentMethod("Thanh toán khi nhận hàng", R.drawable.codpay_img, "tm"),
-            PaymentMethod("Thanh toán VNPay", R.drawable.vnpay_img, "ck")
+            PaymentMethod("Thanh toán VNPay", R.drawable.vnpay_img, "vnpay")
         )
     var selectedPayOption by remember { mutableStateOf(payOptions[0]) }
 
@@ -523,18 +544,41 @@ fun PaymentUI(
                                 showOutOfStockDialog.value = true
                             } else {
                                 if (address.isNotEmpty() && phone.isNotEmpty() && name.isNotEmpty()) {
-                                    checkoutViewModel.checkout(
-                                        address = address,
-                                        phone_number = phone,
-                                        receiver_name = name,
-                                        payment_method = selectedPayOption.apiValue,
-                                        discount_code = discount,
-                                    )
+                                    if(fromCart){
+                                        checkoutViewModel.checkout(
+                                            address = address,
+                                            phone_number = phone,
+                                            receiver_name = name,
+                                            payment_method = selectedPayOption.apiValue,
+                                            discount_code = discount,
+                                        )
                                     Log.d(
                                         "PaymentUI",
                                         "address: $address, phone: $phone, name:$name, payment_method ${selectedPayOption.apiValue}"
                                     )
-                                    navController.navigate("order_successfully")
+//                                    navController.navigate("order_successfully")
+                                    Log.d("PaymentUI", "selectedPayOption.apiValue: $paymentUrl")
+                                    if (selectedPayOption.apiValue != "vnpay") {
+                                        navController.navigate("order_successfully")
+                                    }
+                                    }else{
+                                        directPurchaseProduct?.let { product ->
+                                            checkoutViewModel.checkoutNow(
+                                                address = address,
+                                                phone_number = phone,
+                                                receiver_name = name,
+                                                payment_method = selectedPayOption.apiValue,
+                                                discount_code = discount,
+                                                productId = product.productId,
+                                                detailsVariantId = product.detailsVariantId ?: "",
+                                                quantity = product.quantity
+                                            )
+
+                                            if (selectedPayOption.apiValue != "vnpay") {
+                                                navController.navigate("order_successfully")
+                                            }
+                                        }
+                                    }
                                 } else {
                                     Toast.makeText(
                                         context, "Vui lòng cung cấp đầy đủ thông tin!", Toast.LENGTH_SHORT

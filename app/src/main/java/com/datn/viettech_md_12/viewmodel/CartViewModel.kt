@@ -40,6 +40,9 @@ class CartViewModel(application: Application) : ViewModel() {
     private val _discountState = MutableStateFlow<Response<DiscountResponse>?>(null)
     val discountState: StateFlow<Response<DiscountResponse>?> get() = _discountState
 
+    private val _updateQuantityState = MutableStateFlow<Boolean>(false)
+    val updateQuantityState: StateFlow<Boolean> get() = _updateQuantityState
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _isDiscountLoading = MutableStateFlow(true)
@@ -94,7 +97,6 @@ class CartViewModel(application: Application) : ViewModel() {
         variantId: String,
         newQuantity: Int,
     ) {
-//        updateLocalCartState(productId, newQuantity)
         viewModelScope.launch {
 //            _isLoading.value = true
             try {
@@ -107,14 +109,14 @@ class CartViewModel(application: Application) : ViewModel() {
                 )
 
                 if (response.isSuccessful) {
+                    _updateCartState.value = response
+                    updateLocalCartState(productId, newQuantity)
 //                    fetchCart()
                     checkoutService.getIsSelectedItemInCart(
                         token = token ?: "",
                         userId = userId ?: "",
                         userIdQuery = userId ?: ""
                     )
-                    _updateCartState.value = response
-                    updateLocalCartState(productId, newQuantity)
                     Log.d("updateProductQuantity", "Update quantity success")
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Unknown error"
@@ -292,15 +294,19 @@ class CartViewModel(application: Application) : ViewModel() {
                     val formatter = DateTimeFormatter.ISO_DATE
 
                     val filteredMetadata = body?.data?.filter { discount ->
+                        val startDateStr = discount.startDate
                         val endDateStr = discount.endDate ?: discount.expirationDate
-                        endDateStr?.let {
-                            try {
-                                val endDate = LocalDate.parse(it.substring(0, 10), formatter)
-                                !endDate.isBefore(currentDate) // Chưa hết hạn
-                            } catch (e: Exception) {
-                                true // Nếu không parse được thì vẫn giữ lại
-                            }
-                        } ?: true // Nếu không có ngày thì giữ lại (giả định là chưa hết hạn)
+                        val isActive = try {
+                            val startDate = startDateStr?.let { LocalDate.parse(it.substring(0, 10), formatter) }
+                            val endDate = endDateStr?.let { LocalDate.parse(it.substring(0, 10), formatter) }
+                            val started = startDate?.let { !currentDate.isBefore(it) } ?: true
+                            val notExpired = endDate?.let { !currentDate.isAfter(it) } ?: true
+
+                            started && notExpired
+                        } catch (e: Exception) {
+                            false
+                        }
+                        isActive
                     } ?: emptyList()
                     val filteredResponse = body?.copy(data = filteredMetadata)
                     _discountState.value = Response.success(filteredResponse)
@@ -322,7 +328,7 @@ class CartViewModel(application: Application) : ViewModel() {
             } catch (e: Exception) {
                 Log.e("getListDisCount", "Lỗi chung: ${e.message}", e)
             } finally {
-                _isLoading.value = false // Kết thúc trạng thái loading
+                _isLoading.value = false
             }
         }
     }

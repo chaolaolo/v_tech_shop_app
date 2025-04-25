@@ -60,7 +60,19 @@ class CheckoutReporitory(
             clientId = clientId,
             request = request
         )
+    }
 
+    //checkout
+    suspend fun checkoutNow(
+        token: String,
+        clientId: String,
+        request: CheckoutModel,
+    ): Response<BillResponse> {
+        return checkoutService.checkoutNow(
+            token = token,
+            clientId = clientId,
+            request = request
+        )
     }
 
 }

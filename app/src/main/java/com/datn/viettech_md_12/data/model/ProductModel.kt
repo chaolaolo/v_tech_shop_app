@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.data.model
 
 
+import com.datn.viettech_md_12.data.model.ProductModel.Category
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -48,36 +49,36 @@ import com.google.gson.annotations.SerializedName
 }
 */
 data class ProductModel(
-    @SerializedName("category")
-    val category: Category,
     @SerializedName("_id")
     val id: String,
-    @SerializedName("image_ids")
-    val imageIds: List<Any>,
+    @SerializedName("product_name")
+    val productName: String,
+    @SerializedName("product_thumbnail")
+    val productThumbnail: String,
+    @SerializedName("product_description")
+    val productDescription: String,
+    @SerializedName("product_price")
+    val productPrice: Double,
+    @SerializedName("product_stock")
+    val productStock: Int,
+    @SerializedName("category")
+    val category: Category,
+    @SerializedName("product_ratingsAverage")
+    val productRatingsAverage: Double,
     @SerializedName("isDraft")
     val isDraft: Boolean,
     @SerializedName("isPulished")
     val isPublished: Boolean,
+    @SerializedName("product_slug")
+    val productSlug: String,
+    @SerializedName("image_ids")
+    val imageIds: List<String>,
+    @SerializedName("attributeIds")
+    val attributeIds: List<String>,
 //    @SerializedName("product_attributes")
 //    val productAttributes: ProductAttributes,
 //    @SerializedName("attributes")  //Lở thêm
 //    val attributes: List<Attributes>, //Lở thêm
-    @SerializedName("attributeIds")
-    val attributeIds: List<String>,
-    @SerializedName("product_description")
-    val productDescription: String,
-    @SerializedName("product_name")
-    val productName: String,
-    @SerializedName("product_price")
-    val productPrice: Double,
-    @SerializedName("product_ratingsAverage")
-    val productRatingsAverage: Double,
-    @SerializedName("product_slug")
-    val productSlug: String,
-    @SerializedName("product_stock")
-    val productStock: Int,
-    @SerializedName("product_thumbnail")
-    val productThumbnail: String,
 //    @SerializedName("variations")
 //    val variations: List<Variation>,
 //    @SerializedName("variants") //Lở thêm
@@ -86,14 +87,14 @@ data class ProductModel(
 //    val default_variant: Variation //Lở thêm
 ) {
     data class Category(
-        @SerializedName("attributes_template")
-        val attributesTemplate: List<String>,
         @SerializedName("_id")
         val id: String,
         @SerializedName("name")
         val name: String,
         @SerializedName("parent_category")
         val parentCategory: Any,
+        @SerializedName("attributes_template")
+        val attributesTemplate: List<String>,
         @SerializedName("thumbnail")
         val thumbnail: String,
     )
@@ -105,6 +106,8 @@ data class ProductModel(
         val name: String,
         @SerializedName("values")
         val values: List<String>,
+        @SerializedName("isDeleted")
+        val isDeleted: Boolean,
     )
 
     data class Variation(
@@ -142,6 +145,7 @@ data class ProductResponse(
     @SerializedName("default_variant")
     val defaultVariant: ProductModel.Variation
 )
+
 data class ProductListResponse(
     @SerializedName("products")
     val products: List<ProductModel>, // Danh sach san pham
@@ -169,4 +173,62 @@ data class MatchVariantResponse(
         val sku: String
     )
 
+}
+
+
+data class ProductDetailResponse(
+    val success: Boolean,
+    val product: ProductDetailModel,
+    @SerializedName("attributes")
+    val attributes: List<ProductModel.Attributes>,
+    @SerializedName("variants")
+    val variants: List<ProductModel.Variation>,
+    @SerializedName("default_variant")
+    val defaultVariant: ProductModel.Variation
+)
+data class ProductDetailModel(
+    @SerializedName("_id")
+    val id: String,
+    @SerializedName("product_name")
+    val productName: String,
+    @SerializedName("product_thumbnail")
+    val productThumbnail: String,
+    @SerializedName("product_description")
+    val productDescription: String,
+    @SerializedName("product_price")
+    val productPrice: Double,
+    @SerializedName("product_stock")
+    val productStock: Int,
+    @SerializedName("category")
+    val category: Category,
+    @SerializedName("product_ratingsAverage")
+    val productRatingsAverage: Double,
+    @SerializedName("isDraft")
+    val isDraft: Boolean,
+    @SerializedName("isPulished")
+    val isPublished: Boolean,
+    @SerializedName("product_slug")
+    val productSlug: String,
+    @SerializedName("image_ids")
+    val imageIds: List<ProductImages>,
+    @SerializedName("attributeIds")
+    val attributeIds: List<String>,
+){
+
+    data class ProductImages(
+        @SerializedName("_id")
+        val _id: String,
+        @SerializedName("file_name")
+        val file_name: String,
+        @SerializedName("file_path")
+        val file_path: String,
+        @SerializedName("file_size")
+        val file_size: Long,
+        @SerializedName("file_type")
+        val file_type: String,
+        @SerializedName("url")
+        val url: String? = null,
+        @SerializedName("uploaded_at")
+        val uploaded_at: String,
+    )
 }

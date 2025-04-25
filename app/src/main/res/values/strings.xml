@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VietTech_MD_12</string>
+    <string name="app_name">VietTech</string>
     <string name="title_activity_cart_screen">CartScreen</string>
     <string name="title_activity_sign_up_screen">SignUpScreen</string>
     <string name="title_activity_sign_in_screen">SignInScreen</string>
@@ -32,4 +32,8 @@
     <string name="password_too_short">Mật khẩu phải có ít nhất 6 ký tự.</string>
     <string name="password_requirements">Mật khẩu phải bao gồm cả chữ cái và số.</string>
     <string name="order_infomation">Thông tin đơn hàng</string>
+
+    <string name="contact_us">Liên hệ</string>
+    <string name="viet_tech_post">Thông tin mới nhất</string>
+
 </resources>

@@ -14,6 +14,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -95,6 +96,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -112,6 +114,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.component.product_detail_components.toColor
 import com.datn.viettech_md_12.component.review_component.AddReviewDialog
@@ -167,14 +170,20 @@ fun ProductDetailScreen(
     )
     val bottomSheetType by viewModel.bottomSheetType.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-    val product by viewModel.product.collectAsState()
-    val productResponse by viewModel.productResponse.collectAsState()
-    val attributes = productResponse?.attributes
-    val variants = productResponse?.variants
-    val defaultVariant = productResponse?.defaultVariant
+    val productDetail by viewModel.productDetail.collectAsState()
+    val productDetailResponse by viewModel.productDetailResponse.collectAsState()
+    val attributes = productDetailResponse?.attributes
+    val variants = productDetailResponse?.variants
+    val defaultVariant = productDetailResponse?.defaultVariant
     val isLoading by viewModel.isLoading.collectAsState()
     var isAddingToCart by remember { mutableStateOf(false) }
     var quantity by remember { mutableStateOf(1) }
+    val listImages = productDetail?.imageIds?.mapNotNull {
+        "http://103.166.184.249:3056/${it.file_path.replace("\\", "/")}"
+    }
+        ?.filter { it.isNotBlank() }
+        ?: emptyList()
+    Log.d("ProductDetailScreen", "listImages: $listImages")
 
     var isExpanded by remember { mutableStateOf(false) }
     var showMoreVisible by remember { mutableStateOf(false) }
@@ -188,17 +197,17 @@ fun ProductDetailScreen(
     var showLoginDialog by remember { mutableStateOf(false) }
     var showCheckStockDialog by remember { mutableStateOf(false) }
 
+    val price = productDetail?.productPrice ?:0.0
     val currentAccountId = reviewViewModel.getCurrentUserId()
     var showUpdateDialog by remember { mutableStateOf(false) }
     var selectedReview by remember { mutableStateOf<Review?>(null) }
-    val price = product?.productPrice ?:0.0
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
 
 
     var isFavorite by remember { mutableStateOf(false) }
     val sharedPreferences =
         context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE) //lay trang thai da luu tru
-    if (product != null) {
+    if (productDetail != null) {
         if (sharedPreferences != null) {
             isFavorite = sharedPreferences.getBoolean(productId, false)
         }
@@ -210,7 +219,7 @@ fun ProductDetailScreen(
 
     // Lấy danh sách attributes của sản phẩm
     val productAttributes = attributes?.filter { attr ->
-        product?.attributeIds?.contains(attr._id) == true
+        productDetail?.attributeIds?.contains(attr._id) == true
     } ?: emptyList()
 
     // Hàm để lọc các options hợp lệ
@@ -233,6 +242,11 @@ fun ProductDetailScreen(
 
 
     Box(modifier = Modifier.fillMaxSize()) {
+        //log imageIds
+        productDetail?.imageIds?.forEach { image ->
+            Log.d("ProductDetailScreen", "Image URL: ${image.url}")
+            Log.d("ProductDetailScreen", "Image Details - ID: ${image._id}, FileName: ${image.file_name}, Path: ${image.file_path}, URL: ${image.url}")
+        }
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -246,7 +260,7 @@ fun ProductDetailScreen(
                 )
             }
         } else {
-            product?.let {
+            productDetail?.let {
                 BottomSheetScaffold(
                     scaffoldState = bottomsheetScaffoldState,
                     sheetPeekHeight = 0.dp,
@@ -260,7 +274,6 @@ fun ProductDetailScreen(
                                 .fillMaxWidth()
                                 .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f, min = LocalConfiguration.current.screenHeightDp.dp * 0.5f)
                                 .imePadding()
-                                .verticalScroll(rememberScrollState())
                         ) {
                             //Hiện thông tin sp
                             Row(
@@ -281,7 +294,7 @@ fun ProductDetailScreen(
                                         //ảnh
                                         AsyncImage(
 //                                            model = "https://cdn.tgdd.vn/Products/Images/5698/326091/asus-aio-a3402wvak-i3-wpc080w-thumb-49-600x600.jpg",
-                                            model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                            model = "http://103.166.184.249:3056/${productDetail?.productThumbnail}",
                                             contentDescription = "ảnh sản phẩm",
                                             modifier = Modifier
                                                 .size(80.dp)
@@ -307,14 +320,14 @@ fun ProductDetailScreen(
 //                                                    }
                                                     // giá sp gốc
                                                     else {
-                                                        append(NumberFormat.getNumberInstance(Locale("vi", "VN")).format(product?.productPrice ?: 0))
+                                                        append(NumberFormat.getNumberInstance(Locale("vi", "VN")).format(productDetail?.productPrice ?: 0))
                                                     }
                                                     append(" ₫")
                                                 },
 //                                                "${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(defaultVariant?.price ?: product?.productPrice ?: 0)} ₫",
                                                 color = Color(0xFF21D4B4), fontSize = 16.sp, fontWeight = FontWeight.Bold
                                             )
-                                            Text(product!!.productName, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                            Text(productDetail!!.productName, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                             Text(
                                                 buildString {
                                                     if (selectedAttributes.isNotEmpty()) {
@@ -337,215 +350,249 @@ fun ProductDetailScreen(
                             Spacer(Modifier.height(8.dp))
                             HorizontalDivider()
                             Spacer(Modifier.height(8.dp))
-                            productAttributes.forEach { attribute ->
-                            Column(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.Transparent)
-                            ) {
-                                Text(text = attribute.name, color = Color.DarkGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                FlowRow(
-                                    mainAxisSpacing = 4.dp,
-                                ) {
-                                    // Lấy danh sách giá trị hợp lệ cho attribute hiện tại
-                                    attribute.values.forEach { value ->
-                                        val isOptionValid = validOptions.value[attribute.name]?.contains(value) ?: true
-                                        // Nếu đã chọn giá trị này thì luôn enable
-                                        val isSelected = selectedAttributes[attribute.name] == value
-                                        val variantInStock = variants?.any { variant ->
-                                            variant.variantDetails.any { detail ->
-                                                attributes?.find { it._id == detail.variantId }?.name == attribute.name &&
-                                                        detail.value == value
-                                            } && variant.stock > 0
-                                        } ?: true
-                                        val enabled =  (isOptionValid || isSelected) && variantInStock
-//                                        val enabled = isOptionValid || isSelected
-                                        FilterChip(
-                                            selected = selectedAttributes[attribute.name] == value,
-                                            onClick = {
-                                                if (enabled) {
-                                                    // Tạo bản sao của selectedAttributes để tránh mutation trực tiếp
-                                                    val newSelected = selectedAttributes.toMutableMap().apply {
-                                                        this[attribute.name] = value
-                                                    }
-                                                    // Cập nhật selectedAttributes
-                                                    selectedAttributes.clear()
-                                                    selectedAttributes.putAll(newSelected)
-                                                    // Cập nhật valid options ngay lập tức
-                                                    updateValidOptions(newSelected)
-                                                    // Gọi matchVariant khi có đủ selectedAttributes
-                                                    if (newSelected.size == productAttributes.size) {
-                                                        viewModel.matchVariant(productId, newSelected)
-                                                    }
-                                                }
-                                            },
-                                            label = { Text(value) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = Color(0xFF21D4B4).copy(alpha = 0.2f),
-                                                selectedLabelColor = Color(0xFF21D4B4),
-                                                disabledContainerColor = Color.LightGray.copy(alpha = 0.2f),
-                                                disabledLabelColor = Color.Gray
-                                            ),
-                                            enabled = enabled
-                                        )
-                                    }
-                                }
-                            }
-                            }
-                            // Chọn số lượng
-                            Spacer(Modifier.height(20.dp))
-                            Row(
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.Transparent),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("Số lượng", color = Color.Black, fontSize = 14.sp)
-                                Box(
+                                    .fillMaxSize()
+                            ){
+                                Column(
                                     modifier = Modifier
-                                        .clip(shape = RoundedCornerShape(8.dp))
-                                        .background(Color.White)
-                                        .border(
-                                            width = 1.dp, brush = SolidColor(Color(0xFFCACACA)), shape = RoundedCornerShape(8.dp)
-                                        )
-
-                                ) {
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
+                                        .padding(bottom = 100.dp)
+                                ){
+                                    productAttributes.forEach { attribute ->
+                                        Column(
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .background(Color.Transparent)
+                                        ) {
+                                            Text(text = attribute.name, color = Color.DarkGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                            FlowRow(
+                                                mainAxisSpacing = 4.dp,
+                                            ) {
+                                                // Lấy danh sách giá trị hợp lệ cho attribute hiện tại
+                                                attribute.values.forEach { value ->
+                                                    val isOptionValid = validOptions.value[attribute.name]?.contains(value) ?: true
+                                                    // Nếu đã chọn giá trị này thì luôn enable
+                                                    val isSelected = selectedAttributes[attribute.name] == value
+                                                    val variantInStock = variants?.any { variant ->
+                                                        variant.variantDetails.any { detail ->
+                                                            attributes?.find { it._id == detail.variantId }?.name == attribute.name &&
+                                                                    detail.value == value
+                                                        } && variant.stock > 0
+                                                    } ?: true
+                                                    val enabled = (isOptionValid || isSelected) && variantInStock
+//                                        val enabled = isOptionValid || isSelected
+                                                    FilterChip(
+                                                        selected = selectedAttributes[attribute.name] == value,
+                                                        onClick = {
+                                                            if (enabled) {
+                                                                // Tạo bản sao của selectedAttributes để tránh mutation trực tiếp
+                                                                val newSelected = selectedAttributes.toMutableMap().apply {
+                                                                    this[attribute.name] = value
+                                                                }
+                                                                if (selectedAttributes[attribute.name] == value) {
+                                                                    // Nếu đã chọn, xóa khỏi map để bỏ chọn
+                                                                    newSelected.remove(attribute.name)
+                                                                } else {
+                                                                    // Nếu chưa chọn, thêm vào map
+                                                                    newSelected[attribute.name] = value
+                                                                }
+                                                                // Cập nhật selectedAttributes
+                                                                selectedAttributes.clear()
+                                                                selectedAttributes.putAll(newSelected)
+                                                                // Cập nhật valid options ngay lập tức
+                                                                updateValidOptions(newSelected)
+                                                                // Gọi matchVariant khi có đủ selectedAttributes
+                                                                if (newSelected.size == productAttributes.size) {
+                                                                    viewModel.matchVariant(productId, newSelected)
+                                                                } else {
+                                                                    // Reset matched variant khi không đủ attributes
+                                                                    viewModel._matchedVariantId.value = null
+                                                                    viewModel._matchedVariantPrice.value = null
+                                                                }
+                                                            }
+                                                        },
+                                                        label = { Text(value) },
+                                                        colors = FilterChipDefaults.filterChipColors(
+                                                            selectedContainerColor = Color(0xFF21D4B4).copy(alpha = 0.2f),
+                                                            selectedLabelColor = Color(0xFF21D4B4),
+                                                            disabledContainerColor = Color.LightGray.copy(alpha = 0.2f),
+                                                            disabledLabelColor = Color.Gray
+                                                        ),
+                                                        enabled = enabled
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    // Chọn số lượng
+                                    Spacer(Modifier.height(20.dp))
                                     Row(
                                         modifier = Modifier
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            .fillMaxWidth()
                                             .background(Color.Transparent),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        IconButton(
-                                            onClick = {
-                                                if (quantity > 1) {
-                                                    quantity--
-                                                }
-                                            },
-                                            modifier = Modifier.size(20.dp),
-                                            enabled = quantity > 1
+                                        Text("Số lượng", color = Color.Black, fontSize = 14.sp)
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(shape = RoundedCornerShape(8.dp))
+                                                .background(Color.White)
+                                                .border(
+                                                    width = 1.dp, brush = SolidColor(Color(0xFFCACACA)), shape = RoundedCornerShape(8.dp)
+                                                )
+
                                         ) {
-                                            Icon(
-                                                Icons.Default.Remove, contentDescription = "Decrease",
-                                                tint = if (quantity > 1) Color.Black else Color.Gray
-                                            )
-                                        }
-                                        Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp), color = Color.Black)
-                                        IconButton(
-                                            onClick = {
-                                                if (quantity < (product?.productStock ?: Int.MAX_VALUE)) {
-                                                    quantity++
-                                                } else if (product!!.productStock == 1) {
-                                                    coroutineScope.launch {
-                                                        simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.productStock} trong kho")
-                                                    }
+                                            Row(
+                                                modifier = Modifier
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                                    .background(Color.Transparent),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                IconButton(
+                                                    onClick = {
+                                                        if (quantity > 1) {
+                                                            quantity--
+                                                        }
+                                                    },
+                                                    modifier = Modifier.size(20.dp),
+                                                    enabled = quantity > 1
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Remove, contentDescription = "Decrease",
+                                                        tint = if (quantity > 1) Color.Black else Color.Gray
+                                                    )
                                                 }
-                                            },
-                                            modifier = Modifier.size(20.dp),
-                                            enabled = quantity < (product?.productStock ?: Int.MAX_VALUE)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Add, contentDescription = "Increase",
-                                                tint = if (quantity < (product?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
-                                            )
+                                                Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp), color = Color.Black)
+                                                IconButton(
+                                                    onClick = {
+                                                        if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) {
+                                                            quantity++
+                                                        } else if (productDetail!!.productStock == 1) {
+                                                            coroutineScope.launch {
+                                                                simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${productDetail?.productStock} trong kho")
+                                                            }
+                                                        }
+                                                    },
+                                                    modifier = Modifier.size(20.dp),
+                                                    enabled = quantity < (productDetail?.productStock ?: Int.MAX_VALUE)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Add, contentDescription = "Increase",
+                                                        tint = if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            Spacer(Modifier.weight(1f))
-                            Spacer(Modifier.height(8.dp))
-                            HorizontalDivider()
-                            Spacer(Modifier.height(8.dp))
-                            // nút bấm
-                            when (bottomSheetType) {
-                                "buy_now" -> {
-                                    MyButton(
-                                        text = "Mua ngay",
-                                        onClick = {
-                                            if (selectedAttributes.size == productAttributes.size) {
-                                                viewModel.matchedVariantId.value?.let { variantId ->
-                                                    val selectedVariant = variants?.find { it.id == variantId }
-                                                    if (selectedVariant?.stock ?: 0 > 0) {
-                                                        navController.navigate("payment_ui/product/${product?.id}/$quantity?variantId=$variantId")
-                                                    } else {
-                                                        coroutineScope.launch {
-                                                            simpleSnackbarHostState.showSnackbar("Sản phẩm này đã hết hàng")
-                                                        }
-                                                    }
-                                                } ?: run {
-                                                    coroutineScope.launch {
-                                                        simpleSnackbarHostState.showSnackbar("Không tìm thấy phiên bản sản phẩm phù hợp")
-                                                    }
-                                                }
-                                            } else {
-                                                coroutineScope.launch {
-                                                    simpleSnackbarHostState.showSnackbar("Vui lòng chọn đầy đủ các thuộc tính sản phẩm")
-                                                }
-                                            }
-                                        },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        backgroundColor = Color(0xFF21D4B4),
-                                        textColor = Color.White,
-                                        enabled = selectedAttributes.size == productAttributes.size,
-                                    )
-                                }
-
-                                "add_to_cart" -> {
-                                    MyButton(
-                                        text = "Thêm vào giỏ hàng",
-                                        onClick = {
-                                            if (selectedAttributes.size == productAttributes.size) {
-                                                viewModel.matchedVariantId.value?.let { variantId ->
-                                                    val selectedVariant = variants?.find { it.id == variantId }
-                                                    if (selectedVariant?.stock ?: 0 > 0) {
-                                                        isAddingToCart = true
-                                                        product?.let { product ->
-                                                            viewModel.addProductToCart(
-                                                                productId = product.id,
-                                                                variantId = variantId,
-                                                                quantity = quantity,
-                                                                context = contextToCheckLogin,
-                                                                onSuccess = {
-                                                                    isAddingToCart = false
-                                                                    coroutineScope.launch {
-                                                                        bottomsheetScaffoldState.bottomSheetState.hide()
-                                                                        snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
-                                                                    }
-                                                                },
-                                                                onError = {
-                                                                    isAddingToCart = false
-                                                                    coroutineScope.launch {
-                                                                        simpleSnackbarHostState.showSnackbar("Có lỗi xảy ra khi thêm sản phẩm này vào giỏ hàng.")
-                                                                    }
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color(0xfff4f5fd))
+                                        .zIndex(1f)
+                                        .align(Alignment.BottomCenter)
+                                ){
+                                    Spacer(Modifier.height(8.dp))
+                                    HorizontalDivider()
+                                    Spacer(Modifier.height(8.dp))
+                                    // nút bấm
+                                    when (bottomSheetType) {
+                                        "buy_now" -> {
+                                            MyButton(
+                                                text = "Mua ngay",
+                                                onClick = {
+                                                    if (selectedAttributes.size == productAttributes.size) {
+                                                        viewModel.matchedVariantId.value?.let { variantId ->
+                                                            val selectedVariant = variants?.find { it.id == variantId }
+                                                            if ((selectedVariant?.stock ?: 0) > 0) {
+                                                                navController.navigate("payment_now/product/${productId}/$quantity/${variantId}")
+//                                                        navController.navigate("payment_ui/product/${productDetail?.id}/$quantity?variantId=$variantId")
+                                                                coroutineScope.launch {
+                                                                    bottomsheetScaffoldState.bottomSheetState.hide()
                                                                 }
-                                                            )
+                                                            } else {
+                                                                coroutineScope.launch {
+                                                                    simpleSnackbarHostState.showSnackbar("Sản phẩm này đã hết hàng")
+                                                                }
+                                                            }
+                                                        } ?: run {
+                                                            coroutineScope.launch {
+                                                                simpleSnackbarHostState.showSnackbar("Không tìm thấy phiên bản sản phẩm phù hợp")
+                                                            }
                                                         }
                                                     } else {
                                                         coroutineScope.launch {
-                                                            simpleSnackbarHostState.showSnackbar("Sản phẩm này đã hết hàng")
+                                                            simpleSnackbarHostState.showSnackbar("Vui lòng chọn đầy đủ các thuộc tính sản phẩm")
                                                         }
                                                     }
-                                                } ?: run {
-                                                    coroutineScope.launch {
-                                                        simpleSnackbarHostState.showSnackbar("Không tìm thấy phiên bản sản phẩm phù hợp")
+                                                },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                backgroundColor = Color(0xFF21D4B4),
+                                                textColor = Color.White,
+                                                enabled = selectedAttributes.size == productAttributes.size,
+                                            )
+                                        }
+
+                                        "add_to_cart" -> {
+                                            MyButton(
+                                                text = "Thêm vào giỏ hàng",
+                                                onClick = {
+                                                    if (selectedAttributes.size == productAttributes.size) {
+                                                        viewModel.matchedVariantId.value?.let { variantId ->
+                                                            val selectedVariant = variants?.find { it.id == variantId }
+                                                            if (selectedVariant?.stock ?: 0 > 0) {
+                                                                isAddingToCart = true
+                                                                productDetail?.let { product ->
+                                                                    viewModel.addProductToCart(
+                                                                        productId = product.id,
+                                                                        variantId = variantId,
+                                                                        quantity = quantity,
+                                                                        context = contextToCheckLogin,
+                                                                        onSuccess = {
+                                                                            isAddingToCart = false
+                                                                            coroutineScope.launch {
+                                                                                bottomsheetScaffoldState.bottomSheetState.hide()
+                                                                                snackbarHostState.showSnackbar("Đã thêm sản phẩm vào giỏ hàng thành công.")
+                                                                            }
+                                                                        },
+                                                                        onError = {
+                                                                            isAddingToCart = false
+                                                                            coroutineScope.launch {
+                                                                                simpleSnackbarHostState.showSnackbar("Có lỗi xảy ra khi thêm sản phẩm này vào giỏ hàng.")
+                                                                            }
+                                                                        }
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                coroutineScope.launch {
+                                                                    simpleSnackbarHostState.showSnackbar("Sản phẩm này đã hết hàng")
+                                                                }
+                                                            }
+                                                        } ?: run {
+                                                            coroutineScope.launch {
+                                                                simpleSnackbarHostState.showSnackbar("Không tìm thấy phiên bản sản phẩm phù hợp")
+                                                            }
+                                                        }
+                                                    } else {
+                                                        coroutineScope.launch {
+                                                            simpleSnackbarHostState.showSnackbar("Vui lòng chọn đầy đủ các thuộc tính sản phẩm")
+                                                        }
                                                     }
-                                                }
-                                            } else {
-                                                coroutineScope.launch {
-                                                    simpleSnackbarHostState.showSnackbar("Vui lòng chọn đầy đủ các thuộc tính sản phẩm")
-                                                }
-                                            }
-                                        },
-                                        modifier = Modifier,
-                                        backgroundColor = Color(0xFF21D4B4),
-                                        textColor = Color.White,
-                                        enabled = selectedAttributes.size == productAttributes.size,
-                                    )
+                                                },
+                                                modifier = Modifier,
+                                                backgroundColor = Color(0xFF21D4B4),
+                                                textColor = Color.White,
+                                                enabled = selectedAttributes.size == productAttributes.size,
+                                            )
+                                        }
+                                    }
+                                    Spacer(Modifier.height(12.dp))
                                 }
                             }
-                            Spacer(Modifier.height(12.dp))
                         }
                     },
                     sheetTonalElevation = 16.dp,
@@ -595,8 +642,16 @@ fun ProductDetailScreen(
                                 .padding(bottom = 20.dp)
                                 .background(Color(0xFFF4FDFA)),
                         ) {
+                            if (listImages.isNotEmpty()) {
+                                ProductDetailImageSlider(
+                                    images = listImages,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(300.dp)
+                                )
+                            } else {
                             AsyncImage(
-                                model = "http://103.166.184.249:3056/${product?.productThumbnail}",
+                                model = "http://103.166.184.249:3056/${productDetail?.productThumbnail}",
                                 contentDescription = "p detail image",
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -605,6 +660,7 @@ fun ProductDetailScreen(
                                 placeholder = painterResource(R.drawable.logo),
                                 error = painterResource(R.drawable.error_img)
                             )
+                            }
                         }
                         TopAppBar(
                             title = { },
@@ -634,14 +690,21 @@ fun ProductDetailScreen(
                                 ) {
                                     IconButton(
                                         onClick = {
+                                            val token = context?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                                    ?.getString("accessToken", "")
+                                            val isLoggedIn = !token.isNullOrEmpty()
+                                            if (!isLoggedIn) {
+                                                showLoginDialog = true
+                                                return@IconButton
+                                            }
                                             isFavorite = !isFavorite
                                             if (isFavorite) {
-                                                val productId = product?.id
+                                                val productId = productDetail?.id
                                                 if (productId != null) {
                                                     viewModel.addToFavorites(productId, context)
                                                 }
                                             } else {
-                                                val favoriteId = product?.id
+                                                val favoriteId = productDetail?.id
                                                 if (favoriteId != null) {
                                                     viewModel.removeFromFavorites(favoriteId, context)
                                                 }
@@ -663,7 +726,7 @@ fun ProductDetailScreen(
                                 }
                             },
                         )
-                        Log.d("zzzzzzzzzzzzzz", "productThumbnail: ${product?.productThumbnail}")
+                        Log.d("zzzzzzzzzzzzzz", "productThumbnail: ${productDetail?.productThumbnail}")
                         Card(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -722,18 +785,18 @@ fun ProductDetailScreen(
                                         horizontalAlignment = Alignment.Start
                                     ) {
                                         Text(
-                                            "${product!!.productStock} còn hàng",
+                                            "${productDetail!!.productStock} còn hàng",
                                             fontSize = 12.sp,
                                             color = Color.Gray,
                                         )
                                         Text(
-                                            "${product?.productName}",
-                                            maxLines = 2,
-                                            fontSize = 16.sp,
-                                            color = Color.Black,
-                                            fontWeight = FontWeight.Bold,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
+                                        "${productDetail?.productName}",
+                                        maxLines = 2,
+                                        fontSize = 16.sp,
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
                                     }
                                     Text(
                                         "$itemPriceFormatted₫",
@@ -785,7 +848,7 @@ fun ProductDetailScreen(
 //                                    mainAxisAlignment = MainAxisAlignment.Center,
                                 ) {
                                     Text(
-                                        text = "${product?.productDescription}",
+                                        text = "${productDetail?.productDescription}",
                                         fontSize = 12.sp,
                                         color = Color.Gray,
                                         modifier = Modifier.padding(top = 8.dp),
@@ -833,11 +896,8 @@ fun ProductDetailScreen(
                                             )
                                         } ?: false
                                     }
-                                    Log.d(
-                                        "hasColorAttribute",
-                                        "hasColorAttribute: $hasColorAttribute"
-                                    )
-                                    Log.d("hasColorAttribute", "product: $product")
+                                    Log.d("hasColorAttribute", "hasColorAttribute: $hasColorAttribute")
+                                    Log.d("hasColorAttribute", "product: $productDetail")
                                     Log.d("hasColorAttribute", "attributes: $attributes")
                                     Log.d("hasColorAttribute", "variants: $variants")
                                     Log.d("hasColorAttribute", "default_variant: $defaultVariant")
@@ -861,11 +921,7 @@ fun ProductDetailScreen(
                                                         modifier = Modifier
                                                             .size(32.dp)
                                                             .background(color, CircleShape)
-                                                            .border(
-                                                                0.dp,
-                                                                Color.LightGray,
-                                                                CircleShape
-                                                            )
+                                                            .border(0.dp, Color.LightGray, CircleShape)
                                                             .padding(8.dp)
                                                             .clickable { /* Handle Color Selection */ })
                                                     Spacer(modifier = Modifier.width(8.dp))
@@ -873,62 +929,50 @@ fun ProductDetailScreen(
                                             }
                                         }
                                     }
-                                    // Số lượng
-                                    Row(
-                                        modifier = Modifier
-                                            .border(
-                                                width = 1.dp,
-                                                brush = SolidColor(Color(0xFFF4F5FD)),
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-                                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                if (quantity > 1) {
-                                                    quantity--
-                                                }
-                                            },
-                                            modifier = Modifier.size(20.dp),
-                                            enabled = quantity > 1
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Remove,
-                                                contentDescription = "Decrease",
-                                                tint = if (quantity > 1) Color.Black else Color.Gray
-                                            )
-                                        }
-                                        Text(
-                                            "$quantity",
-                                            modifier = Modifier.padding(horizontal = 14.dp),
-                                            color = Color.Black
+                                // Số lượng
+                                Row(
+                                    modifier = Modifier
+                                        .border(
+                                            width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(8.dp)
                                         )
-                                        IconButton(
-                                            onClick = {
-                                                if (quantity < (product?.productStock
-                                                        ?: Int.MAX_VALUE)
-                                                ) {
-                                                    quantity++
-                                                } else if (product!!.productStock == 1) {
-                                                    coroutineScope.launch {
-                                                        simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.productStock} trong kho")
-                                                    }
-                                                }
-                                            },
-                                            modifier = Modifier.size(20.dp),
-                                            enabled = quantity < (product?.productStock
-                                                ?: Int.MAX_VALUE)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Add, contentDescription = "Increase",
-                                                tint = if (quantity < (product?.productStock
-                                                        ?: Int.MAX_VALUE)
-                                                ) Color.Black else Color.Gray
-                                            )
-                                        }
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            if (quantity > 1) {
+                                                quantity--
+                                            }
+                                        },
+                                        modifier = Modifier.size(20.dp),
+                                        enabled = quantity > 1
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Remove, contentDescription = "Decrease",
+                                            tint = if (quantity > 1) Color.Black else Color.Gray
+                                        )
                                     }
+                                    Text("$quantity", modifier = Modifier.padding(horizontal = 14.dp), color = Color.Black)
+                                    IconButton(
+                                        onClick = {
+                                            if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) {
+                                                quantity++
+                                            }else if (productDetail!!.productStock == 1) {
+                                                coroutineScope.launch {
+                                                    simpleSnackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${productDetail?.productStock} trong kho")
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.size(20.dp),
+                                        enabled = quantity < (productDetail?.productStock ?: Int.MAX_VALUE)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Add, contentDescription = "Increase",
+                                            tint = if (quantity < (productDetail?.productStock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                                        )
+                                    }
+                                }
                                 }
 
 
@@ -973,7 +1017,7 @@ fun ProductDetailScreen(
                                             Column(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-
+                                                    .padding(8.dp)
                                             ) {
                                                 // ✅ Dòng 1: Avatar + Tên người dùng
                                                 Row(
@@ -1163,6 +1207,7 @@ fun ProductDetailScreen(
                                 .align(Alignment.BottomCenter)
                                 .background(Color(0xfff4f5fd))
                                 .shadow(elevation = 4.dp),
+                            containerColor = Color(0xfff4f5fd)
                         ) {
                             //nút bấm mua ngay, thêm vào giỏ hàng
                             Row(
@@ -1184,18 +1229,19 @@ fun ProductDetailScreen(
                                         if (!isLoggedIn) {
                                             showLoginDialog = true
                                         } else {
-                                            if (product!!.productStock == 0) {
+                                            if (productDetail!!.productStock == 0) {
                                                 showCheckStockDialog = true
                                             } else if (quantity <= 0) {
                                                 coroutineScope.launch {
                                                     simpleSnackbarHostState.showSnackbar("Số lượng phải lớn hơn 0")
                                                 }
-                                            } else if (productResponse?.variants?.size!! >= 1) {
+                                            } else if (productDetailResponse?.variants?.size!! >= 1) {
                                                 viewModel.setBottomSheetType("buy_now")
                                                 coroutineScope.launch { bottomsheetScaffoldState.bottomSheetState.expand() }
                                             } else {
                                                 showCheckStockDialog = false
-                                                navController.navigate("payment_ui/product/${product?.id}/$quantity") // Chuyển đến màn thanh toán
+                                                navController.navigate("payment_now/product/${productId}/$quantity/\"\"")
+//                                                navController.navigate("payment_ui/product/${productDetail?.id}/$quantity") // Chuyển đến màn thanh toán
                                                 Log.d("ProductDetailScreen", "sl: $quantity ")
                                             }
                                         }
@@ -1220,15 +1266,15 @@ fun ProductDetailScreen(
 
                                         if (!isLoggedIn) {
                                             showLoginDialog = true
-                                        } else if (product!!.productStock == 0) {
+                                        } else if (productDetail!!.productStock == 0) {
                                             showCheckStockDialog = true
-                                        } else if (productResponse?.variants?.size!! >= 1) {
+                                        } else if (productDetailResponse?.variants?.size!! >= 1) {
                                             viewModel.setBottomSheetType("add_to_cart")
                                             coroutineScope.launch { bottomsheetScaffoldState.bottomSheetState.expand() }
                                         } else {
                                             isAddingToCart = true
                                             showCheckStockDialog = false
-                                            product?.let { product ->
+                                            productDetail?.let { product ->
                                                 Log.d("ProductDetailScreen", "product.id: " + product.id)
                                                 viewModel.addProductToCart(productId = product.id, variantId = "", quantity = quantity, context = contextToCheckLogin, onSuccess = {
                                                     isAddingToCart = false
@@ -1281,15 +1327,21 @@ fun ProductDetailScreen(
                                                 ) {
                                                     TextButton(onClick = {
                                                         showLoginDialog = false
-                                                        val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
-                                                        contextToCheckLogin?.startActivity(intent)
+//                                                        val intent = Intent(contextToCheckLogin, RegisterScreen::class.java)
+//                                                        contextToCheckLogin?.startActivity(intent)
+                                                        navController.navigate("register")
                                                     }) {
                                                         Text("Tạo tài khoản mới")
                                                     }
                                                     TextButton(onClick = {
                                                         showLoginDialog = false
-                                                        val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
-                                                        contextToCheckLogin?.startActivity(intent)
+//                                                        val intent = Intent(contextToCheckLogin, LoginScreen::class.java)
+//                                                        contextToCheckLogin?.startActivity(intent)
+                                                        navController.navigate("login") {
+                                                            launchSingleTop = true
+                                                            //lưu route của màn này trong backstack
+                                                            restoreState = true
+                                                        }
                                                     }) {
                                                         Text("Đăng nhập")
                                                     }
@@ -1327,6 +1379,13 @@ fun ProductDetailScreen(
                             .border(
                                 width = 1.dp, color = Color(0xFF00C4B4), shape = RoundedCornerShape(12.dp)
                             )
+                            .pointerInput(Unit) {
+                                detectVerticalDragGestures { change, dragAmount ->
+                                    if (dragAmount < -10) { // Vuốt lên
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                    }
+                                }
+                            }
                             .padding(10.dp)
                     ) {
                         Row(

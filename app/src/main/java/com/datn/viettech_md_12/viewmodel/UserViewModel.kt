@@ -4,21 +4,24 @@ import AccountDetail
 import ChangePasswordRequest
 import LoginRequest
 import RegisterRequest
+import Tokens
 import UpdateImageToAccountRequest
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.screen.authentication.LoginScreen
 import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val userRepository = ApiClient.userRepository
     val changePasswordState = mutableStateOf<String?>(null)
-
     fun signUp(
         request: RegisterRequest,
         context: Context,
@@ -91,6 +94,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     response.body()?.let { body ->
                         val token = body.result?.metadata?.tokens?.accessToken
+                        val refreshToken = body.result?.metadata?.tokens?.refreshToken
                         val userId = body.result?.metadata?.account?._id
 
                         Log.d("dcm_debug_signin", "Token nhận được: $token")
@@ -103,6 +107,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                                 context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                             sharedPreferences.edit()
                                 .putString("accessToken", token)
+                                .putString("refreshToken", refreshToken)
                                 .putString("clientId", userId)
                                 .putString("userId", userId)  // Lưu userId
                                 .putString("fullname", body.result?.metadata?.account?.full_name)
@@ -182,6 +187,54 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    fun logout(
+        context: Context,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val refreshToken = sharedPreferences.getString("refreshToken", null)
+
+                if (refreshToken.isNullOrEmpty()) {
+                    val intent = Intent(context, LoginScreen::class.java)
+                    context.startActivity(intent)
+//                    onError("Không tìm thấy refreshToken!")
+                    return@launch
+                }
+
+                // Sử dụng Tokens từ SharedPreferences (accessToken và refreshToken)
+                val tokens = Tokens(
+                    accessToken = sharedPreferences.getString("accessToken", null) ?: "",
+                    refreshToken = refreshToken
+                )
+
+                val response = userRepository.logout(tokens)
+                Log.d("dcm_logout", "refreshToken: ${tokens.refreshToken}")
+                if (response.isSuccessful) {
+                    val message = response.body()?.message ?: "Đăng xuất thành công"
+                    Log.d("dcm_logout", "Success: $message")
+                    Log.d("dcm_logout", "refreshToken 1: ${tokens.refreshToken}")
+
+                    // Xoá dữ liệu đã lưu (accessToken, refreshToken, v.v...)
+                    sharedPreferences.edit().clear().apply()
+
+                    onSuccess(message)
+                } else {
+                    val intent = Intent(context, LoginScreen::class.java)
+                    context.startActivity(intent)
+//                    val errorBody = response.errorBody()?.string() ?: "Lỗi không xác định"
+//                    Log.e("dcm_logout", "Failed: $errorBody")
+//                    onError("Lỗi khi đăng xuất: $errorBody")
+                }
+            } catch (e: Exception) {
+                Log.e("dcm_logout", "Exception: ${e.message}")
+                onError("Đã xảy ra lỗi: ${e.message}")
+            }
+        }
+    }
+
     fun updateProfileImage(
         context: Context,
         imageId: String,

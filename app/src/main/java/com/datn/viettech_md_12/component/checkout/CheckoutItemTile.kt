@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
@@ -200,6 +201,10 @@ fun CheckoutItemTile(
                 }
             }
         }
+        HorizontalDivider(
+            thickness = 0.3.dp,
+            color = Color.Gray
+        )
         if (product.stock == 0) {
             Text("Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier
                 .fillMaxWidth()

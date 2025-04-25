@@ -65,11 +65,8 @@ import com.datn.viettech_md_12.component.review_component.uriToFile
 import com.datn.viettech_md_12.screen.authentication.OnbroadingActivity
 import com.datn.viettech_md_12.viewmodel.ImageViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -84,6 +81,7 @@ fun ProfileScreen(navController: NavController) {
     val url2 = "https://sites.google.com/view/term-conditions-md-12/trang-ch%E1%BB%A7"
     //link faqs
     val url3 = "https://sites.google.com/view/faqs-md-12/trang-ch%E1%BB%A7"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -126,6 +124,26 @@ fun ProfileScreen(navController: NavController) {
             item { DividerItem() }
             item { Spacer(modifier = Modifier.height(26.dp)) }
             item { ProfileTitle(stringResource(R.string.support_information)) }
+            item {
+                ProfileItem(
+                    R.drawable.ic_support_agent,
+                    stringResource(R.string.contact_us),
+                    onClick = {
+                        navController.navigate("contact_us")
+                    }
+                )
+            }
+            item { DividerItem() }
+            item {
+                ProfileItem(
+                    R.drawable.ic_post,
+                    stringResource(R.string.viet_tech_post),
+                    onClick = {
+                        navController.navigate("post_screen")
+                    }
+                )
+            }
+            item { DividerItem() }
             item {
                 ProfileItem(
                     R.drawable.ic_policy_profile,
@@ -186,18 +204,21 @@ fun ProfileHeader() {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
-    val token = sharedPreferences.getString("accessToken", null)
+    val accessToken = sharedPreferences.getString("accessToken", null)
+    val refreshToken = sharedPreferences.getString("refreshToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
-    val isLoggedIn = !token.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
+    val userViewModel: UserViewModel = viewModel() // Khởi tạo UserViewModel
+    val isLoggedIn = !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
     val accountId = sharedPreferences.getString("clientId", "") ?: ""
     val imageViewModel: ImageViewModel = viewModel()
-    val userViewModel: UserViewModel = viewModel()
 
     var profileImage by remember { mutableStateOf<String?>(null) }
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     // Lấy dữ liệu avatar lần đầu
     LaunchedEffect(Unit) {
@@ -283,7 +304,6 @@ fun ProfileHeader() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         val avatarUrl = profileImage ?: ""
-
         Box(
             modifier = Modifier
                 .size(80.dp),
@@ -324,7 +344,6 @@ fun ProfileHeader() {
 
 
         Spacer(modifier = Modifier.width(15.dp))
-
         Column {
             Text(
                 text = if (isLoggedIn) fullName!! else "Họ và tên",
@@ -337,37 +356,134 @@ fun ProfileHeader() {
                 fontSize = 18.sp
             )
         }
-
         Spacer(modifier = Modifier.weight(1f))
+//        if (refreshToken.isNullOrEmpty()) {
+//            IconButton(onClick = {
+//                // Tạo Intent để chuyển đến màn hình Onboarding
+//                val intent = Intent(context, OnbroadingActivity::class.java)
+//                // Xóa hết backstack
+//                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                context.startActivity(intent)
+//                // Kết thúc Activity hiện tại
+//                if (context is Activity) {
+//                    context.finish()
+//                }
+//                showLogoutDialog = true
+//            }) {
+//                Icon(
+//                    painter = painterResource(R.drawable.ic_logout_profile),
+//                    contentDescription = null, tint = Color.White
+//                )
+//            }
+//        } else {
+        IconButton(
+            onClick = {
+                showLogoutDialog = true
+//                userViewModel.logout(context = context,
+//                    onSuccess = { message ->
+//                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+//                        val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+//                        // Đặt lại trạng thái đăng nhập = false
+//                        sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+//                        // Đặt lại token = null
+//                        sharedPrefs.edit().putString("accessToken", null).apply()
+//                        // Tạo Intent để chuyển đến màn hình Onboarding
+//                        val intent = Intent(context, OnbroadingActivity::class.java)
+//                        // Xóa hết backstack
+//                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                        context.startActivity(intent)
+//
+//                        // Kết thúc Activity hiện tại
+//                        if (context is Activity) {
+//                            context.finish()
+//                        }
+//                    },
+//                    onError = { errorMessage ->
+//                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+//                    })
+            }
+        ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_logout_profile),
+                    contentDescription = null, tint = Color.White
+                )
+            }
+//        }
+    }
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Đăng xuất") },
+            text = { Text("Bạn có chắc chắn muốn đăng xuất không?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (refreshToken.isNullOrEmpty()) {
+                        // Tạo Intent để chuyển đến màn hình Onboarding
+                        val intent = Intent(context, OnbroadingActivity::class.java)
+                        // Xóa hết backstack
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        context.startActivity(intent)
+                        // Kết thúc Activity hiện tại
+                        if (context is Activity) {
+                            context.finish()
+                        }
+                    } else {
+                        userViewModel.logout(context = context,
+                            onSuccess = { message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                // Đặt lại trạng thái đăng nhập = false
+                                sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+                                // Đặt lại token = null
+                                sharedPrefs.edit().putString("accessToken", null).apply()
+                                // Tạo Intent để chuyển đến màn hình Onboarding
+                                val intent = Intent(context, OnbroadingActivity::class.java)
+                                // Xóa hết backstack
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                context.startActivity(intent)
 
-        IconButton(onClick = { logout(context) }) {
-            Icon(
-                painter = painterResource(R.drawable.ic_logout_profile),
-                contentDescription = null,
-                tint = Color.White
-            )
-        }
+                                // Kết thúc Activity hiện tại
+                                if (context is Activity) {
+                                    context.finish()
+                                }
+                            },
+                            onError = { errorMessage ->
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                            })
+                    }
+                }) {
+                    Text("Đăng Xuất", color = Color.Black, fontWeight = FontWeight.W600)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Hủy", color = Color.Black, fontWeight = FontWeight.W600)
+                }
+            },
+            containerColor = Color(0xfff4f5fd),
+            tonalElevation = 4.dp
+        )
     }
 }
 
-fun logout(context: Context) {
-    val sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-
-    // Đặt lại trạng thái đăng nhập = false
-    sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
-
-    // Tạo Intent để chuyển đến màn hình Onboarding
-    val intent = Intent(context, OnbroadingActivity::class.java)
-
-    // Xóa hết backstack
-    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    context.startActivity(intent)
-
-    // Kết thúc Activity hiện tại
-    if (context is Activity) {
-        context.finish()
-    }
-}
+//fun logout(context: Context) {
+//    val sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+//
+//    // Đặt lại trạng thái đăng nhập = false
+//    sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+//
+//    // Tạo Intent để chuyển đến màn hình Onboarding
+//    val intent = Intent(context, OnbroadingActivity::class.java)
+//
+//    // Xóa hết backstack
+//    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//    context.startActivity(intent)
+//
+//    // Kết thúc Activity hiện tại
+//    if (context is Activity) {
+//        context.finish()
+//    }
+//}
 
 @Composable
 fun ProfileTitle(title: String) {

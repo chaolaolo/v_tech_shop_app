@@ -21,8 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ScrollableTabRow
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
+import androidx.compose.material.TabRowDefaults
+import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,13 +37,19 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -48,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,6 +73,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -80,11 +91,23 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
 
     val pagerState = rememberPagerState()
     val coroutineScope = rememberCoroutineScope()
-    val completedOrders = orders.value.filter { it.status == "completed" }
-    val ongoingOrders = orders.value.filter { it.status != "completed" }
+//    val completedOrders = orders.value.filter { it.status == "completed" }
+//    val ongoingOrders = orders.value.filter { it.status != "completed" }
 
+//    LaunchedEffect(Unit) {
+//        viewModel.getUserOrders(context)
+//    }
+    val tabTitles = listOf("Chờ xác nhận", "Đang giao", "Đã huỷ", "Hoàn thành")
+
+    val waitingOrders = orders.value.filter { it.status == "pending" }
+    val deliveringOrders = orders.value.filter { it.status == "active" }
+    val canceledOrders = orders.value.filter { it.status == "cancelled" }
+    val completedOrders = orders.value.filter { it.status == "completed" }
     LaunchedEffect(Unit) {
-        viewModel.getUserOrders(context)
+        while (true) {
+            viewModel.getUserOrders(context)
+            delay(2000) // gọi lại mỗi 5 giây (tuỳ chỉnh theo ý bạn)
+        }
     }
 
     Column(
@@ -118,22 +141,67 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
         Spacer(modifier = Modifier.height(10.dp))
 
         // TabRow luôn hiển thị dù có token hay không
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 16.dp)
+//                .height(50.dp)
+//                .background(Color(0xffF4F5FD), RoundedCornerShape(12.dp)),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            TabRow(
+//                selectedTabIndex = pagerState.currentPage,
+//                backgroundColor = Color.Transparent,
+//                contentColor = Color.Black,
+//                modifier = Modifier.fillMaxWidth(),
+//                indicator = {}, // Ẩn đường underline mặc định
+//            ) {
+//                listOf("Đang thực hiện", "Hoàn thành").forEachIndexed { index, title ->
+//                    val isSelected = pagerState.currentPage == index
+//                    Tab(
+//                        selected = isSelected,
+//                        onClick = {
+//                            coroutineScope.launch {
+//                                pagerState.animateScrollToPage(index)
+//                            }
+//                        },
+//                        modifier = Modifier
+//                            .padding(4.dp)
+//                            .clip(RoundedCornerShape(12.dp)) // Bo góc từng Tab
+//                            .background(if (isSelected) Color.Black else Color.Transparent) // Đổi màu khi được chọn
+//                            .padding(vertical = 8.dp, horizontal = 16.dp) // Padding bên trong
+//                    ) {
+//                        Text(
+//                            text = title,
+//                            color = if (isSelected) Color.White else Color.Black,
+//                            fontWeight = FontWeight.Bold
+//                        )
+//                    }
+//                }
+//            }
+//        }
+
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .height(50.dp)
-                .background(Color(0xffF4F5FD), RoundedCornerShape(12.dp)),
+                .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            TabRow(
+            ScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 backgroundColor = Color.Transparent,
                 contentColor = Color.Black,
                 modifier = Modifier.fillMaxWidth(),
-                indicator = {}, // Ẩn đường underline mặc định
+                edgePadding = 0.dp,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        Modifier
+                            .tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                            .height(3.dp),
+                        color = Color.Black
+                    )
+                }
             ) {
-                listOf("Đang thực hiện", "Hoàn thành").forEachIndexed { index, title ->
+                tabTitles.forEachIndexed { index, title ->
                     val isSelected = pagerState.currentPage == index
                     Tab(
                         selected = isSelected,
@@ -142,31 +210,55 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
                                 pagerState.animateScrollToPage(index)
                             }
                         },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)) // Bo góc từng Tab
-                            .background(if (isSelected) Color.Black else Color.Transparent) // Đổi màu khi được chọn
-                            .padding(vertical = 8.dp, horizontal = 16.dp) // Padding bên trong
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                     ) {
                         Text(
                             text = title,
-                            color = if (isSelected) Color.White else Color.Black,
-                            fontWeight = FontWeight.Bold
+                            color = if (isSelected) Color.Black else Color.Gray,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
             }
-        }
 
+        }
         if (token != null && clientId != null) {
             HorizontalPager(
-                count = 2,
+                count = 4,
                 state = pagerState,
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (page) {
-                    0 -> OngoingOrdersScreen(ongoingOrders, navController)
-                    1 -> CompletedOrdersScreen(completedOrders, navController) // Truyền các đơn hàng đã hoàn thành
+//                    0 -> OngoingOrdersScreen(ongoingOrders, navController)
+//                    1 -> CompletedOrdersScreen(completedOrders, navController) // Truyền các đơn hàng đã hoàn thành
+                    0 -> OrderListPage(orderList = waitingOrders, navController = navController)
+                    1 -> OrderListPage(orderList = deliveringOrders, navController = navController)
+                    2 -> OrderListPage(orderList = canceledOrders, navController = navController)
+                    3 -> OrderListPage(orderList = completedOrders, navController = navController, useCompletedCard = true)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OrderListPage(
+    orderList: List<OrderModel>,
+    navController: NavController,
+    useCompletedCard: Boolean = false
+) {
+    if (orderList.isEmpty()) {
+        EmptyOrderScreen()
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(orderList) { order ->
+                if (useCompletedCard) {
+                    OrderCardCompleted(order = order, navController = navController)
+                } else {
+                    OrderCard(order = order, navController = navController)
                 }
             }
         }
@@ -202,117 +294,319 @@ fun CompletedOrdersScreen(completedOrders: List<OrderModel>, navController: NavC
 }
 
 @Composable
-fun OrderCard(order: OrderModel,navController: NavController) {
+fun OrderCard(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
+    val totalFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        .format(order.total ?: 0.0)
+
+    var showMore by remember { mutableStateOf(false) }
+    val products = order.products ?: emptyList()
+    val firstProduct = products.firstOrNull()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable {
-                navController.navigate("order_detail/${order._id}")
-            }
+            .background(Color.White, shape = RoundedCornerShape(12.dp))
+            .shadow(1.dp, RoundedCornerShape(12.dp))
+            .padding(12.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .background(Color(0xFFE63946), shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = order.status,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        // Trạng thái đơn hàng
+//        Box(
+//            modifier = Modifier
+//                .background(Color(0xFFE63946), shape = RoundedCornerShape(8.dp))
+//                .padding(horizontal = 12.dp, vertical = 4.dp)
+//        ) {
+//            Text(
+//                text = order.status ?: "Đang xử lý",
+//                color = Color.White,
+//                fontSize = 12.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lặp qua các sản phẩm trong đơn hàng
-        order.products.forEach { product ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        // Sản phẩm đầu tiên
+        firstProduct?.let { product ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(
-                    model = BASE_URL + product.image,
-                    contentDescription = "Product Image",
+                    model = BASE_URL + (product.image ?: ""),
+                    contentDescription = "Ảnh sản phẩm",
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.LightGray),
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.LightGray)
                 )
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = product.name ?: "Tên sản phẩm",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        text = "${product.price?.toInt() ?: 0}₫",
+                        fontSize = 13.sp,
+                        color = Color.Black
+                    )
                 }
+
+                Text("x${product.quantity ?: 1}", fontSize = 13.sp)
             }
-            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
+        }
+
+        // Các sản phẩm còn lại
+        if (products.size > 1) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (showMore) {
+                products.drop(1).forEach { product ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        AsyncImage(
+                            model = BASE_URL + (product.image ?: ""),
+                            contentDescription = "Ảnh sản phẩm",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.LightGray)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = product.name ?: "Tên sản phẩm",
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "${product.price?.toInt() ?: 0}₫",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+
+                        Text("x${product.quantity ?: 1}", fontSize = 12.sp)
+                    }
+                }
+
+                Text(
+                    text = "Ẩn bớt",
+                    color = Color(0xFF1F8BDA),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .padding(start = 48.dp, top = 4.dp)
+                        .clickable { showMore = false }
+                )
+            } else {
+                Text(
+                    text = "Xem thêm (${products.size - 1}) sản phẩm",
+                    color = Color(0xFF1F8BDA),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .padding(start = 48.dp, top = 4.dp)
+                        .clickable { showMore = true }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Tổng tiền
+        Text(
+            text = "Tổng: $totalFormatted",
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Nút Chi tiết đơn hàng
+        Button(
+            onClick = {
+                order._id?.let { id ->
+                    navController.navigate("order_detail/$id")
+                }
+            },
+            modifier = Modifier.align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F8BDA))
+        ) {
+            Text("Chi tiết đơn hàng", color = Color.White)
         }
     }
 }
+
+
+
+
 @Composable
-fun OrderCardCompleted(order: OrderModel,navController: NavController) {
+fun OrderCardCompleted(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.total)
+    val totalFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        .format(order.total ?: 0.0)
+
+    var showMore by remember { mutableStateOf(false) }
+    val products = order.products ?: emptyList()
+    val firstProduct = products.firstOrNull()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable {
-                navController.navigate("order_detail/${order._id}")
-            }
+            .background(Color.White, shape = RoundedCornerShape(12.dp))
+            .shadow(1.dp, RoundedCornerShape(12.dp))
+            .padding(12.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .background(Color(0xFF1F8BDA), shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = order.status,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        // Trạng thái đơn hàng
+//        Box(
+//            modifier = Modifier
+//                .background(Color(0xFF1F8BDA), shape = RoundedCornerShape(8.dp))
+//                .padding(horizontal = 12.dp, vertical = 4.dp)
+//        ) {
+//            Text(
+//                text = order.status ?: "Đang xử lý",
+//                color = Color.White,
+//                fontSize = 12.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lặp qua các sản phẩm trong đơn hàng
-        order.products.forEach { product ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        // Sản phẩm đầu tiên
+        firstProduct?.let { product ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(
-                    model = BASE_URL + product.image,
-                    contentDescription = "Product Image",
+                    model = BASE_URL + (product.image ?: ""),
+                    contentDescription = "Ảnh sản phẩm",
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.LightGray),
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.LightGray)
                 )
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = product.name ?: "Tên sản phẩm",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text ="$itemPriceFormatted", color = Color(0xFFF44336), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        text = "${product.price?.toInt() ?: 0}₫",
+                        fontSize = 13.sp,
+                        color = Color.Black
+                    )
                 }
+
+                Text("x${product.quantity ?: 1}", fontSize = 13.sp)
             }
-            Spacer(modifier = Modifier.height(8.dp)) // Thêm khoảng cách giữa các sản phẩm
+        }
+
+        // Các sản phẩm còn lại
+        if (products.size > 1) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (showMore) {
+                products.drop(1).forEach { product ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        AsyncImage(
+                            model = BASE_URL + (product.image ?: ""),
+                            contentDescription = "Ảnh sản phẩm",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.LightGray)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = product.name ?: "Tên sản phẩm",
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "${product.price?.toInt() ?: 0}₫",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+
+                        Text("x${product.quantity ?: 1}", fontSize = 12.sp)
+                    }
+                }
+
+                Text(
+                    text = "Ẩn bớt",
+                    color = Color(0xFF1F8BDA),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .padding(start = 48.dp, top = 4.dp)
+                        .clickable { showMore = false }
+                )
+            } else {
+                Text(
+                    text = "Xem thêm (${products.size - 1}) sản phẩm",
+                    color = Color(0xFF1F8BDA),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .padding(start = 48.dp, top = 4.dp)
+                        .clickable { showMore = true }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Tổng tiền
+        Text(
+            text = "Tổng: $totalFormatted",
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Nút Chi tiết đơn hàng
+        Button(
+            onClick = {
+                order._id?.let { id ->
+                    navController.navigate("order_detail/$id")
+                }
+            },
+            modifier = Modifier.align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F8BDA))
+        ) {
+            Text("Chi tiết đơn hàng", color = Color.White)
         }
     }
 }
+
+
+
+
 
 
 
