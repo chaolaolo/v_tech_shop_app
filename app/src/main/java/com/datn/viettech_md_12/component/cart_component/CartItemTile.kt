@@ -1,7 +1,6 @@
 package com.datn.viettech_md_12.component.cart_component
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,8 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.viewmodel.CartViewModel
@@ -162,31 +159,17 @@ fun CartItemTile(
                 },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val painter = rememberAsyncImagePainter(
+            AsyncImage(
                 model = imageUrl,
-                placeholder = painterResource(R.drawable.logo),
-                error = painterResource(R.drawable.logo)
-            )
-
-            val contentScale = when (val state = painter.state) {
-                is AsyncImagePainter.State.Error,
-                is AsyncImagePainter.State.Empty -> ContentScale.Fit
-                is AsyncImagePainter.State.Success -> {
-                    // Kiểm tra nếu là ảnh null hoặc rỗng thì Fit
-                    if (product.image.isNullOrBlank()) ContentScale.Fit else ContentScale.Crop
-                }
-                else -> ContentScale.Fit // loading hoặc unknown -> Fit cho placeholder
-            }
-
-            Image(
-                painter = painter,
                 contentDescription = "cart item image",
                 modifier = Modifier
                     .size(80.dp)
                     .background(Color(0xFFF4F4F4), RoundedCornerShape(10.dp))
                     .clip(RoundedCornerShape(10.dp)),
-                contentScale =contentScale,
-//                onError = { Log.e("CartItemTile", "Failed to load image: $imageUrl") }
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.logo),
+                error = painterResource(R.drawable.error_img),
+                onError = { Log.e("CartItemTile", "Failed to load image: $imageUrl") }
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
