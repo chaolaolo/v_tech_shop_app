@@ -43,6 +43,7 @@ import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
 import com.datn.viettech_md_12.screen.profile_detail.ShippingScreen
+import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 
@@ -56,6 +57,8 @@ fun NavigationGraph(startDestination: String = "home") {
         (LocalContext.current.applicationContext as MyApplication).productViewModel
     val userViewModel: UserViewModel =
         (LocalContext.current.applicationContext as MyApplication).userViewModel
+    val notificationViewModel: NotificationViewModel =
+        (LocalContext.current.applicationContext as MyApplication).notificationViewModel
 
     val selectedRoute = when {
         currentBackStackEntry.value?.destination?.route == "categories" -> "categories"
@@ -102,7 +105,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("address_screen") { AddressScreen(navController) }
             composable("contact_us") { ContactUsUI(navController) }
             composable("post_screen") { PostScreen(navController) }
-            composable("notification") { NotificationScreen(navController) }
+            composable("notification") { NotificationScreen(viewModel= notificationViewModel,navController) }
             composable("post_detail/{postId}") { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostDetailScreen(navController, postId = postId)

@@ -5,6 +5,7 @@ import com.datn.viettech_md_12.data.interfaces.CartService
 import com.datn.viettech_md_12.data.interfaces.CategoryService
 import com.datn.viettech_md_12.data.interfaces.CheckoutService
 import com.datn.viettech_md_12.data.interfaces.ImageService
+import com.datn.viettech_md_12.data.interfaces.NotificationService
 import com.datn.viettech_md_12.data.interfaces.PostServices
 import com.datn.viettech_md_12.data.interfaces.ProductService
 import com.datn.viettech_md_12.data.interfaces.ReviewService
@@ -13,6 +14,7 @@ import com.datn.viettech_md_12.data.repository.CartRepository
 import com.datn.viettech_md_12.data.repository.CategoryRepository
 import com.datn.viettech_md_12.data.repository.CheckoutReporitory
 import com.datn.viettech_md_12.data.repository.ImageRepository
+import com.datn.viettech_md_12.data.repository.NotificationRepository
 import com.datn.viettech_md_12.data.repository.PotsRepository
 import com.datn.viettech_md_12.data.repository.ProductRepository
 import com.datn.viettech_md_12.data.repository.ReviewRepository
@@ -82,5 +84,11 @@ object ApiClient {
     }
     val postRepository: PotsRepository by lazy {
         PotsRepository(postServices)
+    }
+    val notificationServices: NotificationService by lazy {
+        retrofit.create(NotificationService::class.java)
+    }
+    val notificationRepository: NotificationRepository by lazy {
+        NotificationRepository(notificationServices)
     }
 }
