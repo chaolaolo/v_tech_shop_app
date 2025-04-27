@@ -88,6 +88,8 @@ import com.datn.viettech_md_12.viewmodel.PostViewModel
 import com.datn.viettech_md_12.viewmodel.PostViewModelFactory
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -320,7 +322,8 @@ fun PostDetailScreen(
                                         .background(Color(0xFF21D4B4).copy(alpha = 0.1f), RoundedCornerShape(4.dp))
                                         .clip(RoundedCornerShape(4.dp))
                                         .clickable {
-                                        navController.navigate("same_tags_posts/${tag}")
+                                            val encodedTag = URLEncoder.encode(tag, StandardCharsets.UTF_8.toString())
+                                        navController.navigate("same_tags_posts/${encodedTag}")
                                             Log.d("PostDetailScreen", "đã bấm: $tag")
                                         }
                                 ) {

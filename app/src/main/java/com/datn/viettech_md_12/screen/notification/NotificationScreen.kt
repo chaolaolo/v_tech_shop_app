@@ -3,17 +3,8 @@ package com.datn.viettech_md_12.screen.notification
 import NotificationModel
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,80 +12,124 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.SelectAll
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.delay
+import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 @Composable
-fun NotificationScreen(navController: NavController) {
-    var isLoading by remember { mutableStateOf(true) }
-    var notifications by remember { mutableStateOf(listOf<NotificationModel>()) }
-
+fun NotificationScreen(viewModel: NotificationViewModel, navController: NavController) {
     val context = LocalContext.current
 
+    val isLoading by viewModel.isLoadingNotifications.collectAsState()
+    val notifications by viewModel.notifications.collectAsState(initial = emptyList())
+    var selectedTab by remember { mutableStateOf("Tất cả") }
+
     LaunchedEffect(Unit) {
-        delay(1000) // mô phỏng delay khi tải dữ liệu
-        val prefs = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE)
-        val json = prefs.getString("notification_list", "[]")
-        val listType = object : TypeToken<List<NotificationModel>>() {}.type
-        notifications = Gson().fromJson(json, listType)
-        isLoading = false
+        viewModel.getNotifications(context)
     }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        NotificationTopBar(onBackClick = {
-            navController.popBackStack()
-        })
-        Spacer(modifier = Modifier.height(15.dp))
+        NotificationTopBar(
+            onBackClick = { navController.popBackStack() },
+            onMarkAllAsRead = {
+                viewModel.markAllNotificationsAsRead(context) // Gọi hàm API đánh dấu đọc tất cả ở đây
+            }
+        )
+
+        // TabRow để chuyển đổi giữa "Tất cả" và "Chưa đọc"
+        TabRow(
+            selectedTabIndex = if (selectedTab == "Tất cả") 0 else 1,
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = Color.White, // màu nền tab row
+            contentColor = Color.Black,   // màu nội dung
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier
+                        .tabIndicatorOffset(tabPositions[if (selectedTab == "Tất cả") 0 else 1])
+                        .height(3.dp), // độ dày của viền dưới
+                    color = Color.Black // màu viền dưới
+                )
+            }
+            ) {
+            Tab(
+                selected = selectedTab == "Tất cả",
+                onClick = { selectedTab = "Tất cả" },
+                text = { Text("Tất cả") }
+            )
+            Tab(
+                selected = selectedTab == "Chưa đọc",
+                onClick = { selectedTab = "Chưa đọc" },
+                text = { Text("Chưa đọc") }
+            )
+        }
+
+        // Nút đánh dấu tất cả là đã đọc
+
+
         if (isLoading) {
             LoadingScreen()
         } else {
-            LazyColumn {
-                items(notifications.reversed()) { notification ->
-                    NotificationItem(notification)
+            val filteredNotifications = when (selectedTab) {
+                "Chưa đọc" -> notifications.filter { !it.isRead } // Lọc các thông báo chưa đọc
+                else -> notifications
+            }
+            if (filteredNotifications.isEmpty()){
+                if (selectedTab == "Chưa đọc"){
+                    EmptyUnreadNotificationScreen()
+                }else{
+                    EmptyNotificationScreen()
+                }
+            }
+             else {
+                LazyColumn {
+                    items(filteredNotifications.reversed()) { notification ->
+                        NotificationItem(
+                            notification = notification,
+                            onNotificationClick = {
+                                notificationId ->
+                                viewModel.markNotificationAsRead(context,notificationId)
+                            }
+                        )
+                    }
                 }
             }
         }
     }
-
 }
 
 @Composable
-fun NotificationItem(notification: NotificationModel) {
+fun NotificationItem(notification: NotificationModel,onNotificationClick :(String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+            .padding(10.dp)
+            .clickable {
+                if (!notification.isRead){
+                    onNotificationClick(notification.id)
+                }
+            }
+        ,
+        colors = CardDefaults.cardColors(
+            containerColor = if (notification.isRead) Color.White else Color(0xFFE3F2FD) // xanh nhạt
+
+        )
     ) {
         Row(
             modifier = Modifier
@@ -123,9 +158,14 @@ fun NotificationItem(notification: NotificationModel) {
                     color = Color.DarkGray
                 )
                 Spacer(modifier = Modifier.height(4.dp))
+                val date = try {
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(notification.createdAt)
+                } catch (e: Exception) {
+                    null
+                }
+
                 Text(
-                    text = SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault())
-                        .format(Date(notification.timestamp)),
+                    text = date?.let { getTimeAgo(it.time) } ?: "Không xác định",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -147,9 +187,50 @@ fun LoadingScreen() {
     }
 }
 
+@Composable
+fun EmptyNotificationScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Không có thông báo nào",
+            fontSize = 16.sp,
+            color = Color.Gray
+        )
+    }
+}
+@Composable
+fun EmptyUnreadNotificationScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Icon(
+                painter = painterResource(R.drawable.notifications_off),
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier.size(60.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Không có thông báo nào chưa đọc",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationTopBar(onBackClick: () -> Unit) {
+fun NotificationTopBar(
+    onBackClick: () -> Unit,
+    onMarkAllAsRead: () -> Unit
+) {
     TopAppBar(
         title = {
             Text(
@@ -166,10 +247,20 @@ fun NotificationTopBar(onBackClick: () -> Unit) {
                 )
             }
         },
+        actions = {
+            IconButton(onClick = onMarkAllAsRead) {
+                Icon(
+                    painter = painterResource(R.drawable.mark),
+                    tint = Color(0xFF21D4B4),
+                    contentDescription = "Đánh dấu tất cả là đã đọc"
+                )
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.White,
             titleContentColor = Color.Black,
-            navigationIconContentColor = Color.Black
+            navigationIconContentColor = Color.Black,
+            actionIconContentColor = Color.Black
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -178,4 +269,23 @@ fun NotificationTopBar(onBackClick: () -> Unit) {
 }
 
 
+fun getTimeAgo(timeMillis: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timeMillis
 
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+
+    return when {
+        seconds < 60 -> "Vừa xong"
+        minutes < 60 -> "$minutes phút trước"
+        hours < 24 -> "$hours giờ trước"
+        days == 1L -> "Hôm qua"
+        days < 7 -> "$days ngày trước"
+        days < 30 -> "${days / 7} tuần trước"
+        days < 365 -> "${days / 30} tháng trước"
+        else -> "${days / 365} năm trước"
+    }
+}

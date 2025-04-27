@@ -201,14 +201,15 @@ fun AddressScreen(
                    value = phoneNumber,
                    onValueChange = {
                        phoneNumber = it
-                       phoneNumberError = it.isBlank()
+//                       phoneNumberError = it.isBlank()
+                       phoneNumberError = !Regex("^[0-9]{10,11}$").matches(it)
                    },
                    modifier = Modifier,
                    isPassword = false
                )
                if (phoneNumberError) {
                    Text(
-                       text = "Vui lòng thiết lập số điện thoại",
+                       text = "Số điện thoại không hợp lệ",
                        color = Color.Red,
                        fontSize = 12.sp,
                        modifier = Modifier.padding(start = 4.dp)
@@ -312,7 +313,8 @@ fun AddressScreen(
                text = "Lưu địa chỉ",
                    onClick = {
                        fullNameError = finalFullName.isBlank()
-                       phoneNumberError = finalPhone.isBlank()
+//                       phoneNumberError = finalPhone.isBlank()
+                       phoneNumberError = finalPhone.isBlank() || !Regex("^[0-9]{10,11}$").matches(finalPhone)
                        provinceError = finalProvince.isBlank()
                        districtError = finalDistrict.isBlank()
                        detailAddressError = finalDetail.isBlank()

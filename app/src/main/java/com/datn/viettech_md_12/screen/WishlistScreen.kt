@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12.screen
 
 import FavoriteItem
+import MyButton
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -65,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -147,7 +149,7 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
                     }
 
                 } else {
-                    item { EmptyWishList() }
+                    item { EmptyWishList(navController) }
                 }
             }
         }
@@ -241,53 +243,110 @@ fun ItemFavorite(
 
 
 
+//@Composable
+//fun EmptyWishList() {
+//    Column(
+//        modifier = Modifier.fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Image(
+//            painter = painterResource(R.drawable.img_empty_wishlist),
+//            contentDescription = null,
+//            modifier = Modifier.size(200.dp)
+//        )
+//        Text(
+//            text = "Danh sách yêu thích của bạn đang trống",
+//            fontWeight = FontWeight.Bold,
+//            textAlign = TextAlign.Center,
+//            color = Color.Black,
+//            fontSize = 24.sp
+//        )
+//        Spacer(modifier = Modifier.height(10.dp))
+//        Text(
+//            text = "Nhấn vào nút trái tim để bắt đầu lưu các mục yêu thích của bạn.",
+//            fontSize = 14.sp,
+//            color = Color.Gray,
+//            textAlign = TextAlign.Center,
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//        Spacer(modifier = Modifier.height(20.dp))
+//        Box(
+//            modifier = Modifier.fillMaxWidth(),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Button(
+//                onClick = {
+//
+//                },
+//                modifier = Modifier
+//                    .width(380.dp)
+//                    .height(60.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color.Black
+//                ),
+//                shape = RoundedCornerShape(12.dp)
+//            ) {
+//                Text("Khám phá danh mục", color = Color.White)
+//            }
+//        }
+//    }
+//}
 @Composable
-fun EmptyWishList() {
+fun EmptyWishList(
+    navController: NavController,
+) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.White)
+            .padding(horizontal = 20.dp)
+            .systemBarsPadding(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(R.drawable.img_empty_wishlist),
-            contentDescription = null,
-            modifier = Modifier.size(200.dp)
-        )
-        Text(
-            text = "Danh sách yêu thích của bạn đang trống",
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = Color.Black,
-            fontSize = 24.sp
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Nhấn vào nút trái tim để bắt đầu lưu các mục yêu thích của bạn.",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(20.dp))
+        //ảnh giỏ hàng
+        Spacer(Modifier.height(10.dp))
         Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier
+                .size(340.dp)
+                .clip(shape = RoundedCornerShape(16.dp))
+                .background(color = Color(0xFFF4FDFA)),
+            contentAlignment = Alignment.Center,
         ) {
-            Button(
-                onClick = {
-
-                },
+            Image(
                 modifier = Modifier
-                    .width(380.dp)
-                    .height(60.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Khám phá danh mục", color = Color.White)
-            }
+                    .size(200.dp),
+                painter = painterResource(R.drawable.img_empty_wishlist),
+                contentDescription = "empty cart image",
+                contentScale = ContentScale.Crop
+            )
         }
+        Spacer(Modifier.height(30.dp))
+        //Text
+        Text(
+            "Danh sách yêu thích của bạn đang trống",
+            color = Color.Black,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "Nhấn vào nút trái tim để bắt đầu lưu các mục yêu thích của bạn.",
+            color = Color.Gray,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(30.dp))
+        //Button
+        MyButton(
+            text = "Khám phá",
+            onClick = {navController.navigate("home") },
+            modifier = Modifier,
+            backgroundColor = Color(0xFF21D4B4),
+            textColor = Color.White,
+        )
     }
 }
 

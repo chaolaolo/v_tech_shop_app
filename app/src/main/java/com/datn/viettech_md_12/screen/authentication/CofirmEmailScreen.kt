@@ -101,7 +101,10 @@ fun ConfirmEmail(viewModel: ForgotPasswordViewModel) {
                     actionIconContentColor = Color.Black
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Handle back */ }) {
+                    IconButton(onClick = {
+                        val intent = Intent(context, LoginScreen::class.java)
+                        context.startActivity(intent)
+                    }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },

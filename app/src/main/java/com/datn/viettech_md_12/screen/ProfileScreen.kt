@@ -81,6 +81,7 @@ fun ProfileScreen(navController: NavController) {
     val url2 = "https://sites.google.com/view/term-conditions-md-12/trang-ch%E1%BB%A7"
     //link faqs
     val url3 = "https://sites.google.com/view/faqs-md-12/trang-ch%E1%BB%A7"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -186,14 +187,14 @@ fun ProfileScreen(navController: NavController) {
                 )
             }
             item { DividerItem() }
-            item {
-                ProfileItem(
-                    R.drawable.ic_dark_theme_profile,
-                    stringResource(R.string.dark_theme),
-                    onClick = {}
-                )
-            }
-            item { DividerItem() }
+//            item {
+//                ProfileItem(
+//                    R.drawable.ic_dark_theme_profile,
+//                    stringResource(R.string.dark_theme),
+//                    onClick = {}
+//                )
+//            }
+//            item { DividerItem() }
         }
     }
 }
@@ -216,6 +217,8 @@ fun ProfileHeader() {
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     // Lấy dữ liệu avatar lần đầu
     LaunchedEffect(Unit) {
@@ -318,24 +321,27 @@ fun ProfileHeader() {
                     .shadow(4.dp, CircleShape, clip = false)
             )
 
-            Icon(
-                imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Chọn ảnh",
-                tint = Color.Black,
-                modifier = Modifier
-                    .size(26.dp)
-                    .offset(x = 4.dp, y = 4.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = LocalIndication.current
-                    ) {
-                        imageLauncher.launch("image/*")
-                    }
-                    .padding(4.dp)
-            )
+            if (!profileImage.isNullOrBlank()) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = "Chọn ảnh",
+                    tint = Color.Black,
+                    modifier = Modifier
+                        .size(26.dp)
+                        .offset(x = 4.dp, y = 4.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current
+                        ) {
+                            imageLauncher.launch("image/*")
+                        }
+                        .padding(4.dp)
+                )
+            }
         }
+
 
         Spacer(modifier = Modifier.width(15.dp))
         Column {
@@ -351,54 +357,112 @@ fun ProfileHeader() {
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        if (refreshToken.isNullOrEmpty()) {
-            IconButton(onClick = {
-                // Tạo Intent để chuyển đến màn hình Onboarding
-                val intent = Intent(context, OnbroadingActivity::class.java)
-                // Xóa hết backstack
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                context.startActivity(intent)
-                // Kết thúc Activity hiện tại
-                if (context is Activity) {
-                    context.finish()
-                }
-            }) {
+//        if (refreshToken.isNullOrEmpty()) {
+//            IconButton(onClick = {
+//                // Tạo Intent để chuyển đến màn hình Onboarding
+//                val intent = Intent(context, OnbroadingActivity::class.java)
+//                // Xóa hết backstack
+//                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                context.startActivity(intent)
+//                // Kết thúc Activity hiện tại
+//                if (context is Activity) {
+//                    context.finish()
+//                }
+//                showLogoutDialog = true
+//            }) {
+//                Icon(
+//                    painter = painterResource(R.drawable.ic_logout_profile),
+//                    contentDescription = null, tint = Color.White
+//                )
+//            }
+//        } else {
+        IconButton(
+            onClick = {
+                showLogoutDialog = true
+//                userViewModel.logout(context = context,
+//                    onSuccess = { message ->
+//                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+//                        val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+//                        // Đặt lại trạng thái đăng nhập = false
+//                        sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+//                        // Đặt lại token = null
+//                        sharedPrefs.edit().putString("accessToken", null).apply()
+//                        // Tạo Intent để chuyển đến màn hình Onboarding
+//                        val intent = Intent(context, OnbroadingActivity::class.java)
+//                        // Xóa hết backstack
+//                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                        context.startActivity(intent)
+//
+//                        // Kết thúc Activity hiện tại
+//                        if (context is Activity) {
+//                            context.finish()
+//                        }
+//                    },
+//                    onError = { errorMessage ->
+//                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+//                    })
+            }
+        ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_logout_profile),
                     contentDescription = null, tint = Color.White
                 )
             }
-        } else {
-            IconButton(onClick = {
-                userViewModel.logout(context = context,
-                    onSuccess = { message ->
-                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                        val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                        // Đặt lại trạng thái đăng nhập = false
-                        sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
-                        // Đặt lại token = null
-                        sharedPrefs.edit().putString("accessToken", null).apply()
+//        }
+    }
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Đăng xuất") },
+            text = { Text("Bạn có chắc chắn muốn đăng xuất không?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (refreshToken.isNullOrEmpty()) {
                         // Tạo Intent để chuyển đến màn hình Onboarding
                         val intent = Intent(context, OnbroadingActivity::class.java)
                         // Xóa hết backstack
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         context.startActivity(intent)
-
                         // Kết thúc Activity hiện tại
                         if (context is Activity) {
                             context.finish()
                         }
-                    },
-                    onError = { errorMessage ->
-                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                    })
-            }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_logout_profile),
-                    contentDescription = null, tint = Color.White
-                )
-            }
-        }
+                    } else {
+                        userViewModel.logout(context = context,
+                            onSuccess = { message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                // Đặt lại trạng thái đăng nhập = false
+                                sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
+                                // Đặt lại token = null
+                                sharedPrefs.edit().putString("accessToken", null).apply()
+                                // Tạo Intent để chuyển đến màn hình Onboarding
+                                val intent = Intent(context, OnbroadingActivity::class.java)
+                                // Xóa hết backstack
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                context.startActivity(intent)
+
+                                // Kết thúc Activity hiện tại
+                                if (context is Activity) {
+                                    context.finish()
+                                }
+                            },
+                            onError = { errorMessage ->
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                            })
+                    }
+                }) {
+                    Text("Đăng Xuất", color = Color.Black, fontWeight = FontWeight.W600)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Hủy", color = Color.Black, fontWeight = FontWeight.W600)
+                }
+            },
+            containerColor = Color(0xfff4f5fd),
+            tonalElevation = 4.dp
+        )
     }
 }
 

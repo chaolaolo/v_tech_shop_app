@@ -13,7 +13,8 @@ data class Review(
     val createdAt: String,
     val updatedAt: String,
     val images: List<ImageModel>,  // Danh sách ảnh đi kèm đánh giá
-    val rating: Int  // Đánh giá sao
+    val rating: Int,
+    val bill_id: String?,  // <- Cho phép null// Đánh giá sao
 )
 
 // Thông tin thống kê đánh giá sản phẩm (tổng số đánh giá và điểm trung bình)
@@ -67,7 +68,8 @@ data class AddReviewRequest(
     val product_id: String,          // ID của sản phẩm
     val contents_review: String,     // Nội dung đánh giá
     val image_ids: List<String>,     // Danh sách ID của ảnh
-    val rating: Int                  // Đánh giá sao
+    val rating: Int,                // Đánh giá sao
+    val bill_id: String
 )
 
 

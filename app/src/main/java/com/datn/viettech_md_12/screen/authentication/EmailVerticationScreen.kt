@@ -90,7 +90,10 @@ fun EmailVerification(viewModel: ForgotPasswordViewModel) {
                     actionIconContentColor = Color.Black
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        val intent = Intent(context, LoginScreen::class.java)
+                        context.startActivity(intent)
+                    }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },

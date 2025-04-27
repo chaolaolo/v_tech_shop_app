@@ -30,7 +30,8 @@ interface PostServices {
     suspend fun getPostById(
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String,
-        @Path("id") id: String
+        @Path("id") id: String,
+        @Query("format") format: String = "plain",
     ): Response<PostResponse>
 
 }

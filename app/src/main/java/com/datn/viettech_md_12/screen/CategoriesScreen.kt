@@ -44,7 +44,7 @@ fun CategoriesScreen(navController: NavController, viewModel: CategoryViewModel 
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Color(0xFF00C2A8))
             }
         } else {
             LazyVerticalGrid(

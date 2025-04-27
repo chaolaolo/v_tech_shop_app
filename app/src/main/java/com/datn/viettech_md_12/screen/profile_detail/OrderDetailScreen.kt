@@ -1,5 +1,7 @@
 package com.datn.viettech_md_12.screen.profile_detail
 
+import android.app.Application
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +22,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -33,6 +36,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,9 +58,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.component.review_component.AddReviewDialog
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.OrderProduct
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -62,15 +74,22 @@ fun OrderDetailScreen(
     navController: NavController,
     viewModel: ProductViewModel = viewModel()
 ) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext as Application
     val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
     val order by viewModel.selectedOrder.collectAsState()
     val BASE_URL = "http://103.166.184.249:3056/"
+    // Thay vì dùng boolean, dùng productId để xác định sản phẩm cần đánh giá
+    // Khởi tạo trạng thái sản phẩm đã review hay chưa
+    // Khởi tạo trạng thái sản phẩm đã review hay chưa
+    var selectedProductId by remember { mutableStateOf<String?>(null) }
 
+    // Khởi tạo ReviewViewModel với factory
+    val reviewViewModel: ReviewViewModel = viewModel(
+        factory = ReviewViewModelFactory(context)
+    )
     LaunchedEffect(orderId) {
         viewModel.getOrderById(context, orderId)
     }
-
     Column(
         Modifier
             .fillMaxSize()
@@ -113,11 +132,11 @@ fun OrderDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFF1ABF79))
+                            .background(Color(0xFF21D4B4))
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "Đơn hàng của bạn",
+                            text = translateOrderStatus(currentOrder.status ?: ""),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -142,11 +161,11 @@ fun OrderDetailScreen(
                             Text(text = "🚚", fontSize = 14.sp)
                             Spacer(modifier = Modifier.width(6.dp))
                             Column {
-                                Text(
-                                    text = currentOrder.status ?: "",
-                                    color = Color(0xFF1ABF79),
-                                    fontSize = 14.sp
-                                )
+//                                Text(
+//                                    text = currentOrder.status ?: "",
+//                                    color = Color(0xFF1ABF79),
+//                                    fontSize = 14.sp
+//                                )
                                 Text(
                                     text = "${currentOrder.createdAt ?: ""} - ${currentOrder.updatedAt ?: ""}",
                                     fontSize = 13.sp,
@@ -207,10 +226,30 @@ fun OrderDetailScreen(
                             Text("Yêu thích", color = Color.White, fontSize = 10.sp)
                         }
                         Spacer(Modifier.width(6.dp))
-                        Text("VietTech", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+                        Text(
+                            "VietTech",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
                     }
 
                     Divider()
+                    selectedProductId?.let { productId ->
+                        AddReviewDialog(
+                            productId = productId,
+                            billId = orderId,
+                            reviewViewModel = reviewViewModel,
+                            navController = navController,
+                            onDismiss = {
+                                selectedProductId = null
+                            },
+                            onReviewSubmitted = {
+                                selectedProductId = null // Đóng dialog sau khi review
+                                reviewViewModel.getReviewsByAccount() // <- 🔥 Reload lại danh sách review mới nhất
+                            }
+                        )
+                    }
 
                     //hien thi nhieu anh don hang
                     currentOrder.products?.forEach { product ->
@@ -253,6 +292,17 @@ fun OrderDetailScreen(
                                 fontSize = 14.sp
                             )
                         }
+                        if (currentOrder.status?.lowercase() == "completed") {
+                            // Kiểm tra xem sản phẩm đã được đánh giá chưa
+                            val hasReviewed = reviewViewModel.checkReviewExists(orderId, product.productId)
+
+                            // Nếu sản phẩm chưa được đánh giá, hiển thị nút "Thêm đánh giá"
+                            if (!hasReviewed) {
+                                ReviewButton {
+                                    selectedProductId = product.productId
+                                }
+                            }
+                        }
 
                         Divider()
                     }
@@ -287,13 +337,22 @@ fun OrderDetailScreen(
                         .background(Color.White)
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Bạn cần hỗ trợ?", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Black)
+                        Text(
+                            "Bạn cần hỗ trợ?",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
                         Spacer(Modifier.height(12.dp))
-                        Text("• Gửi yêu cầu Trả hàng/Hoàn tiền", fontSize = 13.sp,color = Color.Black)
+                        Text(
+                            "• Gửi yêu cầu Trả hàng/Hoàn tiền",
+                            fontSize = 13.sp,
+                            color = Color.Black
+                        )
                         Spacer(Modifier.height(4.dp))
-                        Text("• Liên hệ Shop", fontSize = 13.sp,color = Color.Black)
+                        Text("• Liên hệ Shop", fontSize = 13.sp, color = Color.Black)
                         Spacer(Modifier.height(4.dp))
-                        Text("• Trung tâm hỗ trợ", fontSize = 13.sp,color = Color.Black)
+                        Text("• Trung tâm hỗ trợ", fontSize = 13.sp, color = Color.Black)
                     }
                 }
             }
@@ -309,7 +368,11 @@ fun OrderDetailScreen(
                         .background(Color.White)
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Mã đơn hàng: ${currentOrder.order_code ?: ""}", fontSize = 13.sp,color = Color.Black)
+                        Text(
+                            "Mã đơn hàng: ${currentOrder.order_code ?: ""}",
+                            fontSize = 13.sp,
+                            color = Color.Black
+                        )
                     }
                 }
             }
@@ -323,25 +386,39 @@ fun OrderDetailScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 OutlinedButton(
-                    onClick = { /* TODO */ },
+                    onClick = {  navController.navigate("review_screen")  },
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 6.dp)
                 ) {
-                    Text("Xem Đánh giá")
+                    Text("Quản Lý Đánh giá")
                 }
                 Button(
                     onClick = { /* TODO */ },
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 6.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Red
+                    ),
+                    border = BorderStroke(1.dp, Color.Red)
                 ) {
-                    Text("Mua lại", color = Color.White)
+                    Text("Mua lại", color = Color.Red)
                 }
             }
             Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+fun translateOrderStatus(status: String?): String {
+    return when (status?.lowercase()) {
+        "pending" -> "Đang chờ xử lý"
+        "active" -> "Đang giao hàng"
+        "cancelled" -> "Đơn hàng đã bị hủy"
+        "completed" -> "Đơn hàng hoàn tất"
+        else -> "Không xác định"
     }
 }
 
@@ -350,4 +427,31 @@ fun OrderDetailScreen(
 @Composable
 fun Detail() {
 //    OrderDetailScreen()
+}
+
+@Composable
+fun ReviewButton(onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, Color(0xFF43A047)), // Màu xanh lá nhẹ
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = Color(0xFF43A047) // Text & icon màu xanh lá
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.RateReview,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = "Thêm đánh giá",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
 }

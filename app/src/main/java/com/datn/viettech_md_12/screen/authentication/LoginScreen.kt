@@ -3,6 +3,7 @@ package com.datn.viettech_md_12.screen.authentication
 import LoginRequest
 import MyButton
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -229,8 +230,15 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
                                     )
                                     navController.popBackStack()
                                 }
+                                previousRoute == "cart" -> {
+                                    navController.navigate("cart"){
+                                        popUpTo("cart") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
                                 //quay lại màn hình trước đó
                                 !previousRoute.isNullOrEmpty() -> {
+                                    (context as? Activity)?.intent?.putExtra("isLoggedIn", true)
                                     navController.popBackStack()
                                 }
                                 // vào home nếu kh có gì đặc biệt

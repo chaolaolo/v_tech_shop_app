@@ -534,4 +534,18 @@ class ProductViewModel : ViewModel() {
 
         return validOptions
     }
+    suspend fun getProductByIdSuspend(productId: String): ProductDetailModel? {
+        return try {
+            val response = _repository.getProductById(productId)
+            if (response.isSuccessful) {
+                response.body()?.product
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+
 }

@@ -24,7 +24,11 @@ interface ReviewService {
     suspend fun getReviewStats(
         @Path("productId") productId: String
     ): Response<ReviewStatsResponse>
-
+    // Lấy danh sách đánh giá theo account
+    @GET("review/getReviewsByAccount/{accountId}")
+    suspend fun getReviewsByAccount(
+        @Path("accountId") accountId: String
+    ): Response<ReviewResponse>
     // Thêm mới một đánh giá cho sản phẩm
     @Headers("Content-Type: application/json", "x-api-key: $API_KEY")
     @POST("review/add")

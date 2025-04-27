@@ -43,8 +43,12 @@ import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
 import com.datn.viettech_md_12.screen.profile_detail.ShippingScreen
+import com.datn.viettech_md_12.screen.review.ReviewScreen
+import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -56,6 +60,8 @@ fun NavigationGraph(startDestination: String = "home") {
         (LocalContext.current.applicationContext as MyApplication).productViewModel
     val userViewModel: UserViewModel =
         (LocalContext.current.applicationContext as MyApplication).userViewModel
+    val notificationViewModel: NotificationViewModel =
+        (LocalContext.current.applicationContext as MyApplication).notificationViewModel
 
     val selectedRoute = when {
         currentBackStackEntry.value?.destination?.route == "categories" -> "categories"
@@ -102,13 +108,15 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("address_screen") { AddressScreen(navController) }
             composable("contact_us") { ContactUsUI(navController) }
             composable("post_screen") { PostScreen(navController) }
-            composable("notification") { NotificationScreen(navController) }
+            composable("notification") { NotificationScreen(viewModel= notificationViewModel,navController) }
+            composable("review_screen") { ReviewScreen(navController) }
             composable("post_detail/{postId}") { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostDetailScreen(navController, postId = postId)
             }
             composable("same_tags_posts/{tag}") { backStackEntry ->
-                val tag = backStackEntry.arguments?.getString("tag") ?: ""
+                val encodedTag = backStackEntry.arguments?.getString("tag") ?: ""
+                val tag = URLDecoder.decode(encodedTag, StandardCharsets.UTF_8.toString())
                 SameTagsPosts(navController, tag = tag)
             }
             //mới nhất(tách 2 màn thanh toán riêng)
