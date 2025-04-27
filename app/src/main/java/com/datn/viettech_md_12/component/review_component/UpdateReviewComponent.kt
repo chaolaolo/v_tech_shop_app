@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.viewmodel.ImageViewModel
@@ -49,7 +50,9 @@ fun UpdateReviewDialog(
     createdAt: String, // 👈 thêm dòng này
     initialImageIds: List<String>,
     reviewViewModel: ReviewViewModel,
-    onDismiss: () -> Unit
+    navController: NavController,
+    onDismiss: () -> Unit,
+    onReviewSubmitted: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -83,12 +86,16 @@ fun UpdateReviewDialog(
         updateReviewResult?.onSuccess {
             Toast.makeText(context, "Cập nhật đánh giá thành công!", Toast.LENGTH_SHORT).show()
             Log.d("UPDATE_REVIEW", "Success = ${it.success}, Data = ${it.data}")
+            onReviewSubmitted()
+            reviewViewModel.clearUpReviewResult() // 👈 Thêm dòng này
             onDismiss()
-            reviewViewModel.getReviewsByProduct(productId)
+            navController.navigate("product_detail/${productId}") // Chuyển đến chi tiết sản phẩm
         }?.onFailure {
             Log.d("UPDATE_REVIEW", "Review failed: $it")
             Toast.makeText(context, "Cập nhật đánh giá thất bại!", Toast.LENGTH_SHORT).show()
+            reviewViewModel.clearUpReviewResult() // 👈 Thêm dòng này
             onDismiss()
+
         }
     }
 
@@ -221,7 +228,7 @@ fun UpdateReviewDialog(
                             }
                         }
                     } else {
-                        Text("Bạn chỉ có thể cập nhật trong vòng 2 ngày.", color = Color.Gray)
+                        Text("Đã quá 2 ngày", color = Color.Gray)
                     }
 
                 }

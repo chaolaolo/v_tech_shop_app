@@ -321,24 +321,27 @@ fun ProfileHeader() {
                     .shadow(4.dp, CircleShape, clip = false)
             )
 
-            Icon(
-                imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Chọn ảnh",
-                tint = Color.Black,
-                modifier = Modifier
-                    .size(26.dp)
-                    .offset(x = 4.dp, y = 4.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = LocalIndication.current
-                    ) {
-                        imageLauncher.launch("image/*")
-                    }
-                    .padding(4.dp)
-            )
+            if (!profileImage.isNullOrBlank()) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = "Chọn ảnh",
+                    tint = Color.Black,
+                    modifier = Modifier
+                        .size(26.dp)
+                        .offset(x = 4.dp, y = 4.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current
+                        ) {
+                            imageLauncher.launch("image/*")
+                        }
+                        .padding(4.dp)
+                )
+            }
         }
+
 
         Spacer(modifier = Modifier.width(15.dp))
         Column {

@@ -43,6 +43,7 @@ import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
 import com.datn.viettech_md_12.screen.profile_detail.ShippingScreen
+import com.datn.viettech_md_12.screen.review.ReviewScreen
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 
@@ -102,6 +103,7 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("address_screen") { AddressScreen(navController) }
             composable("contact_us") { ContactUsUI(navController) }
             composable("post_screen") { PostScreen(navController) }
+            composable("review_screen") { ReviewScreen(navController) }
             composable("notification") { NotificationScreen(navController) }
             composable("post_detail/{postId}") { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""

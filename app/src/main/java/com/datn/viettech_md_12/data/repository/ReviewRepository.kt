@@ -2,6 +2,8 @@ package com.datn.viettech_md_12.data.repository
 
 import com.datn.viettech_md_12.data.interfaces.ReviewService
 import com.datn.viettech_md_12.data.model.*
+import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.data.remote.ApiClient.reviewService
 import okhttp3.MultipartBody
 import java.io.IOException
 
@@ -12,6 +14,7 @@ class ReviewRepository(private val reviewService: ReviewService) {
         clientId: String,
         accountId: String,
         productId: String,
+        billId: String,
         contentsReview: String,
         rating: Int,
         imageIds: List<String>
@@ -22,7 +25,8 @@ class ReviewRepository(private val reviewService: ReviewService) {
                 product_id = productId,
                 contents_review = contentsReview,
                 image_ids = imageIds,
-                rating = rating
+                rating = rating,
+                bill_id = billId,
             )
             val response = reviewService.addReview(request, token, clientId)
             if (response.isSuccessful) {
@@ -49,7 +53,7 @@ class ReviewRepository(private val reviewService: ReviewService) {
         return try {
             val request = UpdateReviewRequest(
                 contents_review = contentsReview,
-                rating=rating,
+                rating = rating,
                 image_ids = imageIds,
             )
             val response = reviewService.updateReview(reviewId, request, token, clientId)
@@ -79,6 +83,27 @@ class ReviewRepository(private val reviewService: ReviewService) {
             }
         } catch (e: Exception) {
             Result.failure(IOException("Failed to fetch reviews: ${e.localizedMessage}", e))
+        }
+    }
+
+    // Lấy danh sách review theo account
+    suspend fun getReviewsByAccount(accountId: String): Result<ReviewResponse> {
+        return try {
+            val response = ApiClient.reviewService.getReviewsByAccount(accountId)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it)
+                } ?: Result.failure(IOException("Empty response body"))
+            } else {
+                Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(
+                IOException(
+                    "Failed to fetch reviews by account: ${e.localizedMessage}",
+                    e
+                )
+            )
         }
     }
 
