@@ -38,15 +38,22 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.datn.viettech_md_12.data.model.BaseResponse
+import com.datn.viettech_md_12.data.model.ReviewResponse
+import com.datn.viettech_md_12.data.model.ReviewResponseAddUp
 import com.datn.viettech_md_12.viewmodel.ImageViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun AddReviewDialog(
     productId: String,
+    billId: String,
     reviewViewModel: ReviewViewModel,
     navController: NavController,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onReviewSubmitted: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -56,7 +63,6 @@ fun AddReviewDialog(
     val isImageUploading by imageViewModel.isLoading.collectAsState()
     var rating by remember { mutableStateOf(5) }
     var content by remember { mutableStateOf("") }
-
     var selectedUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var isUploading by remember { mutableStateOf(false) }
 
@@ -73,17 +79,27 @@ fun AddReviewDialog(
 
     val addReviewResult by reviewViewModel.addReviewResult.collectAsState()
     var showConfirmDialog by remember { mutableStateOf(false) }
-
     LaunchedEffect(addReviewResult) {
         addReviewResult?.onSuccess {
             Log.d("ADD_REVIEW", "Success = ${it.success}, Data = ${it.data}")
             Toast.makeText(context, "Gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
-            navController.navigate("product_detail/${productId}") // Chuyển đến chi tiết sản phẩm
+
+            // GỌI CALLBACK ở đây
+            onReviewSubmitted()
+
+            // Reset lại trạng thái để chuẩn bị cho sản phẩm khác
+            rating = 5
+            content = ""
+            selectedUris = emptyList()
             reviewViewModel.getReviewsByProduct(productId)
+            reviewViewModel.clearAddReviewResult() // 👈 Thêm dòng này
             onDismiss()
+            navController.navigate("product_detail/${productId}") // Chuyển đến chi tiết sản phẩm
+
         }?.onFailure {
             Log.d("ADD_REVIEW", "Review failed: $it")
             Toast.makeText(context, "Gửi đánh giá thất bại!", Toast.LENGTH_SHORT).show()
+            reviewViewModel.clearAddReviewResult() // 👈 Thêm dòng này
             onDismiss()
         }
     }
@@ -138,7 +154,8 @@ fun AddReviewDialog(
                                 productId = productId,
                                 contentsReview = content,
                                 rating = rating,
-                                images = imageIds
+                                images = imageIds,
+                                billId = billId
                             )
                         }
                     }
@@ -219,9 +236,16 @@ fun AddReviewDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    TextButton(onClick = {
+                        // Reset khi bấm Hủy
+                        rating = 5
+                        content = ""
+                        selectedUris = emptyList()
+                        onDismiss()
+                    }) {
                         Text("Hủy")
                     }
+
 
                     Spacer(modifier = Modifier.width(8.dp))
 

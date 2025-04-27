@@ -83,11 +83,12 @@ fun UpdateReviewDialog(
         updateReviewResult?.onSuccess {
             Toast.makeText(context, "Cập nhật đánh giá thành công!", Toast.LENGTH_SHORT).show()
             Log.d("UPDATE_REVIEW", "Success = ${it.success}, Data = ${it.data}")
+            reviewViewModel.clearAddReviewResult() // 👈 Thêm dòng này
             onDismiss()
-            reviewViewModel.getReviewsByProduct(productId)
         }?.onFailure {
             Log.d("UPDATE_REVIEW", "Review failed: $it")
             Toast.makeText(context, "Cập nhật đánh giá thất bại!", Toast.LENGTH_SHORT).show()
+            reviewViewModel.clearAddReviewResult() // 👈 Thêm dòng này
             onDismiss()
         }
     }
@@ -221,7 +222,7 @@ fun UpdateReviewDialog(
                             }
                         }
                     } else {
-                        Text("Bạn chỉ có thể cập nhật trong vòng 2 ngày.", color = Color.Gray)
+                        Text("Đã quá 2 ngày", color = Color.Gray)
                     }
 
                 }

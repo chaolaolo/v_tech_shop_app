@@ -16,7 +16,8 @@ class ReviewViewModel(application: Application) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _addReviewResult = MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
+    private val _addReviewResult =
+        MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
     val addReviewResult: StateFlow<Result<BaseResponse<ReviewResponseAddUp>>?> = _addReviewResult
 
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
@@ -25,17 +26,26 @@ class ReviewViewModel(application: Application) : ViewModel() {
     private val _reviewStats = MutableStateFlow<Result<ReviewStats>?>(null)
     val reviewStats: StateFlow<Result<ReviewStats>?> = _reviewStats
 
-    private val _updateReviewResult = MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
-    val updateReviewResult: StateFlow<Result<BaseResponse<ReviewResponseAddUp>>?> = _updateReviewResult
+    private val _updateReviewResult =
+        MutableStateFlow<Result<BaseResponse<ReviewResponseAddUp>>?>(null)
+    val updateReviewResult: StateFlow<Result<BaseResponse<ReviewResponseAddUp>>?> =
+        _updateReviewResult
 
     private val _userReviewStatus = MutableStateFlow<Boolean>(false)
     val userReviewStatus: StateFlow<Boolean> = _userReviewStatus
 
     private val sharedPreferences =
         application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    private val _reviewsByAccount = MutableStateFlow<List<Review>>(emptyList())
+    val reviewsByAccount: StateFlow<List<Review>> = _reviewsByAccount
+
+    fun clearAddReviewResult() {
+        _addReviewResult.value = null
+    }
 
     fun addReview(
         productId: String,
+        billId: String,
         contentsReview: String,
         rating: Int,
         images: List<String>
@@ -51,6 +61,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
                     clientId = clientId,
                     accountId = clientId,
                     productId = productId,
+                    billId = billId,
                     contentsReview = contentsReview,
                     rating = rating,
                     imageIds = images
@@ -62,7 +73,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
         }
     }
 
-    fun updateReview(reviewId: String, contentsReview: String,rating: Int, images: List<String>) {
+    fun updateReview(reviewId: String, contentsReview: String, rating: Int, images: List<String>) {
         val token = sharedPreferences.getString("accessToken", "") ?: ""
         val clientId = sharedPreferences.getString("clientId", "") ?: ""
 
@@ -76,7 +87,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
                     contentsReview = contentsReview,
                     rating = rating,
                     imageIds = images,
-                    )
+                )
                 _updateReviewResult.value = result
             } finally {
                 _isLoading.value = false
@@ -99,25 +110,7 @@ class ReviewViewModel(application: Application) : ViewModel() {
             }
         }
     }
-    fun checkUserReviewStatus(productId: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val result = _repository.getReviewsByProduct(productId)
-                if (result.isSuccess) {
-                    // Kiểm tra nếu người dùng đã có review cho sản phẩm này
-                    val userId = sharedPreferences.getString("clientId", "")
-                    val reviews = result.getOrNull()?.data ?: emptyList()
-                    val userHasReviewed = reviews.any { it.account_id == userId }
-                    _userReviewStatus.value = userHasReviewed
-                } else {
-                    _userReviewStatus.value = false
-                }
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+
     fun getCurrentUserId(): String {
         return sharedPreferences.getString("clientId", "") ?: ""
     }
@@ -133,6 +126,39 @@ class ReviewViewModel(application: Application) : ViewModel() {
             }
         }
     }
+
+    fun getReviewsByAccount() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val token = sharedPreferences.getString("accessToken", "") ?: ""
+                val clientId = sharedPreferences.getString("clientId", "") ?: ""
+                val result = _repository.getReviewsByAccount(clientId)
+                if (result.isSuccess) {
+                    // Lọc các đánh giá trùng lặp
+                    _reviewsByAccount.value =
+                        result.getOrNull()?.data?.distinctBy { it._id } ?: emptyList()
+                } else {
+                    Log.e("GET_REVIEWS_BY_ACCOUNT", "Lỗi: ${result.exceptionOrNull()?.message}")
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun checkReviewExists(billId: String, productId: String): Boolean {
+        // Kiểm tra xem liệu danh sách đánh giá có rỗng không, nếu có thì gọi getReviewsByAccount để tải lại đánh giá
+        if (_reviewsByAccount.value.isEmpty()) {
+            // Gọi API lấy lại danh sách đánh giá
+            getReviewsByAccount()
+        }
+        // Sau khi dữ liệu đã được tải, kiểm tra sự tồn tại của đánh giá cho billId và productId
+        return _reviewsByAccount.value.any {
+            it.bill_id == billId && it.product_id == productId
+        }
+    }
+
 }
 
 class ReviewViewModelFactory(
