@@ -122,6 +122,7 @@ class MainActivity : ComponentActivity() {
     }
     private fun setExternalUserId(userId: String) {
         OneSignal.setExternalUserId(userId)
+        OneSignal.sendTag("role","customer")
         Log.d("dcm_onesignal", "External user ID đã được gán: $userId")
     }
 }

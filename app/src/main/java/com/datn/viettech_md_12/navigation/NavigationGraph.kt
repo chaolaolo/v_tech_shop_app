@@ -47,6 +47,8 @@ import com.datn.viettech_md_12.screen.review.ReviewScreen
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -113,7 +115,8 @@ fun NavigationGraph(startDestination: String = "home") {
                 PostDetailScreen(navController, postId = postId)
             }
             composable("same_tags_posts/{tag}") { backStackEntry ->
-                val tag = backStackEntry.arguments?.getString("tag") ?: ""
+                val encodedTag = backStackEntry.arguments?.getString("tag") ?: ""
+                val tag = URLDecoder.decode(encodedTag, StandardCharsets.UTF_8.toString())
                 SameTagsPosts(navController, tag = tag)
             }
             //mới nhất(tách 2 màn thanh toán riêng)
