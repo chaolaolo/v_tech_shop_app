@@ -42,6 +42,9 @@ class ReviewViewModel(application: Application) : ViewModel() {
     fun clearAddReviewResult() {
         _addReviewResult.value = null
     }
+    fun clearUpReviewResult() {
+        _updateReviewResult.value = null
+    }
 
     fun addReview(
         productId: String,
@@ -109,10 +112,6 @@ class ReviewViewModel(application: Application) : ViewModel() {
                 _isLoading.value = false
             }
         }
-    }
-
-    fun getCurrentUserId(): String {
-        return sharedPreferences.getString("clientId", "") ?: ""
     }
 
     fun getReviewStats(productId: String) {

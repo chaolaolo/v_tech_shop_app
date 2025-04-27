@@ -196,9 +196,6 @@ fun ProductDetailScreen(
     var showCheckStockDialog by remember { mutableStateOf(false) }
 
     val price = productDetail?.productPrice ?: 0.0
-    val currentAccountId = reviewViewModel.getCurrentUserId()
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var selectedReview by remember { mutableStateOf<Review?>(null) }
     val itemPriceFormatted = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(price)
 
 
@@ -1107,9 +1104,14 @@ fun ProductDetailScreen(
                                 }
 
                                 Spacer(Modifier.height(8.dp))
-                                // Review màn
-                                // Sắp xếp lại danh sách reviews theo rating từ cao xuống thấp
-                                val sortedReviews = reviews.sortedByDescending { it.rating }
+                                // Group reviews by username and get the latest review for each user
+                                val latestReviews = reviews
+                                    .groupBy { it.username } // Group by username
+                                    .map { it.value.maxByOrNull { review -> review.updatedAt } } // Get the latest review based on timestamp
+                                    .filterNotNull() // Remove null values in case there's no review for some users
+
+                                // Sort reviews by rating in descending order
+                                val sortedReviews = latestReviews.sortedByDescending { it.rating }
 
                                 if (sortedReviews.isEmpty()) {
                                     Box(
@@ -1128,11 +1130,10 @@ fun ProductDetailScreen(
                                     }
                                 } else {
                                     LazyColumn(modifier = Modifier.height(300.dp)) {
-                                        items(sortedReviews) { review ->  // Dùng sortedReviews thay cho reviews
+                                        items(sortedReviews) { review ->
                                             Column(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .padding(8.dp)
                                             ) {
                                                 // ✅ Dòng 1: Avatar + Tên người dùng
                                                 Row(
@@ -1144,7 +1145,6 @@ fun ProductDetailScreen(
                                                         "http://103.166.184.249:"
                                                     )
 
-                                                    // Ảnh đại diện kiểu TikTok Shop
                                                     Box(
                                                         modifier = Modifier
                                                             .size(36.dp)
@@ -1153,7 +1153,7 @@ fun ProductDetailScreen(
                                                                 width = 1.dp,
                                                                 color = Color(0xFFE0E0E0),
                                                                 shape = CircleShape
-                                                            ) // viền mỏng nhẹ giống TikTok Shop
+                                                            )
                                                     ) {
                                                         AsyncImage(
                                                             model = avatarUrl,
@@ -1242,67 +1242,6 @@ fun ProductDetailScreen(
 
                                                     Spacer(modifier = Modifier.height(4.dp))
                                                 }
-
-                                                // ✅ Nút cập nhật nếu đúng tài khoản
-                                                if (review.account_id == currentAccountId) {
-                                                    Button(
-                                                        onClick = {
-                                                            selectedReview = review
-                                                            showUpdateDialog = true
-                                                        },
-                                                        colors = ButtonDefaults.buttonColors(
-                                                            containerColor = Color(0xFF1976D2)
-                                                        ),
-                                                        shape = RoundedCornerShape(10.dp),
-                                                        contentPadding = PaddingValues(
-                                                            horizontal = 8.dp,
-                                                            vertical = 4.dp
-                                                        ),
-                                                        modifier = Modifier
-                                                            .padding(top = 4.dp)
-                                                            .height(32.dp)
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Edit,
-                                                            contentDescription = null,
-                                                            tint = Color.White,
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(4.dp))
-                                                        Text(
-                                                            "Cập nhật",
-                                                            color = Color.White,
-                                                            fontSize = 12.sp
-                                                        )
-                                                    }
-                                                }
-
-                                                // ✅ Dialog cập nhật
-                                                if (showUpdateDialog && selectedReview != null) {
-                                                    UpdateReviewDialog(
-                                                        reviewId = selectedReview!!._id,
-                                                        productId = productId,
-                                                        initialRating = selectedReview!!.rating,
-                                                        initialContent = selectedReview!!.contents_review,
-                                                        initialImageUrls = selectedReview!!.images.map { it.url },
-                                                        initialImageIds = selectedReview!!.images.map { it._id },
-                                                        createdAt = selectedReview!!.createdAt,
-                                                        reviewViewModel = reviewViewModel,
-                                                        onDismiss = {
-                                                            showUpdateDialog = false
-                                                            selectedReview = null
-                                                        }
-                                                    )
-                                                    Log.d(
-                                                        "UPDATE_REVIEW",
-                                                        "selectedReview: $selectedReview"
-                                                    )
-                                                    Log.d(
-                                                        "UPDATE_REVIEW",
-                                                        "imageIds: ${selectedReview!!.images.map { it._id }}"
-                                                    )
-                                                }
-
                                                 Divider(modifier = Modifier.padding(vertical = 8.dp))
                                             }
                                         }
@@ -1314,6 +1253,7 @@ fun ProductDetailScreen(
                                         }
                                     }
                                 }
+
 
                             }
 
