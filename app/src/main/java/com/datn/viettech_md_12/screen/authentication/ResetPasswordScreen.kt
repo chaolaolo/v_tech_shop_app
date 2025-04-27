@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.viewmodel.ForgotPasswordViewModel
 
@@ -81,7 +82,7 @@ fun ResetPassword(viewModel: ForgotPasswordViewModel) {
             .fillMaxHeight()
             .systemBarsPadding(), topBar = {
             TopAppBar(
-                title = { Text(text = "Quên mật khẩu") },
+                title = { Text(text = "Thiết lập mật khẩu mới") },
                 colors = TopAppBarColors(
                     containerColor = Color.White,
                     scrolledContainerColor = Color.Transparent,
@@ -90,7 +91,10 @@ fun ResetPassword(viewModel: ForgotPasswordViewModel) {
                     actionIconContentColor = Color.Black
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        val intent = Intent(context, LoginScreen::class.java)
+                        context.startActivity(intent)
+                    }) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
@@ -173,10 +177,18 @@ fun ResetPassword(viewModel: ForgotPasswordViewModel) {
                 MyButton(
                     text = "Lưu",
                     onClick = {
-                        viewModel.resetPassword { message ->
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        if (viewModel.newPassword.isBlank()) {
+                            Toast.makeText(context,"Vui lòng nhập mật khẩu!", Toast.LENGTH_SHORT).show()
+                        }else if(viewModel.newPassword.length<6){
+                            Toast.makeText(context,"Mật khẩu phải có ít nhất 6 ký tự!", Toast.LENGTH_SHORT).show()
+                         }else if(viewModel.confirmPassword!=viewModel.newPassword || (viewModel.confirmPassword.isBlank() && viewModel.newPassword.isNotBlank())){
+                            Toast.makeText(context,"Mật khẩu không trùng khớp!", Toast.LENGTH_SHORT).show()
+                        }else {
+                            viewModel.resetPassword { message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 val intent = Intent(context, SuccessPasswordScreen::class.java)
                                 context.startActivity(intent)
+                            }
                         }
                     },
                     backgroundColor = Color.Black,

@@ -3,11 +3,14 @@ package com.datn.viettech_md_12.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -28,6 +32,7 @@ import com.datn.viettech_md_12.component.item.CustomItemProducts
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.SearchViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
@@ -42,14 +47,27 @@ fun SearchScreen(
 
     Scaffold(
         topBar = {
-            CustomTopAppBar(
-                title = "VietTech",
-                iconLogo = R.drawable.ic_logo,
-                icon1 = null,
-                icon2 = R.drawable.ic_cancel,
-                navController = navController,
-                actionTitle1 = "",
-                actionTitle2 = "back",
+            TopAppBar(
+                title = { Text("") },
+                modifier = Modifier.padding(start = 16.dp),
+                navigationIcon = {
+                    Icon(
+                        painter = painterResource(R.drawable.logo),
+                        contentDescription = "logo",
+                        tint = Color(0xFF309A5F),
+                        modifier = Modifier.clickable { navController.popBackStack() })
+                },
+                actions = {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    }) {
+                            Icon(
+                                Icons.Default.Close ,
+                                contentDescription = "close",
+                                modifier = Modifier.size(25.dp)
+                            )
+                    }
+                },
             )
         },
         containerColor = Color.White,
