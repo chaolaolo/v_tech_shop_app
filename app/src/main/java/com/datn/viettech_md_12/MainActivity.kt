@@ -132,9 +132,9 @@ fun RequestNotificationPermission() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            Log.d("NotificationPermission", "Đã cấp quyền thông báo")
+            Log.d("dcm_onesignal", "Đã cấp quyền thông báo")
         } else {
-            Log.d("NotificationPermission", "Từ chối quyền thông báo")
+            Log.d("dcm_onesignal", "Từ chối quyền thông báo")
         }
     }
 
@@ -172,14 +172,14 @@ private fun showCustomNotification(context: Context,event: OSNotificationReceive
     val message = notification.body ?: "Bạn có một thông báo mới từ VietTech"
     Log.d("dcm_onesignal", "Thông báo nhận: $title - $message")
     // Lưu thông báo vào SharedPreferences
-    val prefs = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE)
-    val notificationsJson = prefs.getString("notification_list", "[]")
-    val listType = object : TypeToken<MutableList<NotificationModel>>() {}.type
-    val list: MutableList<NotificationModel> = Gson().fromJson(notificationsJson, listType)
-
-    list.add(NotificationModel(title, message, System.currentTimeMillis()))
-    val updatedJson = Gson().toJson(list)
-    prefs.edit().putString("notification_list", updatedJson).apply()
+//    val prefs = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE)
+//    val notificationsJson = prefs.getString("notification_list", "[]")
+//    val listType = object : TypeToken<MutableList<NotificationModel>>() {}.type
+//    val list: MutableList<NotificationModel> = Gson().fromJson(notificationsJson, listType)
+//
+//    list.add(NotificationModel(title, message, System.currentTimeMillis()))
+//    val updatedJson = Gson().toJson(list)
+//    prefs.edit().putString("notification_list", updatedJson).apply()
 
     val intent = Intent(context, MainActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

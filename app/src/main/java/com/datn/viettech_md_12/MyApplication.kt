@@ -11,6 +11,7 @@ import android.widget.Toast
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.onesignal.OneSignal
 import okhttp3.Callback
 import okhttp3.MediaType
@@ -24,6 +25,7 @@ class MyApplication : Application() {
     lateinit var categoryViewModel: CategoryViewModel
     lateinit var searchViewModel: SearchViewModel
     lateinit var userViewModel: UserViewModel
+    lateinit var notificationViewModel: NotificationViewModel
 
     override fun onCreate() {
         super.onCreate()
@@ -77,6 +79,7 @@ class MyApplication : Application() {
         categoryViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(CategoryViewModel::class.java)
         searchViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(SearchViewModel::class.java)
         userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
+        notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(NotificationViewModel::class.java)
     }
 
 //    private fun setExternalUserId(userId: String) {
