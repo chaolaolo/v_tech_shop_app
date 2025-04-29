@@ -10,16 +10,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.datn.viettech_md_12.CategoryViewModelFactory
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.item.CustomItemCategories
 import com.datn.viettech_md_12.component.CustomTopAppBar2
 import com.datn.viettech_md_12.viewmodel.CategoryViewModel
 
 @Composable
-fun CategoriesScreen(navController: NavController, viewModel: CategoryViewModel = viewModel()) {
+fun CategoriesScreen(
+    navController: NavController,
+    viewModel: CategoryViewModel = viewModel(
+        factory = CategoryViewModelFactory(
+            NetworkHelper(LocalContext.current),
+        )
+    ),
+//    viewModel: CategoryViewModel = viewModel(),
+) {
     val categories by viewModel.categories.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
