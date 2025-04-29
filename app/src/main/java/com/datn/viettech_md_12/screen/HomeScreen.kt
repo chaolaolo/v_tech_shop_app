@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.datn.viettech_md_12.CategoryViewModelFactory
+import com.datn.viettech_md_12.NetworkHelper
+import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.*
 import com.datn.viettech_md_12.component.item.CustomItemProducts
@@ -31,8 +34,16 @@ import com.datn.viettech_md_12.viewmodel.ProductViewModel
 fun HomeScreen(
     navController: NavController,
     homeViewModel: HomeViewModel = viewModel(),
-    categoryViewModel: CategoryViewModel = viewModel(),
-    productViewModel: ProductViewModel = viewModel()
+    categoryViewModel: CategoryViewModel = viewModel(
+        factory = CategoryViewModelFactory(
+            NetworkHelper(LocalContext.current),
+        )
+    ),
+    productViewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(
+            NetworkHelper(LocalContext.current),
+        )
+    )
 ) {
     val banners by homeViewModel.banners.collectAsState()
     val categories by categoryViewModel.categories.collectAsState()

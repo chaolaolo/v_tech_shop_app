@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductDetailModel
 import com.datn.viettech_md_12.data.model.ProductDetailResponse
@@ -24,7 +25,7 @@ import retrofit2.HttpException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-class ProductViewModel : ViewModel() {
+class ProductViewModel(private val networkHelper: NetworkHelper) : ViewModel() {
     private val _repository = ApiClient.productRepository
 
     private val _products = MutableStateFlow<List<ProductModel>>(emptyList())
@@ -56,9 +57,9 @@ class ProductViewModel : ViewModel() {
 
 
     // lưu variantId đã match
-     var _matchedVariantId = MutableStateFlow<String?>(null)
+    var _matchedVariantId = MutableStateFlow<String?>(null)
     var matchedVariantId: StateFlow<String?> = _matchedVariantId
-     var _matchedVariantPrice = MutableStateFlow<Double?>(null)
+    var _matchedVariantPrice = MutableStateFlow<Double?>(null)
     var matchedVariantPrice: StateFlow<Double?> = _matchedVariantPrice
 
     private val _bottomSheetType = MutableStateFlow("")
@@ -67,29 +68,19 @@ class ProductViewModel : ViewModel() {
         _bottomSheetType.value = type
     }
     init {
-        loadCategories()
-        getAllProduct()
-        Log.d("ProductViewModel", _product.value.toString())
+        if (networkHelper.isNetworkConnected()) {
+            loadCategories()
+            getAllProduct()
+            Log.d("ProductViewModel", _product.value.toString())
+        } else {
+            Log.d("CategoryViewModel", "Không có kết nối mạng.")
+            _isLoading.value = false
+        }
     }
 
     private fun loadCategories() {
         viewModelScope.launch {
             delay(2000)
-
-//2000            _products.value = listOf(
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 0", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 1", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 2", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 3", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 4", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 5", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 6", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 7", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 8", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 9", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 10", 186.00, 126.00),
-//            )
-
             _isLoading.value = false
         }
     }

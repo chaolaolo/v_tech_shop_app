@@ -3,6 +3,7 @@ package com.datn.viettech_md_12.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.Category
 import com.datn.viettech_md_12.data.model.CategoryModel
@@ -13,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class CategoryViewModel() : ViewModel() {
+class CategoryViewModel(private val networkHelper: NetworkHelper) : ViewModel() {
     private val _repository = ApiClient.categoryRepository
 
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
@@ -23,7 +24,12 @@ class CategoryViewModel() : ViewModel() {
     val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
-        fetchCategories() // ✅ Gọi API ngay khi ViewModel được tạo
+        if (networkHelper.isNetworkConnected()) {
+            fetchCategories()
+        } else {
+            Log.d("CategoryViewModel", "Không có kết nối mạng.")
+            _isLoading.value = false
+        }
     }
 
     fun fetchCategories() {

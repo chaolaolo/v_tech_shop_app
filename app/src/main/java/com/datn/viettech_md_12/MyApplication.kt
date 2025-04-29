@@ -11,6 +11,7 @@ import android.widget.Toast
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.lifecycle.ViewModelStore
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.onesignal.OneSignal
 import okhttp3.Callback
@@ -74,9 +75,10 @@ class MyApplication : Application() {
 //            Log.d("dcm_onesignal", "Thông báo được mở: ${notification.title}, actionId: $actionId")
 //        }
 
+        val networkHelper = NetworkHelper(this)
         // Khởi tạo các ViewModel
-        productViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(ProductViewModel::class.java)
-        categoryViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(CategoryViewModel::class.java)
+        productViewModel = ViewModelProvider(ViewModelStore(), ProductViewModelFactory(networkHelper))[ProductViewModel::class.java]
+        categoryViewModel = ViewModelProvider(ViewModelStore(), CategoryViewModelFactory(networkHelper))[CategoryViewModel::class.java]
         searchViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(SearchViewModel::class.java)
         userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
         notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(NotificationViewModel::class.java)
