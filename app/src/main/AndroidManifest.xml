@@ -8,6 +8,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -25,6 +26,11 @@
         android:theme="@style/Theme.VietTech_MD_12"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".NoInternetActivity"
+            android:exported="false"
+            android:label="@string/title_activity_no_internet"
+            android:theme="@style/Theme.VietTech_MD_12" />
         <activity
             android:name=".screen.authentication.LoginScreen"
             android:exported="false"

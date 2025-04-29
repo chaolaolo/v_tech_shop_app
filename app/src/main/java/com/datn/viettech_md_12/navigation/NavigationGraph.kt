@@ -56,11 +56,11 @@ fun NavigationGraph(startDestination: String = "home") {
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
-    val productViewModel: ProductViewModel =
+    val productViewModel: ProductViewModel? =
         (LocalContext.current.applicationContext as MyApplication).productViewModel
-    val userViewModel: UserViewModel =
+    val userViewModel: UserViewModel? =
         (LocalContext.current.applicationContext as MyApplication).userViewModel
-    val notificationViewModel: NotificationViewModel =
+    val notificationViewModel: NotificationViewModel? =
         (LocalContext.current.applicationContext as MyApplication).notificationViewModel
 
     val selectedRoute = when {
@@ -96,10 +96,22 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("home") { HomeScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
             composable("cart") { CartScreen(navController) }
-            composable("wishlist") { WishlistScreen(viewModel = productViewModel,navController) }
+            composable("wishlist") {
+                if (productViewModel != null) {
+                    WishlistScreen(viewModel = productViewModel,navController)
+                }
+            }
             composable("profile") { ProfileScreen(navController) }
-            composable("change_password_screen") { ChangePasswordScreen(navController,userViewModel = userViewModel) }
-            composable("order_history_screen") { OrderHistoryScreen(navController, viewModel = productViewModel) }
+            composable("change_password_screen") {
+                if (userViewModel != null) {
+                    ChangePasswordScreen(navController,userViewModel = userViewModel)
+                }
+            }
+            composable("order_history_screen") {
+                if (productViewModel != null) {
+                    OrderHistoryScreen(navController, viewModel = productViewModel)
+                }
+            }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment_screen") { PaymentScreen(navController) }
@@ -108,7 +120,11 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("address_screen") { AddressScreen(navController) }
             composable("contact_us") { ContactUsUI(navController) }
             composable("post_screen") { PostScreen(navController) }
-            composable("notification") { NotificationScreen(viewModel= notificationViewModel,navController) }
+            composable("notification") {
+                if (notificationViewModel != null) {
+                    NotificationScreen(viewModel= notificationViewModel,navController)
+                }
+            }
             composable("review_screen") { ReviewScreen(navController) }
             composable("post_detail/{postId}") { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
@@ -191,10 +207,14 @@ fun NavigationGraph(startDestination: String = "home") {
                 )
             }
             composable("login") {
-                LoginUser(userViewModel, navController)
+                if (userViewModel != null) {
+                    LoginUser(userViewModel, navController)
+                }
             }
             composable("register") {
-                SignUpUser(userViewModel, navController)
+                if (userViewModel != null) {
+                    SignUpUser(userViewModel, navController)
+                }
             }
         }
     }
