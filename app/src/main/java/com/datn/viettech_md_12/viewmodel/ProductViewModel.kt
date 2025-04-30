@@ -354,6 +354,7 @@ class ProductViewModel(private val networkHelper: NetworkHelper) : ViewModel() {
                 sharedPreferences.getString("userId", "")  // bạn cần lưu userId sau khi login
             Log.d("dcm_debug_order", "Token:$token")
             Log.d("dcm_debug_order", "ClientId: $clientId")
+            _isLoading.value = true
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
                     val response = _repository.getUserOrders(userId.toString(), token, clientId)
@@ -383,6 +384,8 @@ class ProductViewModel(private val networkHelper: NetworkHelper) : ViewModel() {
                     }
                 } catch (e: Exception) {
                     Log.e("dcm_order", "Lỗi chung: ${e.message}")
+                } finally {
+                    _isLoading.value = false
                 }
             } else {
                 Log.e("dcm_order", "Token hoặc ClientId không tồn tại")
