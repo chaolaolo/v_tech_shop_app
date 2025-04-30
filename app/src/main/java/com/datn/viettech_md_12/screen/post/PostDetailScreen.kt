@@ -82,10 +82,10 @@ import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.RelatedProduct
+import com.datn.viettech_md_12.utils.PostViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.PostViewModel
-import com.datn.viettech_md_12.viewmodel.PostViewModelFactory
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.launch
 import java.net.URLEncoder

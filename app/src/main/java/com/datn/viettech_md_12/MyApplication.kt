@@ -12,8 +12,10 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModelStore
+import com.datn.viettech_md_12.utils.CartViewModelFactory
+import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CartViewModel
-import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
+import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.onesignal.OneSignal
 import okhttp3.Callback
@@ -30,6 +32,7 @@ class MyApplication : Application() {
     lateinit var searchViewModel: SearchViewModel
     lateinit var userViewModel: UserViewModel
     lateinit var notificationViewModel: NotificationViewModel
+    lateinit var checkoutViewModel: CheckoutViewModel
 
     override fun onCreate() {
         super.onCreate()
@@ -86,6 +89,7 @@ class MyApplication : Application() {
         searchViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(SearchViewModel::class.java)
         userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
         notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(NotificationViewModel::class.java)
+        checkoutViewModel = ViewModelProvider(ViewModelStore(), CheckoutViewModelFactory(this,networkHelper))[CheckoutViewModel::class.java]
     }
 
 //    private fun setExternalUserId(userId: String) {

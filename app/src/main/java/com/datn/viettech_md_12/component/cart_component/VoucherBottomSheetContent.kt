@@ -77,10 +77,9 @@ fun VoucherBottomSheetContent(
     }
     Column(
         modifier = Modifier
-//            .padding(start = 16.dp, end = 16.dp, top = 10.dp)
-            .fillMaxSize()
-//            .fillMaxWidth()
-//            .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
+            .padding(start = 16.dp, end = 16.dp, top = 10.dp)
+            .fillMaxWidth()
+            .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
             .imePadding()
     ) {
         // Sheet header

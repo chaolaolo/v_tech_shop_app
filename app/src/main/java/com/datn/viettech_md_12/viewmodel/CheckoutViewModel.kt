@@ -3,9 +3,11 @@ package com.datn.viettech_md_12.viewmodel
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.data.model.AddressModel
 import com.datn.viettech_md_12.data.model.BillResponse
 import com.datn.viettech_md_12.data.model.CartModel
@@ -23,7 +25,7 @@ import retrofit2.Response
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-class CheckoutViewModel(application: Application) : ViewModel(){
+class CheckoutViewModel(application: Application, networkHelper: NetworkHelper) : ViewModel(){
     private val checkoutRepository = ApiClient.checkoutRepository
     private val _addressState = MutableStateFlow<Response<AddressModel>?>(null)
     val addressState: StateFlow<Response<AddressModel>?> get() = _addressState
@@ -46,9 +48,17 @@ class CheckoutViewModel(application: Application) : ViewModel(){
     private val token: String? = sharedPreferences.getString("accessToken", null)
     private val userId: String? = sharedPreferences.getString("clientId", null)
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> get() = _errorMessage
+
     init {
-        getAddress()
-        getIsSelectedItemInCart()
+        if (networkHelper.isNetworkConnected()) {
+            getAddress()
+            getIsSelectedItemInCart()
+        }else{
+            Log.d("CartViewModel", "Không có kết nối mạng.")
+            _isLoading.value = false
+        }
     }
 
     //Get Address
@@ -315,12 +325,3 @@ class CheckoutViewModel(application: Application) : ViewModel(){
 
 }
 
-
-class CheckoutViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CheckoutViewModel::class.java)) {
-            return CheckoutViewModel(application) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

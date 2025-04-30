@@ -89,10 +89,9 @@ import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.screen.checkout.PayMethodItem
 import com.datn.viettech_md_12.screen.checkout.PaymentMethod
 import com.datn.viettech_md_12.screen.checkout.formatCurrency
+import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CartViewModel
-import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
-import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -106,7 +105,7 @@ fun PaymentNowUI(
     productId: String = "",
     quantity: Int = 1,
     variantId: String? = null,
-    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
+    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application, NetworkHelper(LocalContext.current))),
     productViewModel: ProductViewModel = viewModel(
         factory = ProductViewModelFactory(
             NetworkHelper(LocalContext.current),

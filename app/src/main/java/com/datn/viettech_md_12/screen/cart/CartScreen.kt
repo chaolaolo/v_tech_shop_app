@@ -139,8 +139,8 @@ import com.datn.viettech_md_12.component.cart_component.VoucherItem
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.screen.checkout.formatCurrency
+import com.datn.viettech_md_12.utils.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CartViewModel
-import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -350,7 +350,7 @@ fun CartScreen(
                             title = {
                                 Text(
                                     text = "Lỗi",
-                                    color = Color(0xFF21D4B4),
+                                    color = Color.Black,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -358,7 +358,7 @@ fun CartScreen(
                             text = {
                                 Text(
                                     text = errorMessage ?: "",
-                                    color = Color(0xFF21D4B4),
+                                    color = Color.Black,
                                     fontSize = 16.sp,
                                     textAlign = TextAlign.Center
                                 )
@@ -389,7 +389,7 @@ fun CartScreen(
                                         text = "Đóng",
                                         color = Color.Black,
                                         modifier = Modifier,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.W500
                                     )
                                 }
 
@@ -398,7 +398,11 @@ fun CartScreen(
                     }
 
                     isErrorDialogDismissed -> {
-                        EmptyCart(navController = navController)
+                        if( accessToken == null) {
+                            CartNotLogin(navController)
+                        }else if (cartState?.body() == null){
+                            EmptyCart(navController)
+                        }
                     }
                     accessToken == null -> {
                         Box(

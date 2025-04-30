@@ -89,10 +89,10 @@ import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.screen.checkout.PayMethodItem
 import com.datn.viettech_md_12.screen.checkout.PaymentMethod
 import com.datn.viettech_md_12.screen.checkout.formatCurrency
+import com.datn.viettech_md_12.utils.CartViewModelFactory
+import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CartViewModel
-import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
-import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -108,7 +108,7 @@ import java.util.Locale
 fun PaymentCartUI(
     navController: NavController,
     discount: String = "",
-    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
+    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application, NetworkHelper(LocalContext.current))),
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application,  NetworkHelper(LocalContext.current),)),
 ) {
     val context = LocalContext.current

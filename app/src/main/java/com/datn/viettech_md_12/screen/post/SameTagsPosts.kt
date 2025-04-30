@@ -64,8 +64,8 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.AllPostMetadata
+import com.datn.viettech_md_12.utils.PostViewModelFactory
 import com.datn.viettech_md_12.viewmodel.PostViewModel
-import com.datn.viettech_md_12.viewmodel.PostViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

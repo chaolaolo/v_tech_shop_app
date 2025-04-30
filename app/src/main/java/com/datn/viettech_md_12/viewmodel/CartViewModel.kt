@@ -79,7 +79,6 @@ class CartViewModel(application: Application, networkHelper: NetworkHelper) : Vi
         } else {
             Log.d("CartViewModel", "Không có kết nối mạng.")
             _errorMessage.value = "Không có kết nối mạng."
-//            Toast.makeText(context, "Không có kết nối mạng.", Toast.LENGTH_SHORT).show()
             _isLoading.value = false
         }
     }
@@ -398,11 +397,3 @@ class CartViewModel(application: Application, networkHelper: NetworkHelper) : Vi
 }
 
 
-class CartViewModelFactory(private val application: Application, private val networkHelper: NetworkHelper) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
-            return CartViewModel(application, networkHelper) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
