@@ -52,6 +52,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
@@ -170,6 +171,7 @@ fun CartScreen(
     val scope = rememberCoroutineScope()
     val cartState by cartViewModel.cartState.collectAsState()
     val errorMessage by cartViewModel.errorMessage.collectAsState()
+    val isErrorDialogDismissed by cartViewModel.isErrorDialogDismissed.collectAsState()
 
     val discountState by cartViewModel.discountState.collectAsState()
     val selectedVoucherId = remember { mutableStateOf<String?>(null) }
@@ -236,68 +238,15 @@ fun CartScreen(
         sheetSwipeEnabled = false,
         sheetContainerColor = Color(0xfff4f5fd),
         sheetContent = {
-            Box(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp, top = 10.dp)
-                    .fillMaxWidth()
-                    .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
-            ) {
-                when {
-                    isLoading && !isRefreshing -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = Color(0xFF21D4B4))
-                        }
-                    }
-
-                    errorMessage != null -> {
-                        Box(modifier = Modifier.fillMaxSize()
-                            .pullRefresh(refreshState)
-                            .padding(16.dp),
-                            contentAlignment = Alignment.Center) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(text = errorMessage ?: "", color = Color(0xFF21D4B4), fontSize = 16.sp, textAlign = TextAlign.Center)
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Button(
-                                    onClick = {
-                                        cartViewModel.refreshCart() },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21D4B4))
-                                ) {
-                                    Text("Thử lại")
-                                }
-                            }
-                        }
-                    }
-                    else -> {
-//                        val discounts = discountState?.body()
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxSize()
-//                                .pullRefresh(refreshState) // Thêm pull-to-refresh cho màn hình có dữ liệu
-//                        ) {
-//                            discounts?.let { discount ->
-                                VoucherBottomSheetContent(
-                                    scaffoldState = scaffoldState,
-                                    snackbarHostState = snackbarHostState,
-                                    listDiscount = listDiscount,
-                                    selectedVoucherId = selectedVoucherId,
-                                    selectedVoucher = selectedVoucher,
-                                    voucherCode = voucherCode,
-                                    scope = scope
-                                )
-//                            }
-//                        }
-                    }
-                }
-            PullRefreshIndicator(
-                refreshing = isRefreshing,
-                state = refreshState,
-                modifier = Modifier.align(Alignment.TopCenter),
-                contentColor = Color(0xFF21D4B4)
+            VoucherBottomSheetContent(
+                scaffoldState = scaffoldState,
+                snackbarHostState = snackbarHostState,
+                listDiscount = listDiscount,
+                selectedVoucherId = selectedVoucherId,
+                selectedVoucher = selectedVoucher,
+                voucherCode = voucherCode,
+                scope = scope
             )
-            }
         },
         sheetTonalElevation = 16.dp,
         sheetShadowElevation = 24.dp,
@@ -323,7 +272,7 @@ fun CartScreen(
                     }
                 },
                 actions = {
-                    if(!cartState?.body()?.metadata?.cart_products.isNullOrEmpty()){
+                    if (!cartState?.body()?.metadata?.cart_products.isNullOrEmpty() && !isErrorDialogDismissed) {
                         TextButton(
                             onClick = {
 //                            isShowVoucherSheet.value = true
@@ -363,29 +312,94 @@ fun CartScreen(
                             CircularProgressIndicator(color = Color(0xFF21D4B4))
                         }
                     }
-
-                    errorMessage != null -> {
-                        Box(modifier = Modifier.fillMaxSize()
-                            .pullRefresh(refreshState)
-                            .padding(16.dp),
-                            contentAlignment = Alignment.Center) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(text = errorMessage ?: "", color = Color(0xFF21D4B4), fontSize = 16.sp, textAlign = TextAlign.Center)
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Button(
-                                    onClick = {
-                                        cartViewModel.refreshCart() },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21D4B4))
-                                ) {
-                                    Text("Thử lại")
-                                }
-                            }
+                    isRefreshing -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color = Color(0xfff4f5fd)), contentAlignment = Alignment.Center
+                        ) {
                         }
                     }
+//                    errorMessage != null -> {
+//                        Box(modifier = Modifier.fillMaxSize()
+//                            .pullRefresh(refreshState)
+//                            .padding(16.dp),
+//                            contentAlignment = Alignment.Center) {
+//                            Column(
+//                                horizontalAlignment = Alignment.CenterHorizontally,
+//                                verticalArrangement = Arrangement.Center
+//                            ) {
+//                                Text(text = errorMessage ?: "", color = Color(0xFF21D4B4), fontSize = 16.sp, textAlign = TextAlign.Center)
+//                                Spacer(modifier = Modifier.height(16.dp))
+//                                Button(
+//                                    onClick = {
+//                                        cartViewModel.refreshCart() },
+//                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21D4B4))
+//                                ) {
+//                                    Text("Thử lại")
+//                                }
+//                            }
+//                        }
+//                    }
 
+                    errorMessage != null && !isErrorDialogDismissed -> {
+                        AlertDialog(
+                            onDismissRequest = {
+                                cartViewModel.dismissErrorDialog()
+                            },
+                            title = {
+                                Text(
+                                    text = "Lỗi",
+                                    color = Color(0xFF21D4B4),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            text = {
+                                Text(
+                                    text = errorMessage ?: "",
+                                    color = Color(0xFF21D4B4),
+                                    fontSize = 16.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        cartViewModel.resetErrorState()
+                                        cartViewModel.refreshCart()
+                                    },
+                                ) {
+                                    Text(
+                                        text = "Thử lại",
+                                        color = Color(0xFF21D4B4),
+                                        modifier = Modifier,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        cartViewModel.dismissErrorDialog()
+                                        cartViewModel.clearErrorMessage()
+                                    },
+                                ) {
+                                    Text(
+                                        text = "Đóng",
+                                        color = Color.Black,
+                                        modifier = Modifier,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                            },
+                        )
+                    }
+
+                    isErrorDialogDismissed -> {
+                        EmptyCart(navController = navController)
+                    }
                     accessToken == null -> {
                         Box(
                             modifier = Modifier

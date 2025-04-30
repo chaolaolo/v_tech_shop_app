@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.datn.viettech_md_12.NetworkHelper
+import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.CustomTopAppBar
 import com.datn.viettech_md_12.component.item.CustomItemProducts
@@ -37,8 +39,11 @@ import com.datn.viettech_md_12.viewmodel.SearchViewModel
 fun SearchScreen(
     navController: NavController,
     searchViewModel: SearchViewModel = viewModel(),
-    productViewModel: ProductViewModel = viewModel()
-
+    productViewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(
+            NetworkHelper(LocalContext.current),
+        )
+    ),
 ) {
     val text = remember { mutableStateOf("") }
     val searchResults by searchViewModel.searchResults.collectAsState()

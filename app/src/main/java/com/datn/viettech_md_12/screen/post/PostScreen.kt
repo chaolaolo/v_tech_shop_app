@@ -125,7 +125,10 @@ fun PostScreen(
                             Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Black)
                         }
                     } else {
-                        IconButton(onClick = { showSearch = !showSearch }) {
+                        IconButton(onClick = {
+                            showSearch = !showSearch
+                            searchText.value = ""
+                        }) {
                             Icon(Icons.Filled.Close, contentDescription = "Close Search", tint = Color.Black)
                         }
                     }

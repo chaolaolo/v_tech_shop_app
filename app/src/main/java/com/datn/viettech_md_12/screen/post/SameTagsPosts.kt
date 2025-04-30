@@ -72,7 +72,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SameTagsPosts(
     navController: NavController,
@@ -141,9 +141,11 @@ fun SameTagsPosts(
                 verticalArrangement = Arrangement.Top
             ) {
                 Spacer(Modifier.height(10.dp))
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 ) {
                     Text(
                         text = "Những bài viết có gắn thẻ ",

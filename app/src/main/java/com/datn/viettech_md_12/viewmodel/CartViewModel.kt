@@ -69,6 +69,8 @@ class CartViewModel(application: Application, networkHelper: NetworkHelper) : Vi
     private val context = application.applicationContext
     private val _isNetworkConnected = MutableStateFlow(networkHelper.isNetworkConnected())
     val isNetworkConnected: StateFlow<Boolean> = _isNetworkConnected
+    private val _isErrorDialogDismissed = MutableStateFlow(false)
+    val isErrorDialogDismissed: StateFlow<Boolean> = _isErrorDialogDismissed
 
     init {
         if (networkHelper.isNetworkConnected()) {
@@ -88,11 +90,24 @@ class CartViewModel(application: Application, networkHelper: NetworkHelper) : Vi
         viewModelScope.launch {
             fetchCart()
             getListDisCount()
-            delay(1000)
+            delay(2000)
             _isRefreshing.value = false
         }
     }
 
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+
+    fun dismissErrorDialog() {
+        _isErrorDialogDismissed.value = true
+        _errorMessage.value = null
+    }
+
+    fun resetErrorState() {
+        _isErrorDialogDismissed.value = false
+        _errorMessage.value = null
+    }
 
     //Get cart
     fun fetchCart() {
