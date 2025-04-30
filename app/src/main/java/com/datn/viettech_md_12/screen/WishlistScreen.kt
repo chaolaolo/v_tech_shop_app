@@ -2,6 +2,7 @@ package com.datn.viettech_md_12.screen
 
 import FavoriteItem
 import MyButton
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material.Text
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Delete
@@ -48,6 +50,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
@@ -66,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -79,6 +83,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
+import com.datn.viettech_md_12.component.cart_component.CartNotLogin
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import kotlinx.coroutines.delay
@@ -95,7 +100,8 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
     var deletedItem by remember { mutableStateOf<FavoriteItem?>(null) }
-
+    val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    val accessToken = sharedPreferences.getString("accessToken", null)
     LaunchedEffect(Unit) {
         viewModel.getFavoriteProducts(context)
     }
@@ -105,14 +111,23 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
             .fillMaxSize()
             .systemBarsPadding(),
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Yêu thích", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+            SmallTopAppBar(
+                title = {
+                   Text(text = "Yêu thích", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.Black)
+                },
+                colors = TopAppBarColors(
+                    containerColor = Color.White,
+                    scrolledContainerColor = Color.Transparent,
+                    navigationIconContentColor = Color.Black,
+                    titleContentColor = Color.Black,
+                    actionIconContentColor = Color.Transparent
+                ),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                modifier = Modifier.shadow(elevation = 2.dp),
             )
         },
         snackbarHost = {
@@ -134,21 +149,29 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
                                 deletedItem = item
                                 viewModel.removeFromFavorites(item.product.id, context)
 
-                                coroutineScope.launch {
-                                    val result = snackbarHostState.showSnackbar(
-                                        message = "Đã xóa khỏi yêu thích",
-                                        actionLabel = "Khôi phục",
-                                        duration = SnackbarDuration.Long
-                                    )
-                                    if (result == SnackbarResult.ActionPerformed) {
-                                        viewModel.addToFavorites(item.product.id, context)
-                                    }
-                                }
-                            }
+//                                coroutineScope.launch {
+//                                    val result = snackbarHostState.showSnackbar(
+//                                        message = "Đã xóa khỏi yêu thích",
+//                                        actionLabel = "Khôi phục",
+//                                        duration = SnackbarDuration.Long
+//                                    )
+//                                    if (result == SnackbarResult.ActionPerformed) {
+//                                        // Gọi addToFavorites trước
+//                                        viewModel.addToFavorites(item.product.id, context)
+//
+//                                        // Sau đó cập nhật lại danh sách — dùng delay nhẹ để đợi API hoàn tất
+//                                        delay(500) // Có thể thay đổi tùy tốc độ server
+//                                        viewModel.getFavoriteProducts(context)
+//                                    }
+//                                }
+                            },
+
                         )
                     }
 
-                } else {
+                } else if (accessToken.isNullOrEmpty()) {
+                    item { CartNotLogin(navController) }
+                } else{
                     item { EmptyWishList(navController) }
                 }
             }
@@ -166,32 +189,71 @@ fun ItemFavorite(
     val BASE_URL = "http://103.166.184.249:3056/"
     val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(product.product_price)
 
+    var showDeleteConfirm by remember { mutableStateOf(false) } // xac nhan xoa
+    val coroutineScope = rememberCoroutineScope()
     val dismissState = rememberDismissState(
-        confirmStateChange = { dismissValue ->
-            if (dismissValue == DismissValue.DismissedToEnd || dismissValue == DismissValue.DismissedToStart) {
-                onItemDismissed(favoriteItem)
-            }
-            true
+        confirmStateChange = {
+            true // Cho phép dismiss hoàn tất
         }
     )
+
+   //lang nghe trang thai khi vuot
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue == DismissValue.DismissedToStart) {
+            showDeleteConfirm = true
+        } // xac nhan xoa
+    }
 
     SwipeToDismiss(
         state = dismissState,
         background = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Red),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Xóa",
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
+            if (showDeleteConfirm) {
+                // Giao diện xác nhận xoá
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFEF4139)),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Xác nhận xoá?",
+                            color = Color.White,
+                            modifier = Modifier.padding(end = 8.dp),
+                            fontSize = 14.sp
+                        )
+                        TextButton(
+                            onClick = {
+                                onItemDismissed(favoriteItem)
+                                showDeleteConfirm = false
+                                coroutineScope.launch {
+                                    dismissState.reset()
+                                }
+                            }
+                        ) {
+                            Text("Xoá", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                }
+            } else {
+                // Nền mặc định khi chưa vuốt
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFEF4139)),
+                    contentAlignment = Alignment.CenterEnd
+                ){
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Xóa",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
         },
         directions = setOf(DismissDirection.EndToStart)
@@ -227,71 +289,18 @@ fun ItemFavorite(
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "${itemPriceFormatted}",
-                            color = Color(0xFFF44336),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    }
+                    Text(
+                        text = itemPriceFormatted,
+                        color = Color(0xFFF11F10),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
                 }
             }
         }
     }
 }
 
-
-
-//@Composable
-//fun EmptyWishList() {
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        verticalArrangement = Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Image(
-//            painter = painterResource(R.drawable.img_empty_wishlist),
-//            contentDescription = null,
-//            modifier = Modifier.size(200.dp)
-//        )
-//        Text(
-//            text = "Danh sách yêu thích của bạn đang trống",
-//            fontWeight = FontWeight.Bold,
-//            textAlign = TextAlign.Center,
-//            color = Color.Black,
-//            fontSize = 24.sp
-//        )
-//        Spacer(modifier = Modifier.height(10.dp))
-//        Text(
-//            text = "Nhấn vào nút trái tim để bắt đầu lưu các mục yêu thích của bạn.",
-//            fontSize = 14.sp,
-//            color = Color.Gray,
-//            textAlign = TextAlign.Center,
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//        Spacer(modifier = Modifier.height(20.dp))
-//        Box(
-//            modifier = Modifier.fillMaxWidth(),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Button(
-//                onClick = {
-//
-//                },
-//                modifier = Modifier
-//                    .width(380.dp)
-//                    .height(60.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = Color.Black
-//                ),
-//                shape = RoundedCornerShape(12.dp)
-//            ) {
-//                Text("Khám phá danh mục", color = Color.White)
-//            }
-//        }
-//    }
-//}
 @Composable
 fun EmptyWishList(
     navController: NavController,

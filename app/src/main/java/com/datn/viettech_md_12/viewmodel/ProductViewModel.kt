@@ -319,6 +319,11 @@ class ProductViewModel(private val networkHelper: NetworkHelper) : ViewModel() {
                     val response =
                         _repository.removeFromFavorites(productId, token, clientId, apiKey)
                     if (response.isSuccessful) {
+                        Toast.makeText(
+                            context,
+                            "Đã xoá sản phẩm yêu thích thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         getFavoriteProducts(context)
 
                         editor.putBoolean(
