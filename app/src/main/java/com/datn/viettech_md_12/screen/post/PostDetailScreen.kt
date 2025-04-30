@@ -35,11 +35,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -52,9 +54,11 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -78,6 +82,7 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.data.model.CartModel
@@ -102,10 +107,16 @@ import java.util.TimeZone
 fun PostDetailScreen(
     navController: NavController,
     postId: String,
-    postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(LocalContext.current.applicationContext as Application)),
+    postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(
+        LocalContext.current.applicationContext as Application,
+        networkHelper = NetworkHelper(LocalContext.current)
+    )),
 ) {
     val postDetail by postViewModel.postDetailState.collectAsState()
-    val postDetailLoading by postViewModel.postDetailLoading.collectAsState()
+    val postDetailLoading by postViewModel.isLoading.collectAsState()
+    val errorMessage by postViewModel.errorMessage.collectAsState()
+    val isErrorDialogDismissed by postViewModel.isErrorDialogDismissed.collectAsState()
+
     var isExpanded by remember { mutableStateOf(false) }
     val allProducts = postDetail?.relatedProducts ?: emptyList()
     val visibleProducts = if (isExpanded) allProducts else allProducts.take(5) // Lấy tối đa 5 sản phẩm
@@ -172,210 +183,282 @@ fun PostDetailScreen(
                 .padding(innerPadding)
                 .background(Color(0xfff4f5fd))
         ) {
-            if (postDetailLoading) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xfff4f5fd)),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF21D4B4))
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Transparent)
-                        .padding(horizontal = 16.dp)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top,
-                ) {
-                    Log.d("PostDetailScreen", "PostDetail: $postDetail")
-                    Log.d("PostDetailScreen", "PostDetail: ${postDetail?.id}")
-                    // Logo - tên ng đang bài
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.ic_logo),
-                            contentDescription = "logo",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(Color.Transparent),
-                            tint = Color(0xFF309A5F)
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            "${postDetail?.account?.fullName}",
-                            color = Color.Black, fontWeight = FontWeight.Bold
-                        )
-                    }
-                    // Title
-                    Text(
-                        "${postDetail?.title}",
-                        color = Color.Black, fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                    // Thứ mấy, ngày/tháng/năm, giờ:phút - thể loại
-                    Spacer(Modifier.height(6.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Outlined.DateRange,
-                            contentDescription = "DateRange icon",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            formatDateTime(postDetail?.createdAt),
-                            color = Color.DarkGray,
-                            fontSize = 14.sp
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Outlined.Folder,
-                            contentDescription = "Folder icon",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            "${postDetail?.category?.name}" ?: "",
-                            color = Color.DarkGray,
-                            fontSize = 14.sp
-                        )
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
-                    // Mô tả ngắn/tiêu đề con
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        "${postDetail?.metaDescription}",
-                        color = Color.DarkGray, fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                    // Ảnh Thumb
-                    Spacer(Modifier.height(20.dp))
-                    AsyncImage(
-                        model = "http://103.166.184.249:3056/${postDetail?.thumbnail?.file_path?.replace("\\", "/")}",
-                        contentDescription = null,
-                        modifier = Modifier.size(400.dp),
-                        contentScale = ContentScale.Fit
-
-                    )
-                    // List Ảnh
-                    Spacer(Modifier.height(16.dp))
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(
-                            postDetail?.images ?: emptyList(),
-                        ) { image ->
-                            AsyncImage(
-                                model = "http://103.166.184.249:3056/${image.file_path.replace("\\", "/")}",
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .height(200.dp)
-                                    .background(Color(0xFFF4FDFA)),
-                                contentScale = ContentScale.Fit
-                            )
-                        }
-                    }
-                    // Nội dung
-                    Text(
-                        "${postDetail?.content}",
-                        color = Color.Black,
-                        softWrap = true
-                    )
-                    // Tags
-                    Spacer(Modifier.height(16.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.Top,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            Icons.Outlined.Sell,
-                            contentDescription = "Folder icon",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(end = 6.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            postDetail?.tags?.forEach { tag ->
-                                Box(
-                                    modifier = Modifier
-                                        .background(Color(0xFF21D4B4).copy(alpha = 0.1f), RoundedCornerShape(4.dp))
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .clickable {
-                                            val encodedTag = URLEncoder.encode(tag, StandardCharsets.UTF_8.toString())
-                                        navController.navigate("same_tags_posts/${encodedTag}")
-                                            Log.d("PostDetailScreen", "đã bấm: $tag")
-                                        }
-                                ) {
-                                    Text(
-                                        tag, fontSize = 14.sp, color = Color(0xFF21D4B4),
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    // Sản phẩm liên quan
-                    Spacer(Modifier.height(16.dp))
+            when{
+                postDetailLoading -> {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .heightIn(max = dynamicHeight)
+                            .fillMaxSize()
+                            .background(Color(0xfff4f5fd)),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Text("Sản phẩm liên quan đến bài viết", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Spacer(Modifier.height(4.dp))
-                        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
-                        Spacer(Modifier.height(10.dp))
-                        LazyColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .background(Color(0xfff4f5fd))
-                                .wrapContentHeight()
-                        ) {
-                            items(visibleProducts) { product ->
-                                RelatedProductItemTile(
-                                    product = product,
-                                    navController = navController
+                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+                    }
+                }
+                errorMessage != null && !isErrorDialogDismissed -> {
+                    AlertDialog(
+                        onDismissRequest = {
+                            postViewModel.dismissErrorDialog()
+                        },
+                        title = {
+                            Text(
+                                text = "Lỗi",
+                                color = Color.Black,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = errorMessage ?: "",
+                                color = Color.Black,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    postViewModel.resetErrorState()
+                                    postViewModel.refreshAllPosts()
+                                },
+                            ) {
+                                Text(
+                                    text = "Thử lại",
+                                    color = Color(0xFF21D4B4),
+                                    modifier = Modifier,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
-                            if (isMoreAvailable) {
-                                item {
-                                    Text(
-                                        text = if (isExpanded) "Thu gọn" else "Xem thêm...",
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    postViewModel.dismissErrorDialog()
+                                },
+                            ) {
+                                Text(
+                                    text = "Đóng",
+                                    color = Color.Black,
+                                    modifier = Modifier,
+                                    fontWeight = FontWeight.W500
+                                )
+                            }
+
+                        },
+                    )
+                }
+                isErrorDialogDismissed && errorMessage != null -> {
+                    Log.d("PostScreen", "errorMessage: $errorMessage")
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Text(
+                            text = errorMessage?:"",
+                            color = Color.Black,
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                else -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Transparent)
+                            .padding(horizontal = 16.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Top,
+                    ) {
+                        Log.d("PostDetailScreen", "PostDetail: $postDetail")
+                        Log.d("PostDetailScreen", "PostDetail: ${postDetail?.id}")
+                        // Logo - tên ng đang bài
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.ic_logo),
+                                contentDescription = "logo",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color.Transparent),
+                                tint = Color(0xFF309A5F)
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                "${postDetail?.account?.fullName}",
+                                color = Color.Black, fontWeight = FontWeight.Bold
+                            )
+                        }
+                        // Title
+                        Text(
+                            "${postDetail?.title}",
+                            color = Color.Black, fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        // Thứ mấy, ngày/tháng/năm, giờ:phút - thể loại
+                        Spacer(Modifier.height(6.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.DateRange,
+                                contentDescription = "DateRange icon",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                formatDateTime(postDetail?.createdAt),
+                                color = Color.DarkGray,
+                                fontSize = 14.sp
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.Folder,
+                                contentDescription = "Folder icon",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "${postDetail?.category?.name}" ?: "",
+                                color = Color.DarkGray,
+                                fontSize = 14.sp
+                            )
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
+                        // Mô tả ngắn/tiêu đề con
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            "${postDetail?.metaDescription}",
+                            color = Color.DarkGray, fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        // Ảnh Thumb
+                        Spacer(Modifier.height(20.dp))
+                        AsyncImage(
+                            model = "http://103.166.184.249:3056/${postDetail?.thumbnail?.file_path?.replace("\\", "/")}",
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxWidth(),
+                            contentScale = ContentScale.Fit
+                        )
+                        // List Ảnh
+                        Spacer(Modifier.height(16.dp))
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            items(
+                                postDetail?.images ?: emptyList(),
+                            ) { image ->
+                                AsyncImage(
+                                    model = "http://103.166.184.249:3056/${image.file_path.replace("\\", "/")}",
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(200.dp)
+                                        .aspectRatio(1f)
+//                                    .wrapContentSize()
+                                        .background(Color.Transparent),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
+                        // Nội dung
+                        Text(
+                            "${postDetail?.content}",
+                            color = Color.Black,
+                            softWrap = true
+                        )
+                        // Tags
+                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.Top,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                Icons.Outlined.Sell,
+                                contentDescription = "Folder icon",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .padding(end = 6.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                postDetail?.tags?.forEach { tag ->
+                                    Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { isExpanded = !isExpanded }
-                                            .padding(12.dp),
-                                        textAlign = TextAlign.Center,
-                                        color = Color(0xFF21D4B4),
-                                        fontWeight = FontWeight.Medium
-                                    )
+                                            .background(Color(0xFF21D4B4).copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .clickable {
+                                                val encodedTag = URLEncoder.encode(tag, StandardCharsets.UTF_8.toString())
+                                                navController.navigate("same_tags_posts/${encodedTag}")
+                                                Log.d("PostDetailScreen", "đã bấm: $tag")
+                                            }
+                                    ) {
+                                        Text(
+                                            tag, fontSize = 14.sp, color = Color(0xFF21D4B4),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
+                        // Sản phẩm liên quan
+                        Spacer(Modifier.height(16.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 10.dp)
+                                .heightIn(max = dynamicHeight)
+                        ) {
+                            Text("Sản phẩm liên quan đến bài viết", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                            Spacer(Modifier.height(4.dp))
+                            HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
+                            Spacer(Modifier.height(10.dp))
+                            LazyColumn(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(Color(0xfff4f5fd))
+                                    .wrapContentHeight()
+                            ) {
+                                items(visibleProducts) { product ->
+                                    RelatedProductItemTile(
+                                        product = product,
+                                        navController = navController
+                                    )
+                                }
+                                if (isMoreAvailable) {
+                                    item {
+                                        Text(
+                                            text = if (isExpanded) "Thu gọn" else "Xem thêm...",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable { isExpanded = !isExpanded }
+                                                .padding(12.dp),
+                                            textAlign = TextAlign.Center,
+                                            color = Color(0xFF21D4B4),
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
                     }
-                    Spacer(Modifier.height(16.dp))
                 }
             }
         }

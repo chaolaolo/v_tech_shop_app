@@ -23,12 +23,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.VerticalDivider
@@ -55,6 +61,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
@@ -62,6 +69,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.AllPostMetadata
 import com.datn.viettech_md_12.utils.PostViewModelFactory
@@ -72,16 +80,27 @@ import java.util.Locale
 import java.util.TimeZone
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun SameTagsPosts(
     navController: NavController,
     tag: String,
-    postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(LocalContext.current.applicationContext as Application)),
+    postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(
+        LocalContext.current.applicationContext as Application,
+        networkHelper = NetworkHelper(LocalContext.current)
+    )),
 ) {
     val posts = remember { mutableStateListOf<AllPostMetadata>() }
     val isLoading by postViewModel.isLoading.collectAsState()
     val errorMessage by postViewModel.errorMessage.collectAsState()
+    val isRefreshing by postViewModel.isRefreshing.collectAsState()
+    val refreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            postViewModel.refreshAllPosts()
+        }
+    )
+    val isErrorDialogDismissed by postViewModel.isErrorDialogDismissed.collectAsState()
 
     LaunchedEffect(tag) {
         postViewModel.getSameTagsPosts(tag)
@@ -140,38 +159,9 @@ fun SameTagsPosts(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ) {
-                Spacer(Modifier.height(10.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Text(
-                        text = "Những bài viết có gắn thẻ ",
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Box(
-                        modifier = Modifier
-                            .background(Color(0xFFFFF59D), RoundedCornerShape(4.dp))
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable {
-                                Log.d("PostDetailScreen", "đã bấm: $tag")
-                            }
-                    ) {
-                        Text(
-                            tag, fontSize = 14.sp, color = Color(0xFFF9A825),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-                Spacer(Modifier.height(10.dp))
-                HorizontalDivider(color = Color.LightGray)
-                Spacer(Modifier.height(10.dp))
+
                 when {
-                    isLoading -> {
+                    isLoading && !isRefreshing  -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -179,37 +169,127 @@ fun SameTagsPosts(
                             CircularProgressIndicator(color = Color(0xFF21D4B4))
                         }
                     }
+                    isRefreshing -> {
+                    }
+                    errorMessage != null && !isErrorDialogDismissed  -> {
+                        AlertDialog(
+                            onDismissRequest = {
+                                postViewModel.dismissErrorDialog()
+                            },
+                            title = {
+                                Text(
+                                    text = "Lỗi",
+                                    color = Color.Black,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            text = {
+                                Text(
+                                    text = errorMessage ?: "",
+                                    color = Color.Black,
+                                    fontSize = 16.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        postViewModel.resetErrorState()
+                                        postViewModel.refreshAllPosts()
+                                    },
+                                ) {
+                                    Text(
+                                        text = "Thử lại",
+                                        color = Color(0xFF21D4B4),
+                                        modifier = Modifier,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        postViewModel.dismissErrorDialog()
+                                    },
+                                ) {
+                                    Text(
+                                        text = "Đóng",
+                                        color = Color.Black,
+                                        modifier = Modifier,
+                                        fontWeight = FontWeight.W500
+                                    )
+                                }
 
-                    errorMessage != null -> {
+                            },
+                        )
+                    }
+
+                    isErrorDialogDismissed && errorMessage != null -> {
+                        Log.d("PostScreen", "errorMessage: $errorMessage")
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.TopCenter
                         ) {
                             Text(
-                                text = errorMessage!!,
-                                color = Color.Red,
-                                modifier = Modifier.padding(16.dp)
+                                text = errorMessage?:"",
+                                color = Color.Black,
+                                modifier = Modifier.padding(16.dp),
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
 
-                    posts.isEmpty() -> {
+                    posts.isEmpty() && !isRefreshing && !isLoading -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.TopCenter
                         ) {
                             Text(
                                 text = "Không có bài viết nào với tag \"$tag\"",
-                                color = Color.Gray
+                                modifier = Modifier.padding(16.dp),
+                                color = Color.Gray,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
 
                     else -> {
+                        Spacer(Modifier.height(10.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = "Những bài viết có gắn thẻ ",
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .background(Color(0xFFFFF59D), RoundedCornerShape(4.dp))
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .clickable {
+                                        Log.d("PostDetailScreen", "đã bấm: $tag")
+                                    }
+                            ) {
+                                Text(
+                                    tag, fontSize = 14.sp, color = Color(0xFFF9A825),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        HorizontalDivider(color = Color.LightGray)
+                        Spacer(Modifier.height(10.dp))
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize(1f)
-                                .background(Color(0xfff4f5fd)),
+                                .background(Color(0xfff4f5fd))
+                                .pullRefresh(refreshState),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             items(posts) { post ->
@@ -225,6 +305,12 @@ fun SameTagsPosts(
                     }
                 }
             }
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = refreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = Color(0xFF21D4B4)
+            )
         }
     }
 }

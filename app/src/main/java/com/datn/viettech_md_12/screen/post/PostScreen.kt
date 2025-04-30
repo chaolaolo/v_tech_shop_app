@@ -22,11 +22,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +41,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
@@ -54,6 +60,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,8 +69,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
+import com.datn.viettech_md_12.component.cart_component.CartNotLogin
+import com.datn.viettech_md_12.component.cart_component.EmptyCart
 import com.datn.viettech_md_12.data.model.AllPostMetadata
 import com.datn.viettech_md_12.data.model.PostMetadata
 import com.datn.viettech_md_12.utils.PostViewModelFactory
@@ -74,11 +84,14 @@ import java.util.Locale
 import java.util.TimeZone
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun PostScreen(
     navController: NavController,
-    postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(LocalContext.current.applicationContext as Application)),
+    postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(
+        LocalContext.current.applicationContext as Application,
+        networkHelper = NetworkHelper(LocalContext.current),
+    )),
 ) {
     var showSearch by remember { mutableStateOf(false) }
     val searchText = remember { mutableStateOf("") }
@@ -87,6 +100,14 @@ fun PostScreen(
     val posts by postViewModel.postState.collectAsState()
     val isLoading by postViewModel.isLoading.collectAsState()
     val errorMessage by postViewModel.errorMessage.collectAsState()
+    val isRefreshing by postViewModel.isRefreshing.collectAsState()
+    val refreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            postViewModel.refreshAllPosts()
+        }
+    )
+    val isErrorDialogDismissed by postViewModel.isErrorDialogDismissed.collectAsState()
 
     // Lọc bài đăng dựa trên văn bản tìm kiếm
     val filteredPosts = remember(searchText.value, posts) {
@@ -164,8 +185,9 @@ fun PostScreen(
                         )
                     }
                 }
+                Log.d("PostScreen1", "errorMessage: $errorMessage")
                 when {
-                    isLoading -> {
+                    isLoading && !isRefreshing -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -173,20 +195,78 @@ fun PostScreen(
                             CircularProgressIndicator(color = Color(0xFF21D4B4))
                         }
                     }
-                    errorMessage != null -> {
+                    isRefreshing -> {
+                    }
+                    errorMessage != null && !isErrorDialogDismissed  -> {
+                        AlertDialog(
+                            onDismissRequest = {
+                                postViewModel.dismissErrorDialog()
+                            },
+                            title = {
+                                Text(
+                                    text = "Lỗi",
+                                    color = Color.Black,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            text = {
+                                Text(
+                                    text = errorMessage ?: "",
+                                    color = Color.Black,
+                                    fontSize = 16.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        postViewModel.resetErrorState()
+                                        postViewModel.refreshAllPosts()
+                                    },
+                                ) {
+                                    Text(
+                                        text = "Thử lại",
+                                        color = Color(0xFF21D4B4),
+                                        modifier = Modifier,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        postViewModel.dismissErrorDialog()
+                                    },
+                                ) {
+                                    Text(
+                                        text = "Đóng",
+                                        color = Color.Black,
+                                        modifier = Modifier,
+                                        fontWeight = FontWeight.W500
+                                    )
+                                }
+
+                            },
+                        )
+                    }
+
+                    isErrorDialogDismissed && errorMessage != null -> {
+                        Log.d("PostScreen", "errorMessage: $errorMessage")
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.TopCenter
                         ) {
                             Text(
-                                text = errorMessage!!,
-                                color = Color.Red,
-                                modifier = Modifier.padding(16.dp)
+                                text = errorMessage?:"",
+                                color = Color.Black,
+                                modifier = Modifier.padding(16.dp),
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
 
-                    filteredPosts.isEmpty() -> {
+                    filteredPosts.isEmpty() && !isRefreshing && !isLoading -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -205,6 +285,7 @@ fun PostScreen(
                             modifier = Modifier
                                 .fillMaxSize(1f)
                                 .background(Color(0xfff4f5fd))
+                                .pullRefresh(refreshState)
 //                                .padding(horizontal = 8.dp)
                             ,
                             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -221,6 +302,12 @@ fun PostScreen(
                     }
                 }
             }
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = refreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = Color(0xFF21D4B4)
+            )
         }
     }
 }

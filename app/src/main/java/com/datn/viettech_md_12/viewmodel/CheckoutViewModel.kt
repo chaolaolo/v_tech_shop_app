@@ -17,11 +17,13 @@ import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.remote.ApiClient.cartRepository
 import com.datn.viettech_md_12.data.remote.ApiClient.cartService
 import com.google.gson.JsonSyntaxException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import retrofit2.Response
+import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
@@ -50,9 +52,16 @@ class CheckoutViewModel(application: Application, networkHelper: NetworkHelper) 
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> get() = _errorMessage
+    private val _isErrorDialogDismissed = MutableStateFlow(false)
+    val isErrorDialogDismissed: StateFlow<Boolean> = _isErrorDialogDismissed
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+    private val _isNetworkConnected = MutableStateFlow(networkHelper.isNetworkConnected())
+    val isNetworkConnected: StateFlow<Boolean> get() = _isNetworkConnected
 
     init {
-        if (networkHelper.isNetworkConnected()) {
+        _isNetworkConnected.value = networkHelper.isNetworkConnected()
+        if (_isNetworkConnected.value) {
             getAddress()
             getIsSelectedItemInCart()
         }else{
@@ -60,7 +69,25 @@ class CheckoutViewModel(application: Application, networkHelper: NetworkHelper) 
             _isLoading.value = false
         }
     }
+    fun refreshPayment() {
+        _isRefreshing.value = true
+        _errorMessage.value = null
+        viewModelScope.launch {
+            getAddress()
+            getIsSelectedItemInCart()
+            delay(2000)
+            _isRefreshing.value = false
+        }
+    }
+    fun dismissErrorDialog() {
+        _isErrorDialogDismissed.value = true
+        _errorMessage.value = null
+    }
 
+    fun resetErrorState() {
+        _isErrorDialogDismissed.value = false
+        _errorMessage.value = null
+    }
     //Get Address
     fun getAddress() {
         viewModelScope.launch {
@@ -80,11 +107,16 @@ class CheckoutViewModel(application: Application, networkHelper: NetworkHelper) 
                     Log.e("getAddress", "Fetch Address Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
+                _errorMessage.value = "Lỗi mạng: Không thể kết nối với máy chủ."
                 Log.e("getAddress", "Lỗi mạng: Không thể kết nối với máy chủ")
             } catch (e: SocketTimeoutException) {
+                _errorMessage.value = "Lỗi mạng: Đã hết thời gian chờ."
                 Log.e("getAddress", "Lỗi mạng: Đã hết thời gian chờ")
             } catch (e: HttpException) {
                 Log.e("getAddress", "Lỗi HTTP: ${e.message()}")
+            } catch (e: ConnectException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("fetchCart", "Lỗi kết nối api")
             } catch (e: JsonSyntaxException) {
                 Log.e("getAddress", "Lỗi dữ liệu: Invalid JSON response")
             } catch (e: Exception) {
@@ -165,11 +197,16 @@ class CheckoutViewModel(application: Application, networkHelper: NetworkHelper) 
                     Log.e("getIsSelectedItemInCart", "Fetch Cart Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
+                _errorMessage.value = "Lỗi mạng: Không thể kết nối với máy chủ."
                 Log.e("getIsSelectedItemInCart", "Lỗi mạng: Không thể kết nối với máy chủ")
             } catch (e: SocketTimeoutException) {
+                _errorMessage.value = "Lỗi mạng: Đã hết thời gian chờ."
                 Log.e("getIsSelectedItemInCart", "Lỗi mạng: Đã hết thời gian chờ")
             } catch (e: HttpException) {
                 Log.e("getIsSelectedItemInCart", "Lỗi HTTP: ${e.message()}")
+            } catch (e: ConnectException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("fetchCart", "Lỗi kết nối api")
             } catch (e: JsonSyntaxException) {
                 Log.e("getIsSelectedItemInCart", "Lỗi dữ liệu: Invalid JSON response")
             } catch (e: Exception) {
