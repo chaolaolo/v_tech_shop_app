@@ -113,6 +113,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import com.datn.viettech_md_12.NetworkHelper
+import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
@@ -146,7 +148,11 @@ import java.util.Locale
 fun ProductDetailScreen(
     navController: NavController,
     productId: String,
-    viewModel: ProductViewModel = viewModel(),
+    viewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(
+            NetworkHelper(LocalContext.current),
+        )
+    ),
 ) {
     val context = LocalContext.current.applicationContext as Application
 

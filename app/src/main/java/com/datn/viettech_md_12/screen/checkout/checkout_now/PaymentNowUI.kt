@@ -81,6 +81,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.datn.viettech_md_12.NetworkHelper
+import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.ProductDetailModel
 import com.datn.viettech_md_12.data.model.ProductModel
@@ -105,7 +107,11 @@ fun PaymentNowUI(
     quantity: Int = 1,
     variantId: String? = null,
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
-    productViewModel: ProductViewModel = viewModel(),
+    productViewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(
+            NetworkHelper(LocalContext.current),
+        )
+    ),
 ) {
     Log.d("PaymentUI", "Received quantity: $quantity") // Debug log
     Log.d("PaymentUI", "Received variantId: $variantId") // Debug log
