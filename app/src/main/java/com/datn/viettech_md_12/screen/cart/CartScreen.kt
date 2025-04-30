@@ -47,11 +47,15 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -121,6 +125,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.DashedDivider
 import com.datn.viettech_md_12.component.MyTextField
@@ -151,7 +156,7 @@ import java.util.Locale
 @Composable
 fun CartScreen(
     navController: NavController,
-    cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application)),
+    cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application,  NetworkHelper(LocalContext.current))),
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
@@ -164,6 +169,8 @@ fun CartScreen(
     )
     val scope = rememberCoroutineScope()
     val cartState by cartViewModel.cartState.collectAsState()
+    val errorMessage by cartViewModel.errorMessage.collectAsState()
+
     val discountState by cartViewModel.discountState.collectAsState()
     val selectedVoucherId = remember { mutableStateOf<String?>(null) }
     val isLoading by cartViewModel.isLoading.collectAsState()
@@ -177,6 +184,16 @@ fun CartScreen(
     val voucherCode = remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Thêm state cho pull-to-refresh
+    val isRefreshing by cartViewModel.isRefreshing.collectAsState()
+    val refreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            cartViewModel.refreshCart()
+        }
+    )
+
     LaunchedEffect(Unit) {
         cartViewModel.fetchCart()
         cartViewModel.getListDisCount()
@@ -219,15 +236,68 @@ fun CartScreen(
         sheetSwipeEnabled = false,
         sheetContainerColor = Color(0xfff4f5fd),
         sheetContent = {
-            VoucherBottomSheetContent(
-                scaffoldState = scaffoldState,
-                snackbarHostState = snackbarHostState,
-                listDiscount = listDiscount,
-                selectedVoucherId = selectedVoucherId,
-                selectedVoucher = selectedVoucher,
-                voucherCode = voucherCode,
-                scope = scope
+            Box(
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 16.dp, top = 10.dp)
+                    .fillMaxWidth()
+                    .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
+            ) {
+                when {
+                    isLoading && !isRefreshing -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Color(0xFF21D4B4))
+                        }
+                    }
+
+                    errorMessage != null -> {
+                        Box(modifier = Modifier.fillMaxSize()
+                            .pullRefresh(refreshState)
+                            .padding(16.dp),
+                            contentAlignment = Alignment.Center) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(text = errorMessage ?: "", color = Color(0xFF21D4B4), fontSize = 16.sp, textAlign = TextAlign.Center)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    onClick = {
+                                        cartViewModel.refreshCart() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21D4B4))
+                                ) {
+                                    Text("Thử lại")
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+//                        val discounts = discountState?.body()
+//                        Box(
+//                            modifier = Modifier
+//                                .fillMaxSize()
+//                                .pullRefresh(refreshState) // Thêm pull-to-refresh cho màn hình có dữ liệu
+//                        ) {
+//                            discounts?.let { discount ->
+                                VoucherBottomSheetContent(
+                                    scaffoldState = scaffoldState,
+                                    snackbarHostState = snackbarHostState,
+                                    listDiscount = listDiscount,
+                                    selectedVoucherId = selectedVoucherId,
+                                    selectedVoucher = selectedVoucher,
+                                    voucherCode = voucherCode,
+                                    scope = scope
+                                )
+//                            }
+//                        }
+                    }
+                }
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = refreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = Color(0xFF21D4B4)
             )
+            }
         },
         sheetTonalElevation = 16.dp,
         sheetShadowElevation = 24.dp,
@@ -274,44 +344,97 @@ fun CartScreen(
             )
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(color = Color.White)
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Log.d("CartScreen", "accessToken: $accessToken")
-            when {
-                isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.White)
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Log.d("CartScreen", "accessToken: $accessToken")
+                when {
+                    isLoading && !isRefreshing -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Color(0xFF21D4B4))
+                        }
                     }
-                }
 
-                accessToken == null -> {
-                    CartNotLogin(navController)
-                }
-
-                cartState?.body() == null -> {
-                    EmptyCart(navController)
-                }
-
-                else -> {
-                    val cartModel = cartState?.body()
-                    cartModel?.let { cart ->
-                        CartContent(
-                            navController = navController,
-                            cartProducts = cart.metadata?.cart_products ?: emptyList(),
-                            selectedItems = selectedItems,
-                            cartViewModel = cartViewModel,
-                            selectedVoucher = selectedVoucher.value,
-                            snackbarHostState = snackbarHostState
-                        )
+                    errorMessage != null -> {
+                        Box(modifier = Modifier.fillMaxSize()
+                            .pullRefresh(refreshState)
+                            .padding(16.dp),
+                            contentAlignment = Alignment.Center) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(text = errorMessage ?: "", color = Color(0xFF21D4B4), fontSize = 16.sp, textAlign = TextAlign.Center)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    onClick = {
+                                        cartViewModel.refreshCart() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21D4B4))
+                                ) {
+                                    Text("Thử lại")
+                                }
+                            }
+                        }
                     }
+
+                    accessToken == null -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pullRefresh(refreshState) // Thêm pull-to-refresh cho màn hình chưa đăng nhập
+                        ) {
+                            CartNotLogin(navController)
+                        }
+                    }
+
+                    cartState?.body() == null -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pullRefresh(refreshState) // Thêm pull-to-refresh cho màn hình trống
+                        ) {
+                            EmptyCart(navController)
+                        }
+                    }
+
+
+                    else -> {
+                        val cartModel = cartState?.body()
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pullRefresh(refreshState) // Thêm pull-to-refresh cho màn hình có dữ liệu
+                        ) {
+                            cartModel?.let { cart ->
+                                CartContent(
+                                    navController = navController,
+                                    cartProducts = cart.metadata?.cart_products ?: emptyList(),
+                                    selectedItems = selectedItems,
+                                    cartViewModel = cartViewModel,
+                                    selectedVoucher = selectedVoucher.value,
+                                    snackbarHostState = snackbarHostState
+                                )
+                            }
+                        }
                     }
                 }
             }
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = refreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = Color(0xFF21D4B4)
+            )
+        }
     }//end scaffold
 }// end cart UI
 

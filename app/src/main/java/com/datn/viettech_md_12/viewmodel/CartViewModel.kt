@@ -1,32 +1,44 @@
 package com.datn.viettech_md_12.viewmodel
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.remote.ApiClient.checkoutService
 import com.google.gson.JsonSyntaxException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import retrofit2.Response
+import java.io.IOException
+import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-class CartViewModel(application: Application) : ViewModel() {
+@SuppressLint("StaticFieldLeak")
+class CartViewModel(application: Application, networkHelper: NetworkHelper) : ViewModel() {
     private val cartRepository = ApiClient.cartRepository
 
     private val _cartState = MutableStateFlow<Response<CartModel>?>(null)
     val cartState: StateFlow<Response<CartModel>?> get() = _cartState
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> get() = _errorMessage
 
     private val _updateCartState = MutableStateFlow<Response<CartModel>?>(null)
     val updateCartState: StateFlow<Response<CartModel>?> get() = _updateCartState
@@ -47,15 +59,40 @@ class CartViewModel(application: Application) : ViewModel() {
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _isDiscountLoading = MutableStateFlow(true)
     val isDiscountLoading: StateFlow<Boolean> = _isDiscountLoading
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
     private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val token: String? = sharedPreferences.getString("accessToken", null)
     private val userId: String? = sharedPreferences.getString("clientId", null)
 
+    private val context = application.applicationContext
+    private val _isNetworkConnected = MutableStateFlow(networkHelper.isNetworkConnected())
+    val isNetworkConnected: StateFlow<Boolean> = _isNetworkConnected
+
     init {
-        fetchCart()
-        getListDisCount()
+        if (networkHelper.isNetworkConnected()) {
+            fetchCart()
+            getListDisCount()
+        } else {
+            Log.d("CartViewModel", "Không có kết nối mạng.")
+            _errorMessage.value = "Không có kết nối mạng."
+//            Toast.makeText(context, "Không có kết nối mạng.", Toast.LENGTH_SHORT).show()
+            _isLoading.value = false
+        }
     }
+
+    fun refreshCart() {
+        _isRefreshing.value = true
+        _errorMessage.value = null
+        viewModelScope.launch {
+            fetchCart()
+            getListDisCount()
+            delay(1000)
+            _isRefreshing.value = false
+        }
+    }
+
 
     //Get cart
     fun fetchCart() {
@@ -76,11 +113,16 @@ class CartViewModel(application: Application) : ViewModel() {
                     Log.e("fetchCart", "Fetch Cart Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
+                _errorMessage.value = "Lỗi mạng: Không thể kết nối với máy chủ."
                 Log.e("fetchCart", "Lỗi mạng: Không thể kết nối với máy chủ")
             } catch (e: SocketTimeoutException) {
+                _errorMessage.value = "Lỗi mạng: Đã hết thời gian chờ."
                 Log.e("fetchCart", "Lỗi mạng: Đã hết thời gian chờ")
             } catch (e: HttpException) {
                 Log.e("fetchCart", "Lỗi HTTP: ${e.message()}")
+            } catch (e: ConnectException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra kết nối internet của bạn."
+                Log.e("fetchCart", "Lỗi kết nối api")
             } catch (e: JsonSyntaxException) {
                 Log.e("fetchCart", "Lỗi dữ liệu: Invalid JSON response")
             } catch (e: Exception) {
@@ -318,11 +360,16 @@ class CartViewModel(application: Application) : ViewModel() {
                     Log.e("getListDisCount", "Fetch Discount Failed: ${response.code()} - ${response.message()}")
                 }
             } catch (e: UnknownHostException) {
+                _errorMessage.value = "Lỗi không thể kết nối với máy chủ."
                 Log.e("getListDisCount", "Lỗi mạng: Không thể kết nối với máy chủ")
             } catch (e: SocketTimeoutException) {
+                _errorMessage.value = "Lỗi kết nối mạng, Đã hết thời gian chờ."
                 Log.e("getListDisCount", "Lỗi mạng: Đã hết thời gian chờ")
             } catch (e: HttpException) {
                 Log.e("getListDisCount", "Lỗi HTTP: ${e.message()}")
+            } catch (e: IOException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra kết nối internet của bạn."
+                Log.e("getListDisCount", "Lỗi kết nối mạng, vui lòng kiểm tra kết nối internet của bạn.")
             } catch (e: JsonSyntaxException) {
                 Log.e("getListDisCount", "Lỗi dữ liệu: Invalid JSON response")
             } catch (e: Exception) {
@@ -336,10 +383,10 @@ class CartViewModel(application: Application) : ViewModel() {
 }
 
 
-class CartViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+class CartViewModelFactory(private val application: Application, private val networkHelper: NetworkHelper) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
-            return CartViewModel(application) as T
+            return CartViewModel(application, networkHelper) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -77,9 +77,10 @@ fun VoucherBottomSheetContent(
     }
     Column(
         modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, top = 10.dp)
-            .fillMaxWidth()
-            .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
+//            .padding(start = 16.dp, end = 16.dp, top = 10.dp)
+            .fillMaxSize()
+//            .fillMaxWidth()
+//            .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
             .imePadding()
     ) {
         // Sheet header
@@ -137,6 +138,9 @@ fun VoucherBottomSheetContent(
                         selectedVoucher.value = matchingVoucher
                         scope.launch {
                             snackbarHostState.showSnackbar("Áp dụng mã thành công!")
+                        }
+                        scope.launch {
+                             scaffoldState.bottomSheetState.hide()
                         }
                     } else {
                         scope.launch {
@@ -203,7 +207,9 @@ fun VoucherBottomSheetContent(
                             scope.launch {
                                 snackbarHostState.showSnackbar("Áp dụng mã thành công!")
                             }
-                            scope.launch { scaffoldState.bottomSheetState.hide() }
+                            scope.launch {
+                                scaffoldState.bottomSheetState.hide()
+                            }
                         } else {
                             scope.launch {
                                 snackbarHostState.showSnackbar("Mã không hợp lệ.")

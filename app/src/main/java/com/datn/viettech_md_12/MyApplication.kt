@@ -12,6 +12,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModelStore
+import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.onesignal.OneSignal
 import okhttp3.Callback
@@ -24,6 +26,7 @@ import java.io.IOException
 class MyApplication : Application() {
     lateinit var productViewModel: ProductViewModel
     lateinit var categoryViewModel: CategoryViewModel
+    lateinit var cartViewModel: CartViewModel
     lateinit var searchViewModel: SearchViewModel
     lateinit var userViewModel: UserViewModel
     lateinit var notificationViewModel: NotificationViewModel
@@ -79,6 +82,7 @@ class MyApplication : Application() {
         // Khởi tạo các ViewModel
         productViewModel = ViewModelProvider(ViewModelStore(), ProductViewModelFactory(networkHelper))[ProductViewModel::class.java]
         categoryViewModel = ViewModelProvider(ViewModelStore(), CategoryViewModelFactory(networkHelper))[CategoryViewModel::class.java]
+        cartViewModel = ViewModelProvider(ViewModelStore(), CartViewModelFactory(this,networkHelper))[CartViewModel::class.java]
         searchViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(SearchViewModel::class.java)
         userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
         notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(NotificationViewModel::class.java)
