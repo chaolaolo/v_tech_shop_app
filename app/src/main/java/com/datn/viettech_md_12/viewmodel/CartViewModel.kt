@@ -26,6 +26,7 @@ import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -346,15 +347,15 @@ class CartViewModel(application: Application, networkHelper: NetworkHelper) : Vi
                 )
                 if (response.isSuccessful) {
                     val body = response.body()
-                    val currentDate = LocalDate.now()
-                    val formatter = DateTimeFormatter.ISO_DATE
+                    val currentDate = Instant.now()
+//                    val formatter = DateTimeFormatter.ISO_DATE
 
                     val filteredMetadata = body?.data?.filter { discount ->
                         val startDateStr = discount.startDate
                         val endDateStr = discount.endDate ?: discount.expirationDate
                         val isActive = try {
-                            val startDate = startDateStr?.let { LocalDate.parse(it.substring(0, 10), formatter) }
-                            val endDate = endDateStr?.let { LocalDate.parse(it.substring(0, 10), formatter) }
+                            val startDate = startDateStr?.let { Instant.parse(it) }
+                            val endDate = endDateStr?.let { Instant.parse(it) }
                             val started = startDate?.let { !currentDate.isBefore(it) } ?: true
                             val notExpired = endDate?.let { !currentDate.isAfter(it) } ?: true
 

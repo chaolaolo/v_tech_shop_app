@@ -126,7 +126,6 @@ import com.datn.viettech_md_12.screen.authentication.LoginScreen
 import com.datn.viettech_md_12.screen.authentication.RegisterScreen
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.viewmodel.CartViewModel
-import com.datn.viettech_md_12.viewmodel.CartViewModelFactory
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
