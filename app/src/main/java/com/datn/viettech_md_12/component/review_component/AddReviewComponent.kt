@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +39,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.BaseResponse
 import com.datn.viettech_md_12.data.model.ReviewResponse
 import com.datn.viettech_md_12.data.model.ReviewResponseAddUp
@@ -167,7 +169,7 @@ fun AddReviewDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(10.dp),
             tonalElevation = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -177,20 +179,112 @@ fun AddReviewDialog(
                 Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    repeat(5) { index ->
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clickable { rating = index + 1 }
-                        )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally, // 👈 Căn giữa theo chiều ngang
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    val emotionIcon = when (rating) {
+                        5 -> R.drawable.good
+                        4 -> R.drawable.good_normal
+                        3 -> R.drawable.sad
+                        2 -> R.drawable.very_sad
+                        1 -> R.drawable.very_sad_x2
+                        else -> null
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("$rating sao")
+
+                    emotionIcon?.let {
+                        Image(
+                            painter = painterResource(id = it),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .padding(bottom = 16.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        when (rating) {
+                            5 -> {
+                                Text(
+                                    text = "Sản phẩm rất tốt!", // Text cho 5 sao
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = "Cảm ơn bạn đã góp ý!", // Text chung cho tất cả
+                                    fontSize = 14.sp
+                                )
+                            }
+                            4 -> {
+                                Text(
+                                    text = "Tốt lắm!",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = "Cảm ơn bạn đã góp ý!",
+                                    fontSize = 14.sp
+                                )
+                            }
+                            3 -> {
+                                Text(
+                                    text = "Cũng ổn!",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = "Cảm ơn bạn đã góp ý!",
+                                    fontSize = 14.sp
+                                )
+                            }
+                            2 -> {
+                                Text(
+                                    text = "Cần cải thiện sản phẩm!",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = "Cảm ơn bạn đã góp ý!",
+                                    fontSize = 14.sp
+                                )
+                            }
+                            1 -> {
+                                Text(
+                                    text = "Sản phẩm rất tệ!",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = "Cảm ơn bạn đã góp ý!",
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // 👇 DÃY 5 NGÔI SAO (Ở DƯỚI)
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(5) { index ->
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable { rating = index + 1 }
+                            )
+                        }
+                    }
                 }
+
+
 
                 Spacer(modifier = Modifier.height(12.dp))
 
