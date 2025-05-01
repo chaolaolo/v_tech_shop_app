@@ -205,13 +205,13 @@ fun AddReviewDialog(
                         when (rating) {
                             5 -> {
                                 Text(
-                                    text = "Sản phẩm rất tốt!", // Text cho 5 sao
+                                    text = "Sản phẩm rất tốt!",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
                                 Text(
-                                    text = "Cảm ơn bạn đã góp ý!", // Text chung cho tất cả
+                                    text = "Cảm ơn bạn đã góp ý!",
                                     fontSize = 14.sp
                                 )
                             }
@@ -266,7 +266,7 @@ fun AddReviewDialog(
                         }
                     }
 
-                    // 👇 DÃY 5 NGÔI SAO (Ở DƯỚI)
+
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
