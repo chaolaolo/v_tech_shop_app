@@ -238,6 +238,7 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
             onClick = {
                 val regexName = "^[a-zA-ZÀ-ỹ\\s]+\$".toRegex()
                 val regexUsername = "^[a-zA-Z0-9_]+\$".toRegex()
+                val regexPhoneNumber = "^[0-9]{10}$".toRegex()
                 val regexEmail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$".toRegex()
                 val hasSpace = password.contains(" ")
                 val isLengthValid = password.length >= 6
@@ -256,6 +257,10 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
                     !regexName.matches(fullName) -> {
                         Toast.makeText(context,
                             context.getString(R.string.invalid_full_name), Toast.LENGTH_SHORT).show()
+                    }
+                    !regexPhoneNumber.matches(phone) -> {
+                        Toast.makeText(context,
+                            context.getString(R.string.invalid_phone_number), Toast.LENGTH_SHORT).show()
                     }
                     !regexEmail.matches(email) -> {
                         Toast.makeText(context,
