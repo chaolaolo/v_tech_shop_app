@@ -12,7 +12,6 @@ import org.koin.dsl.module
 val categoryModule = module {
     single { NetworkHelper(androidContext()) }
 
-    // Truyền trực tiếp ApiClient.categoryRepository nếu bạn đang dùng singleton
     single { ApiClient.categoryRepository }
 
     viewModel {
@@ -24,20 +23,19 @@ val categoryModule = module {
 }
 
 val productModule = module {
-    // Inject NetworkHelper
     single { NetworkHelper(androidContext()) }
 
-    // Inject ProductRepository
     single { ProductRepository(ApiClient.productService) }
 
-    // Inject ProductViewModel
     viewModel { ProductViewModel(networkHelper = get(), repository = get()) }
 }
 
 val searchModule = module {
-    // Inject ProductRepository
     single { ProductRepository(ApiClient.productService) }
+    single { DataStoreManager(get()) }
 
-    // Inject SearchViewModel
-    viewModel { SearchViewModel(repository = get()) }
+    viewModel { SearchViewModel(
+        get(),
+        get()
+    ) }
 }

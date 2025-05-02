@@ -1,26 +1,19 @@
 package com.datn.viettech_md_12.screen
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.FilterBottomSheet
 import com.datn.viettech_md_12.R
@@ -94,137 +87,70 @@ fun SearchScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Box(
-                contentAlignment = Alignment.TopStart,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(horizontal = 16.dp),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .border(1.dp, Color(0xFFF4F5FD), MaterialTheme.shapes.medium)
-                        .padding(horizontal = 12.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_search),
-                        contentDescription = "search",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(24.dp)
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        BasicTextField(
-                            value = text.value,
-                            onValueChange = {
-                                text.value = it
-                                debounceJob?.cancel()
-                                if (it.isNotEmpty()) {
-                                    debounceJob = coroutineScope.launch {
-                                        delay(500)
-                                        searchViewModel.searchProducts(it)
-                                        searchViewModel.saveToHistory(it)
-                                    }
-                                } else {
-                                    searchViewModel.clearSearchResults()
-                                }
-                            },
-                            textStyle = LocalTextStyle.current.copy(
-                                fontSize = 14.sp,
-                                color = Color.Black
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-
-                        if (text.value.isEmpty()) {
-                            Text(
-                                text = "Search",
-                                color = Color(0xFF6F7384),
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Left,
-                                modifier = Modifier.align(Alignment.CenterStart)
-                            )
+            SearchBar(
+                text = text,
+                onValueChanged = { newText ->
+                    debounceJob?.cancel()
+                    if (newText.isNotEmpty()) {
+                        debounceJob = coroutineScope.launch {
+                            delay(500)
+                            searchViewModel.searchProducts(newText)
+                            searchViewModel.saveToHistory(newText)
                         }
+                    } else {
+                        searchViewModel.clearSearchResults()
                     }
-
-                    IconButton(
-                        onClick = {
-                            tempSortOption = selectedSortOption
-                            showBottomSheet = true
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Tune,
-                            contentDescription = "Filter",
-                            tint = Color(0xFF6F7384),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                },
+                onFilterClick = {
+                    tempSortOption = selectedSortOption
+                    showBottomSheet = true
+                },
+                onClearText = {
+                    searchViewModel.clearSearchResults()
                 }
-            }
+            )
 
             if (text.value.isEmpty() && history.isNotEmpty()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Lịch sử tìm kiếm", color = Color.Gray, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    history.forEach { item ->
-                        Text(
-                            text = item,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    text.value = item
-                                    searchViewModel.searchProducts(item)
-                                }
-                                .padding(vertical = 4.dp),
-                            color = Color.Black,
-                            fontSize = 14.sp
-                        )
+                SearchHistorySection(
+                    history = history,
+                    onClickItem = { item ->
+                        text.value = item
+                        searchViewModel.searchProducts(item)
+                    },
+                    onClearAll = {
+                        searchViewModel.clearSearchHistory()
                     }
-                    Text(
-                        text = "Xóa tất cả",
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .clickable { searchViewModel.clearSearchHistory() }
-                            .padding(top = 8.dp),
-                        color = Color.Red,
-                        fontSize = 12.sp
-                    )
-                }
+                )
             }
 
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            when {
+                isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-            } else if (errorMessage != null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = errorMessage!!, color = Color.Red)
+
+                errorMessage != null -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = errorMessage ?: "Đã xảy ra lỗi", color = Color.Red)
+                    }
                 }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    items(searchResults) { product ->
-                        CustomItemProducts(
-                            product = product,
-                            onClick = {
-                                navController.navigate("product_detail/${product.id}")
-                            }
-                        )
+
+                else -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        items(searchResults) { product ->
+                            CustomItemProducts(
+                                product = product,
+                                onClick = {
+                                    navController.navigate("product_detail/${product.id}")
+                                }
+                            )
+                        }
                     }
                 }
             }

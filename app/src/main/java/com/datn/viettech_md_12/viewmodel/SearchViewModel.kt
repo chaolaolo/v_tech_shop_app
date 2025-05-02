@@ -1,18 +1,19 @@
 package com.datn.viettech_md_12.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.DataStoreManager
 import com.datn.viettech_md_12.common.SortOption
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.repository.ProductRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
-    private val repository: ProductRepository // Inject repository here
+    private val repository: ProductRepository,
+    private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
+
     private val _searchResults = MutableStateFlow<List<ProductModel>>(emptyList())
     val searchResults: StateFlow<List<ProductModel>> = _searchResults
 
@@ -25,17 +26,26 @@ class SearchViewModel(
     private val _shouldCloseBottomSheet = MutableStateFlow(false)
     val shouldCloseBottomSheet: StateFlow<Boolean> = _shouldCloseBottomSheet
 
+    private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
+    val searchHistory: StateFlow<List<String>> = _searchHistory
+
     private var currentSortOption: SortOption? = null
     private var currentQuery: String = ""
 
-    private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
-    val searchHistory: StateFlow<List<String>> = _searchHistory
+    init {
+        viewModelScope.launch {
+            dataStoreManager.getSearchHistory().collect {
+                _searchHistory.value = it
+            }
+        }
+    }
+
     fun searchProducts(query: String, sortOption: SortOption? = currentSortOption) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
-            currentQuery = query // 💡 Lưu lại query mới nhất
-            currentSortOption = sortOption // 💡 Lưu lại sortOption mới nhất
+            currentQuery = query
+            currentSortOption = sortOption
             try {
                 val sortQuery = sortOption?.let {
                     when (it) {
@@ -46,14 +56,13 @@ class SearchViewModel(
                     }
                 }
 
-                // Collect the cold flow and update the hot state
                 repository.searchProducts(query, sortQuery).collect { result ->
                     if (result.isSuccessful) {
                         result.body()?.let {
                             _searchResults.value = it.products
                         }
                     } else {
-                        Log.e("SearchViewModel", "Error: ${result.code()} ${result.message()}")
+                        _errorMessage.value = "Lỗi: ${result.code()} ${result.message()}"
                     }
                 }
             } catch (e: Exception) {
@@ -66,12 +75,16 @@ class SearchViewModel(
 
     fun applySort(sortOption: SortOption?) {
         currentSortOption = sortOption
-        searchProducts(query = currentQuery, sortOption = sortOption) // ✅ Sử dụng currentQuery
+        if (currentQuery.isNotEmpty()) {
+            searchProducts(currentQuery, sortOption)
+        }
+        _shouldCloseBottomSheet.value = true
     }
+
 
     fun clearSearchResults() {
         _searchResults.value = emptyList()
-        currentQuery = "" // ✅ reset currentQuery khi xoá
+        currentQuery = ""
     }
 
     fun onBottomSheetClosed() {
@@ -79,15 +92,14 @@ class SearchViewModel(
     }
 
     fun saveToHistory(query: String) {
-        if (query.isNotBlank()) {
-            _searchHistory.value = listOf(query) + _searchHistory.value.filterNot { it == query }.take(10)
+        viewModelScope.launch {
+            dataStoreManager.saveSearchQuery(query)
         }
     }
 
     fun clearSearchHistory() {
-        _searchHistory.value = emptyList()
+        viewModelScope.launch {
+            dataStoreManager.clearSearchHistory()
+        }
     }
 }
-
-
-
