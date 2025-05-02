@@ -3,6 +3,7 @@ package com.datn.viettech_md_12.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.common.SortOption
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.remote.ApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,5 +43,15 @@ class SearchViewModel: ViewModel() {
     }
     fun clearSearchResults() {
         _searchResults.value = emptyList()
+    }
+
+    fun sortSearchResults(option: SortOption) {
+//        val sortedList = when (option) {
+//            SortOption.PRICE_ASC -> _searchResults.value.sortedBy { it.price }
+//            SortOption.PRICE_DESC -> _searchResults.value.sortedByDescending { it.price }
+//            SortOption.AZ -> _searchResults.value.sortedBy { it.name }
+//            SortOption.ZA -> _searchResults.value.sortedByDescending { it.name }
+//        }
+//        _searchResults.value = sortedList
     }
 }
