@@ -58,6 +58,9 @@ class ProductViewModel(
     private val _selectedOrder = MutableStateFlow<OrderModel?>(null)
     val selectedOrder: StateFlow<OrderModel?> = _selectedOrder
 
+    //huy don hang
+    private val _cancelResult = MutableStateFlow<Boolean?>(null)
+    val cancelResult: StateFlow<Boolean?> = _cancelResult
 
     // lưu variantId đã match
     var _matchedVariantId = MutableStateFlow<String?>(null)
@@ -461,6 +464,34 @@ class ProductViewModel(
             }
         }
     }
+
+    //huy don hang
+    fun cancelOrder(context: Context, orderId: String) {
+        viewModelScope.launch {
+            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            val token = sharedPreferences.getString("accessToken", "")
+            val clientId = sharedPreferences.getString("clientId", "")
+
+            if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
+                try {
+                    val response = repository.cancelOrder(orderId, token, clientId)
+                    if (response.isSuccessful) {
+                        _cancelResult.value = true
+                    } else {
+                        Log.e("cancel_order", "Thất bại: ${response.code()} - ${response.message()}")
+                        _cancelResult.value = false
+                    }
+                } catch (e: Exception) {
+                    Log.e("cancel_order", "Lỗi: ${e.message}")
+                    _cancelResult.value = false
+                }
+            }
+        }
+    }
+    fun resetCancelResult() {
+        _cancelResult.value = null
+    }
+
 
 
     fun matchVariant(productId: String, selectedAttributes: Map<String, String>) {
