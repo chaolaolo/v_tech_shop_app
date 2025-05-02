@@ -35,5 +35,6 @@
 
     <string name="contact_us">Liên hệ</string>
     <string name="viet_tech_post">Thông tin mới nhất</string>
+    <string name="title_activity_no_internet">NoInternetActivity</string>
 
 </resources>

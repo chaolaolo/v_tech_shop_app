@@ -11,7 +11,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Send
@@ -24,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +41,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.BaseResponse
 import com.datn.viettech_md_12.data.model.ReviewResponse
 import com.datn.viettech_md_12.data.model.ReviewResponseAddUp
@@ -164,45 +168,86 @@ fun AddReviewDialog(
             onDismiss = { showConfirmDialog = false }
         )
     }
-
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(10.dp),
             tonalElevation = 8.dp,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxWidth(0.95f)
+                .wrapContentHeight()
+                .defaultMinSize(minWidth = 300.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .width(1000.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+//                    Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+//                    Spacer(modifier = Modifier.height(12.dp))
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val emotionIcon = when (rating) {
+                            5 -> R.drawable.good
+                            4 -> R.drawable.good_normal
+                            3 -> R.drawable.sad
+                            2 -> R.drawable.very_sad
+                            1 -> R.drawable.very_sad_x2
+                            else -> null
+                        }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    repeat(5) { index ->
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clickable { rating = index + 1 }
-                        )
+                        emotionIcon?.let {
+                            Image(
+                                painter = painterResource(id = it),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .padding(bottom = 16.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            val (title, subtitle) = when (rating) {
+                                5 -> "Sản phẩm rất tốt!" to "Cảm ơn bạn đã góp ý!"
+                                4 -> "Tốt lắm!" to "Cảm ơn bạn đã góp ý!"
+                                3 -> "Cũng ổn!" to "Cảm ơn bạn đã góp ý!"
+                                2 -> "Cần cải thiện sản phẩm!" to "Cảm ơn bạn đã góp ý!"
+                                1 -> "Sản phẩm rất tệ!" to "Cảm ơn bạn đã góp ý!"
+                                else -> "" to ""
+                            }
+                            Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 4.dp))
+                            Text(subtitle, fontSize = 14.sp)
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(5) { index ->
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clickable { rating = index + 1 }
+                                )
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("$rating sao")
-                }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    label = { Text("Nội dung đánh giá") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 4
-                )
+                    OutlinedTextField(
+                        value = content,
+                        onValueChange = { content = it },
+                        label = { Text("Nội dung đánh giá") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 4
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(5.dp))
 
                 Button(
                     onClick = { imageLauncher.launch("image/*") },
@@ -214,63 +259,279 @@ fun AddReviewDialog(
                     Text("Chọn ảnh (tối đa 3)")
                 }
 
-                if (selectedUris.isNotEmpty()) {
-                    LazyRow(modifier = Modifier.padding(top = 8.dp)) {
-                        items(selectedUris.size) { index ->
-                            Image(
-                                painter = rememberAsyncImagePainter(selectedUris[index]),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(80.dp)
-                                    .padding(end = 8.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
+                    if (selectedUris.isNotEmpty()) {
+                        LazyRow(modifier = Modifier.padding(top = 8.dp)) {
+                            items(selectedUris.size) { index ->
+                                Image(
+                                    painter = rememberAsyncImagePainter(selectedUris[index]),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .padding(end = 8.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = {
-                        // Reset khi bấm Hủy
-                        rating = 5
-                        content = ""
-                        selectedUris = emptyList()
-                        onDismiss()
-                    }) {
-                        Text("Hủy")
-                    }
-
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = {
-                            showConfirmDialog = true
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        if (isUploading) {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(Icons.Default.Send, contentDescription = null)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Gửi")
+                        Button(
+                            onClick = {
+                                showConfirmDialog = true
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                        ) {
+                            if (isUploading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Đánh giá")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = {
+                                rating = 5
+                                content = ""
+                                selectedUris = emptyList()
+                                onDismiss()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(10.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xffffffff))
+                        ) {
+                            Text("Hủy", color = Color.Black)
                         }
                     }
                 }
             }
         }
     }
+
+//    Dialog(onDismissRequest = onDismiss) {
+//        Surface(
+//            shape = RoundedCornerShape(10.dp),
+//            tonalElevation = 8.dp,
+//            modifier = Modifier
+//                .fillMaxWidth(0.95f)
+////                .padding(16.dp)
+//                .wrapContentHeight()
+//                .defaultMinSize(minWidth = 300.dp)
+//        ) {
+//            Column(modifier = Modifier.padding(16.dp)) {
+//                Text("Thêm đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+//                Spacer(modifier = Modifier.height(12.dp))
+//
+//                Column(
+//                    horizontalAlignment = Alignment.CenterHorizontally, // 👈 Căn giữa theo chiều ngang
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//
+//                    val emotionIcon = when (rating) {
+//                        5 -> R.drawable.good
+//                        4 -> R.drawable.good_normal
+//                        3 -> R.drawable.sad
+//                        2 -> R.drawable.very_sad
+//                        1 -> R.drawable.very_sad_x2
+//                        else -> null
+//                    }
+//
+//                    emotionIcon?.let {
+//                        Image(
+//                            painter = painterResource(id = it),
+//                            contentDescription = null,
+//                            modifier = Modifier
+//                                .size(80.dp)
+//                                .padding(bottom = 16.dp),
+//                            contentScale = ContentScale.Fit
+//                        )
+//                        when (rating) {
+//                            5 -> {
+//                                Text(
+//                                    text = "Sản phẩm rất tốt!",
+//                                    fontWeight = FontWeight.Bold,
+//                                    fontSize = 16.sp,
+//                                    modifier = Modifier.padding(bottom = 4.dp)
+//                                )
+//                                Text(
+//                                    text = "Cảm ơn bạn đã góp ý!",
+//                                    fontSize = 14.sp
+//                                )
+//                            }
+//                            4 -> {
+//                                Text(
+//                                    text = "Tốt lắm!",
+//                                    fontWeight = FontWeight.Bold,
+//                                    fontSize = 16.sp,
+//                                    modifier = Modifier.padding(bottom = 4.dp)
+//                                )
+//                                Text(
+//                                    text = "Cảm ơn bạn đã góp ý!",
+//                                    fontSize = 14.sp
+//                                )
+//                            }
+//                            3 -> {
+//                                Text(
+//                                    text = "Cũng ổn!",
+//                                    fontWeight = FontWeight.Bold,
+//                                    fontSize = 16.sp,
+//                                    modifier = Modifier.padding(bottom = 4.dp)
+//                                )
+//                                Text(
+//                                    text = "Cảm ơn bạn đã góp ý!",
+//                                    fontSize = 14.sp
+//                                )
+//                            }
+//                            2 -> {
+//                                Text(
+//                                    text = "Cần cải thiện sản phẩm!",
+//                                    fontWeight = FontWeight.Bold,
+//                                    fontSize = 16.sp,
+//                                    modifier = Modifier.padding(bottom = 4.dp)
+//                                )
+//                                Text(
+//                                    text = "Cảm ơn bạn đã góp ý!",
+//                                    fontSize = 14.sp
+//                                )
+//                            }
+//                            1 -> {
+//                                Text(
+//                                    text = "Sản phẩm rất tệ!",
+//                                    fontWeight = FontWeight.Bold,
+//                                    fontSize = 16.sp,
+//                                    modifier = Modifier.padding(bottom = 4.dp)
+//                                )
+//                                Text(
+//                                    text = "Cảm ơn bạn đã góp ý!",
+//                                    fontSize = 14.sp
+//                                )
+//                            }
+//                        }
+//                    }
+//
+//
+//                    Row(
+//                        horizontalArrangement = Arrangement.Center,
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        repeat(5) { index ->
+//                            Icon(
+//                                imageVector = Icons.Default.Star,
+//                                contentDescription = null,
+//                                tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
+//                                modifier = Modifier
+//                                    .size(40.dp)
+//                                    .clickable { rating = index + 1 }
+//                            )
+//                        }
+//                    }
+//                }
+//
+//
+//
+//                Spacer(modifier = Modifier.height(12.dp))
+//
+//                OutlinedTextField(
+//                    value = content,
+//                    onValueChange = { content = it },
+//                    label = { Text("Nội dung đánh giá") },
+//                    modifier = Modifier.fillMaxWidth(),
+//                    maxLines = 4
+//                )
+//
+//                Spacer(modifier = Modifier.height(12.dp))
+//
+//                Button(
+//                    onClick = { imageLauncher.launch("image/*") },
+//                    modifier = Modifier.align(Alignment.End),
+//                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+//                ) {
+//                    Icon(Icons.Default.Image, contentDescription = null)
+//                    Spacer(modifier = Modifier.width(8.dp))
+//                    Text("Chọn ảnh (tối đa 3)")
+//                }
+//
+//                if (selectedUris.isNotEmpty()) {
+//                    LazyRow(modifier = Modifier.padding(top = 8.dp)) {
+//                        items(selectedUris.size) { index ->
+//                            Image(
+//                                painter = rememberAsyncImagePainter(selectedUris[index]),
+//                                contentDescription = null,
+//                                modifier = Modifier
+//                                    .size(80.dp)
+//                                    .padding(end = 8.dp)
+//                                    .clip(RoundedCornerShape(8.dp)),
+//                                contentScale = ContentScale.Crop
+//                            )
+//                        }
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.height(16.dp))
+//
+//                Column(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                ) {
+//                    Button(
+//                        onClick = {
+//                            showConfirmDialog = true
+//                        },
+//                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047)),
+//                        modifier = Modifier.fillMaxWidth().height(50.dp).clip(RoundedCornerShape(10.dp))
+//                    ) {
+//                        if (isUploading) {
+//                            CircularProgressIndicator(
+//                                color = Color.White,
+//                                modifier = Modifier.size(20.dp),
+//                                strokeWidth = 2.dp
+//                            )
+//                        } else {
+////                            Icon(Icons.Default.Send, contentDescription = null)
+//                            Spacer(modifier = Modifier.width(4.dp))
+//                            Text("Đánh giá")
+//                        }
+//                    }
+//
+//                    Spacer(modifier = Modifier.height(8.dp))
+//
+//                    Button(onClick = {
+//                        // Reset khi bấm Hủy
+//                        rating = 5
+//                        content = ""
+//                        selectedUris = emptyList()
+//                        onDismiss()
+//                    },
+//                        modifier = Modifier.fillMaxWidth().height(50.dp).clip(RoundedCornerShape(10.dp)),
+//                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xfffffffff))
+//                        ) {
+//                        Text("Hủy", color = Color.Black)
+//                    }
+//
+//
+//
+//                }
+//            }
+//        }
+//    }
 }
 
 @Composable

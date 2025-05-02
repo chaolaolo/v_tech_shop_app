@@ -7,25 +7,29 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductDetailModel
 import com.datn.viettech_md_12.data.model.ProductDetailResponse
 import com.datn.viettech_md_12.data.model.ProductModel
-import com.datn.viettech_md_12.data.model.ProductResponse
-import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.remote.ApiClient.cartRepository
 import com.datn.viettech_md_12.data.remote.ApiClient.productRepository
+import com.datn.viettech_md_12.data.repository.ProductRepository
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-class ProductViewModel : ViewModel() {
-    private val _repository = ApiClient.productRepository
+class ProductViewModel(
+    networkHelper: NetworkHelper,
+    private val repository: ProductRepository
+) : ViewModel() {
+//    private val repository = ApiClient.productRepository
 
     private val _products = MutableStateFlow<List<ProductModel>>(emptyList())
     val products: StateFlow<List<ProductModel>> = _products
@@ -33,14 +37,14 @@ class ProductViewModel : ViewModel() {
     val product: StateFlow<ProductModel?> = _product
     private val _productDetail = MutableStateFlow<ProductDetailModel?>(null)
     val productDetail: StateFlow<ProductDetailModel?> = _productDetail
-    val productResponse = MutableStateFlow<ProductResponse?>(null)
+//    val productResponse = MutableStateFlow<ProductResponse?>(null)
     val productDetailResponse = MutableStateFlow<ProductDetailResponse?>(null)
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _isLoadingFavourite = MutableStateFlow(true)
-    val isLoadingFavourite: StateFlow<Boolean> = _isLoadingFavourite
+//    val isLoadingFavourite: StateFlow<Boolean> = _isLoadingFavourite
 
-    private val myColorHexList = listOf("FF1C1B1B", "FF08E488", "FF21D4B4")
+//    private val myColorHexList = listOf("FF1C1B1B", "FF08E488", "FF21D4B4")
 
 
     private val _favoriteProducts = MutableStateFlow<List<FavoriteItem>>(emptyList())
@@ -56,9 +60,9 @@ class ProductViewModel : ViewModel() {
 
 
     // lưu variantId đã match
-     var _matchedVariantId = MutableStateFlow<String?>(null)
+    var _matchedVariantId = MutableStateFlow<String?>(null)
     var matchedVariantId: StateFlow<String?> = _matchedVariantId
-     var _matchedVariantPrice = MutableStateFlow<Double?>(null)
+    var _matchedVariantPrice = MutableStateFlow<Double?>(null)
     var matchedVariantPrice: StateFlow<Double?> = _matchedVariantPrice
 
     private val _bottomSheetType = MutableStateFlow("")
@@ -66,30 +70,21 @@ class ProductViewModel : ViewModel() {
     fun setBottomSheetType(type: String) {
         _bottomSheetType.value = type
     }
+
     init {
-        loadCategories()
-        getAllProduct()
-        Log.d("ProductViewModel", _product.value.toString())
+        if (networkHelper.isNetworkConnected()) {
+            loadCategories()
+            getAllProduct()
+            Log.d("ProductViewModel", _product.value.toString())
+        } else {
+            Log.d("CategoryViewModel", "Không có kết nối mạng.")
+            _isLoading.value = false
+        }
     }
 
     private fun loadCategories() {
         viewModelScope.launch {
             delay(2000)
-
-//2000            _products.value = listOf(
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 0", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 1", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 2", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 3", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 4", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 5", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 6", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 7", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 8", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 9", 186.00, 126.00),
-//                Product(R.drawable.banner3, false, myColorHexList, "Product 10", 186.00, 126.00),
-//            )
-
             _isLoading.value = false
         }
     }
@@ -124,32 +119,55 @@ class ProductViewModel : ViewModel() {
         }
     }
 
-    fun getAllProduct() {
+//    fun getAllProduct() {
+//        viewModelScope.launch {
+//            _isLoading.value = true
+//            try {
+//                val response = repository.getAllProducts()
+//                if (response.isSuccessful) {
+//                    response.body()?.let {
+//                        _products.value = it.products
+//                        Log.d("lol", "Danh sách sản phẩm: ${it.products}")
+//                    }
+//                } else {
+//                    Log.e("dcm_error", "Error: ${response.code()} ${response.message()}")
+//                }
+//            } catch (e: UnknownHostException) {
+//                Log.e("dcm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
+//            } catch (e: SocketTimeoutException) {
+//                Log.e("dcm_error", "Lỗi mạng: Đã hết thời gian chờ")
+//            } catch (e: HttpException) {
+//                Log.e("dcm_error", "Lỗi HTTP: ${e.message}")
+//            } catch (e: JsonSyntaxException) {
+//                Log.e("dcm_error", "Lỗi dữ liệu: Invalid JSON response")
+//            } catch (e: Exception) {
+//                Log.e("dcm_error", "Lỗi chung: ${e.message}")
+//            } finally {
+//                _isLoading.value = false
+//            }
+//        }
+//    }
+
+    private fun getAllProduct() {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val response = _repository.getAllProducts()
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        _products.value = it.products
-                        Log.d("lol", "Danh sách sản phẩm: ${it.products}")
-                    }
-                } else {
-                    Log.e("dcm_error", "Error: ${response.code()} ${response.message()}")
+            repository.getAllProductsFlow()
+                .catch { e ->
+                    Log.e("ProductViewModel", "Flow error: ${e.message}")
+                    _isLoading.value = false
                 }
-            } catch (e: UnknownHostException) {
-                Log.e("dcm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
-            } catch (e: SocketTimeoutException) {
-                Log.e("dcm_error", "Lỗi mạng: Đã hết thời gian chờ")
-            } catch (e: HttpException) {
-                Log.e("dcm_error", "Lỗi HTTP: ${e.message}")
-            } catch (e: JsonSyntaxException) {
-                Log.e("dcm_error", "Lỗi dữ liệu: Invalid JSON response")
-            } catch (e: Exception) {
-                Log.e("dcm_error", "Lỗi chung: ${e.message}")
-            } finally {
-                _isLoading.value = false
-            }
+                .collect { response ->
+                    if (response.isSuccessful) {
+                        _products.value = response.body()?.products ?: emptyList()
+                        Log.d("ProductViewModel", "Loaded ${_products.value.size} products")
+                    } else {
+                        Log.e(
+                            "ProductViewModel",
+                            "API error: ${response.code()} ${response.message()}"
+                        )
+                    }
+                    _isLoading.value = false
+                }
         }
     }
 
@@ -169,7 +187,7 @@ class ProductViewModel : ViewModel() {
                     "Sending request: $favoriteRequest"
                 )
                 try {
-                    val response = _repository.addToFavorites(
+                    val response = repository.addToFavorites(
                         favoriteRequest, token, clientId
                     )
                     Log.d("dcm_token_id", "Token used: Bearer $token")
@@ -282,7 +300,7 @@ class ProductViewModel : ViewModel() {
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
                     _isLoadingFavourite.value = true
-                    val response = _repository.getFavoriteProducts(token, clientId)
+                    val response = repository.getFavoriteProducts(token, clientId)
                     if (response.isSuccessful) {
                         response.body()?.let {
                             _favoriteProducts.value = it.favorites
@@ -326,8 +344,13 @@ class ProductViewModel : ViewModel() {
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
                     val response =
-                        _repository.removeFromFavorites(productId, token, clientId, apiKey)
+                        repository.removeFromFavorites(productId, token, clientId, apiKey)
                     if (response.isSuccessful) {
+                        Toast.makeText(
+                            context,
+                            "Đã xoá sản phẩm yêu thích thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         getFavoriteProducts(context)
 
                         editor.putBoolean(
@@ -363,9 +386,10 @@ class ProductViewModel : ViewModel() {
                 sharedPreferences.getString("userId", "")  // bạn cần lưu userId sau khi login
             Log.d("dcm_debug_order", "Token:$token")
             Log.d("dcm_debug_order", "ClientId: $clientId")
+            _isLoading.value = true
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
-                    val response = _repository.getUserOrders(userId.toString(), token, clientId)
+                    val response = repository.getUserOrders(userId.toString(), token, clientId)
                     if (response.isSuccessful) {
                         response.body()?.let {
                             _orders.value = it.metadata.bills
@@ -392,6 +416,8 @@ class ProductViewModel : ViewModel() {
                     }
                 } catch (e: Exception) {
                     Log.e("dcm_order", "Lỗi chung: ${e.message}")
+                } finally {
+                    _isLoading.value = false
                 }
             } else {
                 Log.e("dcm_order", "Token hoặc ClientId không tồn tại")
@@ -412,14 +438,17 @@ class ProductViewModel : ViewModel() {
 
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 try {
-                    val response = _repository.getBillById(orderId, token, clientId)
+                    val response = repository.getBillById(orderId, token, clientId)
 
                     if (response.isSuccessful) {
                         _selectedOrder.value = response.body()
                         Log.d("dcm_order_detail", "Chi tiết đơn hàng: ${response.body()}")
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        Log.e("dcm_order_detail", "Lỗi lấy chi tiết đơn hàng: ${response.code()} - ${response.message()}")
+                        Log.e(
+                            "dcm_order_detail",
+                            "Lỗi lấy chi tiết đơn hàng: ${response.code()} - ${response.message()}"
+                        )
                         Log.e("dcm_order_detail", "ErrorBody: $errorBody")
                     }
 
@@ -446,13 +475,13 @@ class ProductViewModel : ViewModel() {
                 Log.d("MatchVariant", "Converted attributes: $convertedAttrs")
 
                 // 2. Thêm fallback nếu không có variant khớp
-                val localVariantId = findMatchingVariantLocal(selectedAttributes)
+//                val localVariantId = findMatchingVariantLocal(selectedAttributes)
                 Log.d("MatchVariant", "Product ID: $productId")
                 Log.d("MatchVariant", "Attributes: ${productDetailResponse.value?.attributes}")
                 Log.d("MatchVariant", "Selected Attributes (names): $selectedAttributes")
                 Log.d("MatchVariant", "Converted Attributes (ids): $convertedAttrs")
                 // 3. Gọi API
-                val response = _repository.matchVariant(productId, convertedAttrs)
+                val response = repository.matchVariant(productId, convertedAttrs)
                 _matchedVariantId.value = response.variant.id
                 _matchedVariantPrice.value = response.variant.price
                 Log.d("MatchVariant", "Matched Variant ID: ${response.variant.id}")
@@ -534,9 +563,10 @@ class ProductViewModel : ViewModel() {
 
         return validOptions
     }
+
     suspend fun getProductByIdSuspend(productId: String): ProductDetailModel? {
         return try {
-            val response = _repository.getProductById(productId)
+            val response = repository.getProductById(productId)
             if (response.isSuccessful) {
                 response.body()?.product
             } else {

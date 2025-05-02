@@ -3,14 +3,16 @@ package com.datn.viettech_md_12.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.common.SortOption
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.remote.ApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class SearchViewModel: ViewModel() {
+class SearchViewModel : ViewModel() {
     private val repository = ApiClient.productRepository
+
     private val _searchResults = MutableStateFlow<List<ProductModel>>(emptyList())
     val searchResults: StateFlow<List<ProductModel>> = _searchResults
 
@@ -20,18 +22,35 @@ class SearchViewModel: ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    fun searchProducts(query: String) {
+    private val _shouldCloseBottomSheet = MutableStateFlow(false)
+    val shouldCloseBottomSheet: StateFlow<Boolean> = _shouldCloseBottomSheet
+
+    private var currentSortOption: SortOption? = null
+    private var currentQuery: String = "" // 💡 Thêm dòng này
+
+    fun searchProducts(query: String, sortOption: SortOption? = currentSortOption) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
+            currentQuery = query // 💡 Lưu lại query mới nhất
+            currentSortOption = sortOption // 💡 Lưu lại sortOption mới nhất
             try {
-                val result = repository.searchProducts(query)
+                val sortQuery = sortOption?.let {
+                    when (it) {
+                        SortOption.PRICE_ASC -> "price_asc"
+                        SortOption.PRICE_DESC -> "price_desc"
+                        SortOption.AZ -> "name_asc"
+                        SortOption.ZA -> "name_desc"
+                    }
+                }
+
+                val result = repository.searchProducts(query, sortQuery)
                 if (result.isSuccessful) {
                     result.body()?.let {
                         _searchResults.value = it.products
                     }
                 } else {
-                    Log.e("ProductViewModel", "Error: ${result.code()} ${result.message()}")
+                    Log.e("SearchViewModel", "Error: ${result.code()} ${result.message()}")
                 }
             } catch (e: Exception) {
                 _errorMessage.value = e.localizedMessage ?: "Lỗi không xác định"
@@ -40,7 +59,19 @@ class SearchViewModel: ViewModel() {
             }
         }
     }
+
+    fun applySort(sortOption: SortOption?) {
+        currentSortOption = sortOption
+        searchProducts(query = currentQuery, sortOption = sortOption) // ✅ Sử dụng currentQuery
+    }
+
     fun clearSearchResults() {
         _searchResults.value = emptyList()
+        currentQuery = "" // ✅ reset currentQuery khi xoá
+    }
+
+    fun onBottomSheetClosed() {
+        _shouldCloseBottomSheet.value = false
     }
 }
+

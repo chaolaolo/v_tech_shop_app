@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -83,6 +84,7 @@ import java.util.Locale
 fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel) {
     val context = LocalContext.current
     val orders = viewModel.orders.collectAsState()
+    val isLoading = viewModel.isLoading.collectAsState()
 
     // Kiểm tra SharedPreferences để lấy token và clientId
     val sharedPreferences: SharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
@@ -99,15 +101,17 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
 //    }
     val tabTitles = listOf("Chờ xác nhận", "Đang giao", "Đã huỷ", "Hoàn thành")
 
-    val waitingOrders = orders.value.filter { it.status == "pending" }
-    val deliveringOrders = orders.value.filter { it.status == "active" }
-    val canceledOrders = orders.value.filter { it.status == "cancelled" }
-    val completedOrders = orders.value.filter { it.status == "completed" }
+    val waitingOrders = orders.value.filter { it.status == "pending" }.sortedByDescending { it.createdAt }
+    val deliveringOrders = orders.value.filter { it.status == "active" }.sortedByDescending { it.createdAt }
+    val canceledOrders = orders.value.filter { it.status == "cancelled" }.sortedByDescending { it.createdAt }
+    val completedOrders = orders.value.filter { it.status == "completed" }.sortedByDescending { it.createdAt }
     LaunchedEffect(Unit) {
-        while (true) {
-            viewModel.getUserOrders(context)
-            delay(2000) // gọi lại mỗi 5 giây (tuỳ chỉnh theo ý bạn)
-        }
+        //comment doan nay de tich hop loading screen ( tranh bi 2 giay lai loading du lieu )
+//        while (true) {
+//            viewModel.getUserOrders(context)
+//            delay(2000) // gọi lại mỗi 5 giây (tuỳ chỉnh theo ý bạn)
+//        }
+        viewModel.getUserOrders(context)
     }
 
     Column(
@@ -140,46 +144,7 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
         DividerItemOrder()
         Spacer(modifier = Modifier.height(10.dp))
 
-        // TabRow luôn hiển thị dù có token hay không
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(horizontal = 16.dp)
-//                .height(50.dp)
-//                .background(Color(0xffF4F5FD), RoundedCornerShape(12.dp)),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            TabRow(
-//                selectedTabIndex = pagerState.currentPage,
-//                backgroundColor = Color.Transparent,
-//                contentColor = Color.Black,
-//                modifier = Modifier.fillMaxWidth(),
-//                indicator = {}, // Ẩn đường underline mặc định
-//            ) {
-//                listOf("Đang thực hiện", "Hoàn thành").forEachIndexed { index, title ->
-//                    val isSelected = pagerState.currentPage == index
-//                    Tab(
-//                        selected = isSelected,
-//                        onClick = {
-//                            coroutineScope.launch {
-//                                pagerState.animateScrollToPage(index)
-//                            }
-//                        },
-//                        modifier = Modifier
-//                            .padding(4.dp)
-//                            .clip(RoundedCornerShape(12.dp)) // Bo góc từng Tab
-//                            .background(if (isSelected) Color.Black else Color.Transparent) // Đổi màu khi được chọn
-//                            .padding(vertical = 8.dp, horizontal = 16.dp) // Padding bên trong
-//                    ) {
-//                        Text(
-//                            text = title,
-//                            color = if (isSelected) Color.White else Color.Black,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    }
-//                }
-//            }
-//        }
+
 
         Box(
             modifier = Modifier
@@ -225,7 +190,9 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
             }
 
         }
-        if (token != null && clientId != null) {
+        if (isLoading.value){
+            LoadingScreen()
+        } else if (token != null && clientId != null) {
             HorizontalPager(
                 count = 4,
                 state = pagerState,
@@ -639,7 +606,18 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
 
 
 
-
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(
+            color = Color(0xFF4CAF50),
+            strokeWidth = 4.dp
+        )
+    }
+}
 @Composable
 fun EmptyOrderScreen() {
     Column(

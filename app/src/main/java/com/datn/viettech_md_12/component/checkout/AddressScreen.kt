@@ -49,18 +49,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.component.address_selection.DistrictDropdown
 import com.datn.viettech_md_12.component.address_selection.ProvinceDropdown
+import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
-import com.datn.viettech_md_12.viewmodel.CheckoutViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AddressScreen(
     navController: NavController,
-    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application)),
+    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application, NetworkHelper(LocalContext.current))),
 ) {
     val checkoutState by checkoutViewModel.addressState.collectAsState()
     val isLoading by checkoutViewModel.gettingAddress.collectAsState()

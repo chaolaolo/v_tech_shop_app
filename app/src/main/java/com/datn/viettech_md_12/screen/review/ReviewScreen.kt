@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.datn.viettech_md_12.NetworkHelper
+import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.review_component.UpdateReviewDialog
 import com.datn.viettech_md_12.data.model.ProductDetailModel
@@ -40,7 +42,11 @@ import java.util.*
 fun ReviewScreen(navController: NavController) {
     val context = LocalContext.current
     val reviewViewModel: ReviewViewModel = viewModel(factory = ReviewViewModelFactory(context.applicationContext as android.app.Application))
-    val productViewModel: ProductViewModel = viewModel()
+    val productViewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(
+            NetworkHelper(LocalContext.current)
+        )
+    )
     val isLoading by reviewViewModel.isLoading.collectAsState()
     val reviewsByAccount by reviewViewModel.reviewsByAccount.collectAsState()
     var showUpdateDialog by remember { mutableStateOf(false) }

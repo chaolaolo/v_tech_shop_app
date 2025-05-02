@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.datn.viettech_md_12.NetworkHelper
+import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.review_component.AddReviewDialog
 import com.datn.viettech_md_12.data.model.OrderModel
@@ -72,7 +74,11 @@ import java.util.Locale
 fun OrderDetailScreen(
     orderId: String,
     navController: NavController,
-    viewModel: ProductViewModel = viewModel()
+    viewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(
+            NetworkHelper(LocalContext.current)
+        )
+    )
 ) {
     val context = LocalContext.current.applicationContext as Application
     val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))

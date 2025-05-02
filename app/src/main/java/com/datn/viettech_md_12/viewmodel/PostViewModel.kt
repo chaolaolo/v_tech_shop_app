@@ -6,20 +6,24 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.data.model.AllPostMetadata
 import com.datn.viettech_md_12.data.model.PostMetadata
 import com.datn.viettech_md_12.data.model.ProductModel
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.remote.ApiClient.checkoutRepository
 import com.google.gson.JsonSyntaxException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.io.IOException
+import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-class PostViewModel(application: Application) : ViewModel() {
+class PostViewModel(application: Application, networkHelper: NetworkHelper) : ViewModel() {
     private val sharedPreferences = application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val token: String? = sharedPreferences.getString("accessToken", null)
     private val clientId: String? = sharedPreferences.getString("clientId", null)
@@ -34,13 +38,44 @@ class PostViewModel(application: Application) : ViewModel() {
     // State cho bài viết chi tiết
     private val _postDetailState = MutableStateFlow<PostMetadata?>(null)
     val postDetailState: StateFlow<PostMetadata?> = _postDetailState
-    private val _postDetailLoading = MutableStateFlow(false)
-    val postDetailLoading: StateFlow<Boolean> = _postDetailLoading
+//    private val _postDetailLoading = MutableStateFlow(false)
+//    val postDetailLoading: StateFlow<Boolean> = _postDetailLoading
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
+
+    private val _isErrorDialogDismissed = MutableStateFlow(false)
+    val isErrorDialogDismissed: StateFlow<Boolean> = _isErrorDialogDismissed
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
     init {
-        getAllPosts()
+        if (networkHelper.isNetworkConnected()) {
+            getAllPosts()
+        }else{
+            Log.d("PostViewModel", "Không có kết nối mạng.")
+            _errorMessage.value = "Không có kết nối mạng"
+            _isLoading.value = false
+        }
+    }
+
+    fun refreshAllPosts() {
+        _isRefreshing.value = true
+        _errorMessage.value = null
+        viewModelScope.launch {
+            getAllPosts()
+            delay(2000)
+            _isRefreshing.value = false
+        }
+    }
+
+    fun dismissErrorDialog() {
+        _isErrorDialogDismissed.value = true
+//        _errorMessage.value = null
+    }
+
+    fun resetErrorState() {
+        _isErrorDialogDismissed.value = false
+        _errorMessage.value = null
     }
 
     fun getAllPosts() {
@@ -48,7 +83,6 @@ class PostViewModel(application: Application) : ViewModel() {
             Log.d("getAllPosts", "userId: $clientId")
             Log.d("getAllPosts", "token: $token")
             _isLoading.value = true
-            _errorMessage.value = null
             try {
                 val response = postRepository.getAllPosts(
                     token = token?:"",
@@ -66,14 +100,22 @@ class PostViewModel(application: Application) : ViewModel() {
                     Log.e("getAllPosts", errorMsg)
                 }
             } catch (e: UnknownHostException) {
+                _errorMessage.value = "Lỗi mạng: Không thể kết nối với máy chủ."
                 handleError("Lỗi mạng: Không thể kết nối với máy chủ", e)
             } catch (e: SocketTimeoutException) {
+                _errorMessage.value = "Lỗi mạng: Đã hết thời gian chờ."
                 handleError("Lỗi mạng: Đã hết thời gian chờ", e)
             } catch (e: HttpException) {
                 handleError("Lỗi HTTP: ${e.message()}", e)
+            } catch (e: ConnectException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("getAllPosts", "Lỗi kết nối api")
+            } catch (e: IOException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("getAllPosts", "Lỗi kết nối api")
             } catch (e: JsonSyntaxException) {
                 handleError("Lỗi dữ liệu: Invalid JSON response", e)
-            } catch (e: Exception) {
+            }  catch (e: Exception) {
                 handleError("Lỗi không xác định: ${e.message}", e)
             } finally {
                 _isLoading.value = false
@@ -83,9 +125,10 @@ class PostViewModel(application: Application) : ViewModel() {
 
     fun getPostById(postId: String) {
         viewModelScope.launch {
+            delay(1000)
             Log.d("getPostById", "userId: $clientId")
             Log.d("getPostById", "token: $token")
-            _postDetailLoading.value = true
+            _isLoading.value = true
             _errorMessage.value = null
             try {
                 val response = postRepository.getPostById(
@@ -106,17 +149,25 @@ class PostViewModel(application: Application) : ViewModel() {
 
                 }
             } catch (e: UnknownHostException) {
+                _errorMessage.value = "Lỗi mạng: Không thể kết nối với máy chủ."
                 handleError("Lỗi mạng: Không thể kết nối với máy chủ", e)
             } catch (e: SocketTimeoutException) {
+                _errorMessage.value = "Lỗi mạng: Đã hết thời gian chờ."
                 handleError("Lỗi mạng: Đã hết thời gian chờ", e)
             } catch (e: HttpException) {
                 handleError("Lỗi HTTP: ${e.message()}", e)
+            }  catch (e: ConnectException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("getPostById", "Lỗi kết nối api")
+            } catch (e: IOException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("getPostById", "Lỗi kết nối api")
             } catch (e: JsonSyntaxException) {
                 handleError("Lỗi dữ liệu: Invalid JSON response", e)
             } catch (e: Exception) {
                 handleError("Lỗi không xác định: ${e.message}", e)
             } finally {
-                _postDetailLoading.value = false
+                _isLoading.value = false
             }
         }
     }
@@ -126,7 +177,6 @@ class PostViewModel(application: Application) : ViewModel() {
             Log.d("getSameTagsPosts", "userId: $clientId")
             Log.d("getSameTagsPosts", "token: $token")
             _isLoading.value = true
-            _errorMessage.value = null
             try {
                 val response = postRepository.getAllPosts(
                     token = token ?: "",
@@ -146,11 +196,19 @@ class PostViewModel(application: Application) : ViewModel() {
                     Log.e("getSameTagsPosts", errorMsg)
                 }
             } catch (e: UnknownHostException) {
+                _errorMessage.value = "Lỗi mạng: Không thể kết nối với máy chủ."
                 handleError("Lỗi mạng: Không thể kết nối với máy chủ", e)
             } catch (e: SocketTimeoutException) {
+                _errorMessage.value = "Lỗi mạng: Đã hết thời gian chờ."
                 handleError("Lỗi mạng: Đã hết thời gian chờ", e)
             } catch (e: HttpException) {
                 handleError("Lỗi HTTP: ${e.message()}", e)
+            } catch (e: ConnectException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("getSameTagsPosts", "Lỗi kết nối api")
+            } catch (e: IOException) {
+                _errorMessage.value = "Lỗi kết nối mạng, vui lòng kiểm tra internet của bạn."
+                Log.e("getSameTagsPosts", "Lỗi kết nối api")
             } catch (e: JsonSyntaxException) {
                 handleError("Lỗi dữ liệu: Invalid JSON response", e)
             } catch (e: Exception) {
@@ -182,14 +240,3 @@ class PostViewModel(application: Application) : ViewModel() {
 
 }
 
-class PostViewModelFactory(
-    private val application: Application
-) : ViewModelProvider.AndroidViewModelFactory(application) {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(PostViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return PostViewModel(application) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

@@ -1,11 +1,19 @@
 package com.datn.viettech_md_12.navigation
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +55,7 @@ import com.datn.viettech_md_12.screen.review.ReviewScreen
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
+import kotlinx.coroutines.delay
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -55,12 +64,31 @@ import java.nio.charset.StandardCharsets
 fun NavigationGraph(startDestination: String = "home") {
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
+    var backPressedCount by remember { mutableIntStateOf(0) }
 
-    val productViewModel: ProductViewModel =
+    val context = LocalContext.current
+    BackHandler {
+        backPressedCount++
+
+        if (backPressedCount == 1) {
+            Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+        } else if (backPressedCount >= 2) {
+            (context as? Activity)?.finish()
+        }
+    }
+
+    LaunchedEffect(backPressedCount) {
+        if (backPressedCount == 1) {
+            delay(2000)
+            backPressedCount = 0
+        }
+    }
+
+    val productViewModel: ProductViewModel? =
         (LocalContext.current.applicationContext as MyApplication).productViewModel
-    val userViewModel: UserViewModel =
+    val userViewModel: UserViewModel? =
         (LocalContext.current.applicationContext as MyApplication).userViewModel
-    val notificationViewModel: NotificationViewModel =
+    val notificationViewModel: NotificationViewModel? =
         (LocalContext.current.applicationContext as MyApplication).notificationViewModel
 
     val selectedRoute = when {
@@ -96,10 +124,22 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("home") { HomeScreen(navController) }
             composable("categories") { CategoriesScreen(navController) }
             composable("cart") { CartScreen(navController) }
-            composable("wishlist") { WishlistScreen(viewModel = productViewModel,navController) }
+            composable("wishlist") {
+                if (productViewModel != null) {
+                    WishlistScreen(viewModel = productViewModel,navController)
+                }
+            }
             composable("profile") { ProfileScreen(navController) }
-            composable("change_password_screen") { ChangePasswordScreen(navController,userViewModel = userViewModel) }
-            composable("order_history_screen") { OrderHistoryScreen(navController, viewModel = productViewModel) }
+            composable("change_password_screen") {
+                if (userViewModel != null) {
+                    ChangePasswordScreen(navController,userViewModel = userViewModel)
+                }
+            }
+            composable("order_history_screen") {
+                if (productViewModel != null) {
+                    OrderHistoryScreen(navController, viewModel = productViewModel)
+                }
+            }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("payment_screen") { PaymentScreen(navController) }
@@ -108,7 +148,11 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("address_screen") { AddressScreen(navController) }
             composable("contact_us") { ContactUsUI(navController) }
             composable("post_screen") { PostScreen(navController) }
-            composable("notification") { NotificationScreen(viewModel= notificationViewModel,navController) }
+            composable("notification") {
+                if (notificationViewModel != null) {
+                    NotificationScreen(viewModel= notificationViewModel,navController)
+                }
+            }
             composable("review_screen") { ReviewScreen(navController) }
             composable("post_detail/{postId}") { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
@@ -191,10 +235,14 @@ fun NavigationGraph(startDestination: String = "home") {
                 )
             }
             composable("login") {
-                LoginUser(userViewModel, navController)
+                if (userViewModel != null) {
+                    LoginUser(userViewModel, navController)
+                }
             }
             composable("register") {
-                SignUpUser(userViewModel, navController)
+                if (userViewModel != null) {
+                    SignUpUser(userViewModel, navController)
+                }
             }
         }
     }

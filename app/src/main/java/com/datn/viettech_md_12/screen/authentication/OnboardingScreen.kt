@@ -3,6 +3,7 @@ package com.datn.viettech_md_12.screen.authentication
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -44,23 +45,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.navigation.NavigationGraph
 import kotlinx.coroutines.launch
 
-class OnbroadingActivity : ComponentActivity() {
+class OnboardingActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("WrongConstant")
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
-//        controller.hide(android.view.WindowInsets.Type.systemBars()) // Ẩn cả thanh trạng thái và thanh điều hướng
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         setContent {
-//            val navController = rememberNavController()
-//           OnboardingScreen(navController)
             NavigationGraph(startDestination = "onb_screen")
         }
     }

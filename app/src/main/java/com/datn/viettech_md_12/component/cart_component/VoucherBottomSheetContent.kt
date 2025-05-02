@@ -138,6 +138,9 @@ fun VoucherBottomSheetContent(
                         scope.launch {
                             snackbarHostState.showSnackbar("Áp dụng mã thành công!")
                         }
+                        scope.launch {
+                             scaffoldState.bottomSheetState.hide()
+                        }
                     } else {
                         scope.launch {
                             snackbarHostState.showSnackbar("Mã không hợp lệ.")
@@ -203,7 +206,9 @@ fun VoucherBottomSheetContent(
                             scope.launch {
                                 snackbarHostState.showSnackbar("Áp dụng mã thành công!")
                             }
-                            scope.launch { scaffoldState.bottomSheetState.hide() }
+                            scope.launch {
+                                scaffoldState.bottomSheetState.hide()
+                            }
                         } else {
                             scope.launch {
                                 snackbarHostState.showSnackbar("Mã không hợp lệ.")
