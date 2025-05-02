@@ -123,7 +123,9 @@ fun OnboardingScreen(navController: NavController) {
             Spacer(modifier = Modifier.weight(1f))
             TextButton(onClick = {
                 skipLogin(context) // gọi hàm xoá token + đánh dấu là guest
-                navController.navigate("home")
+                navController.navigate("home") {
+                    popUpTo("onb_screen") { inclusive = true }
+                }
             }) {
                 Text("Bỏ qua ngay", color = Color(0xFF00C853))
             }

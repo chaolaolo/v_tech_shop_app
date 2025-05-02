@@ -13,10 +13,8 @@ import com.datn.viettech_md_12.data.model.ProductByCateModelResponse
 import com.datn.viettech_md_12.data.model.ProductDetailResponse
 import com.datn.viettech_md_12.data.model.ProductListResponse
 import com.datn.viettech_md_12.data.model.SearchResponse
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Response
 
@@ -106,9 +104,23 @@ class ProductRepository(
         return apiService.removeProductFromFavorites(productId, token, clientId, apiKey)
     }
 
-    suspend fun searchProducts(query: String, sort: String?): Response<SearchResponse> {
-        return withContext(Dispatchers.IO) {
-            apiService.searchProducts(query, sort)
+//    suspend fun searchProducts(query: String, sort: String?): Response<SearchResponse> {
+//        return withContext(Dispatchers.IO) {
+//            apiService.searchProducts(query, sort)
+//        }
+//    }
+
+    fun searchProducts(query: String, sort: String?): Flow<Response<SearchResponse>> = flow {
+        try {
+            val response = apiService.searchProducts(query, sort)
+            emit(response)
+        } catch (e: Exception) {
+            emit(
+                Response.error(
+                    500,
+                    "Error: ${e.message}".toResponseBody(null)
+                )
+            )
         }
     }
 
