@@ -51,6 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,12 +102,14 @@ fun SameTagsPosts(
         }
     )
     val isErrorDialogDismissed by postViewModel.isErrorDialogDismissed.collectAsState()
+    val isFirstLoadDone = remember { mutableStateOf(false) }
 
     LaunchedEffect(tag) {
         postViewModel.getSameTagsPosts(tag)
         { result ->
             posts.clear()
             posts.addAll(result)
+            isFirstLoadDone.value = true
         }
     }
     Scaffold(
@@ -239,8 +242,7 @@ fun SameTagsPosts(
                             )
                         }
                     }
-
-                    posts.isEmpty() && !isRefreshing && !isLoading -> {
+                    posts.isEmpty() && isFirstLoadDone.value && !isRefreshing && !isLoading-> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.TopCenter
@@ -253,7 +255,6 @@ fun SameTagsPosts(
                             )
                         }
                     }
-
                     else -> {
                         Spacer(Modifier.height(10.dp))
                         FlowRow(
