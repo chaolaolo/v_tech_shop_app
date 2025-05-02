@@ -191,9 +191,10 @@ fun SearchScreen(
         if (showBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = {
-                    showBottomSheet = false // Không thay đổi selectedSortOption
+                    showBottomSheet = false
                 },
-                sheetState = bottomSheetState
+                sheetState = bottomSheetState,
+                containerColor = Color.White
             ) {
                 FilterBottomSheet(
                     selectedOption = tempSortOption,

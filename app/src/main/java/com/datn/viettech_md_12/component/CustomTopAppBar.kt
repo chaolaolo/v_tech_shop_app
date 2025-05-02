@@ -1,9 +1,9 @@
 package com.datn.viettech_md_12.component
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,51 +25,53 @@ fun CustomTopAppBar(
     actionTitle1: String,
     actionTitle2: String
 ) {
-    SmallTopAppBar(
+    TopAppBar(
         title = {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.CenterStart
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(painter = painterResource(iconLogo), contentDescription = "menu")
-                    Text(text = title, fontWeight = FontWeight.Bold)
-                }
+                Icon(
+                    painter = painterResource(id = iconLogo),
+                    contentDescription = "logo",
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF309A5F)
+                )
             }
         },
         actions = {
-            IconButton(onClick = {
-                navController.navigate(actionTitle1)
-            }) {
-                icon1?.let { painterResource(it) }?.let {
+            icon1?.let {
+                IconButton(onClick = {
+                    navController.navigate(actionTitle1)
+                }) {
                     Icon(
-                        painter = it,
-                        contentDescription = "search",
+                        painter = painterResource(id = it),
+                        contentDescription = "action1",
                         modifier = Modifier.size(25.dp)
                     )
                 }
             }
 
-            IconButton(onClick = {
+            icon2?.let {
+                IconButton(onClick = {
                     navController.navigate(actionTitle2)
-            }) {
-                icon2?.let { painterResource(it) }?.let {
+                }) {
                     Icon(
-                        painter = it,
-                        contentDescription = "notification",
+                        painter = painterResource(id = it),
+                        contentDescription = "action2",
                         modifier = Modifier.size(25.dp)
                     )
                 }
             }
         },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             titleContentColor = Color(0xFF309A5F),
-            navigationIconContentColor = Color(0xFF309A5F),
-            actionIconContentColor = Color(0xFF1C1B1B),
+            actionIconContentColor = Color(0xFF1C1B1B)
         )
     )
 }
