@@ -68,13 +68,17 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation (libs.kotlinx.coroutines.android)
 
-    implementation ("com.google.accompanist:accompanist-pager:0.30.1")
-    implementation ("com.google.accompanist:accompanist-pager-indicators:0.30.1")
-    implementation ("com.airbnb.android:lottie-compose:6.1.0")
-    implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation (libs.accompanist.pager)
+    implementation (libs.accompanist.pager.indicators)
+    implementation (libs.lottie.compose)
+    implementation (libs.coil.compose.v270)
 
 //    implementation("com.onesignal:OneSignal:[5.1.6, 5.1.99]")
-    implementation("com.onesignal:OneSignal:4.8.6")
-    implementation ("com.google.accompanist:accompanist-permissions:0.25.1")
+    implementation(libs.onesignal)
+    implementation (libs.accompanist.permissions)
+
+    implementation (libs.koin.android)
+    implementation (libs.koin.androidx.compose)
+
 
 }

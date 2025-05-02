@@ -17,21 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.datn.viettech_md_12.NetworkHelper
-import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.component.CustomTopAppBar
 import com.datn.viettech_md_12.component.item.CustomItemProducts
-import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.SearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,11 +32,6 @@ import com.datn.viettech_md_12.viewmodel.SearchViewModel
 fun SearchScreen(
     navController: NavController,
     searchViewModel: SearchViewModel = viewModel(),
-    productViewModel: ProductViewModel = viewModel(
-        factory = ProductViewModelFactory(
-            NetworkHelper(LocalContext.current),
-        )
-    ),
 ) {
     val text = remember { mutableStateOf("") }
     val searchResults by searchViewModel.searchResults.collectAsState()
@@ -164,12 +152,8 @@ fun SearchScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     items(searchResults) { product ->
-                        val context = LocalContext.current
-
                         CustomItemProducts(
                             product = product,
-                            context = context,
-                            viewModel = productViewModel,
                             onClick = {
                                 navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
                             }

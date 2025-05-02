@@ -1,8 +1,5 @@
 package com.datn.viettech_md_12.component.item
 
-import android.content.Context
-import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,34 +11,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
-import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.ProductByCateModel
 import com.datn.viettech_md_12.data.model.ProductModel
-import com.datn.viettech_md_12.screen.authentication.LoginScreen
-import com.datn.viettech_md_12.screen.authentication.RegisterScreen
-import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
 fun CustomItemProducts(
     product: ProductModel,
-    viewModel: ProductViewModel,
-    context: Context,
     onClick: () -> Unit
 ) {
     CustomItemProductsBase(
         product = product,
-        viewModel = viewModel,
-        context = context,
         onClick = onClick
     )
 }
@@ -58,8 +43,6 @@ fun CustomItemProductsByCate(productByCateModel: ProductByCateModel, onClick: ()
 fun CustomItemProductsBase(
     product: ProductModel? = null,
     productByCateModel: ProductByCateModel? = null,
-    viewModel: ProductViewModel? = null,
-    context: Context? = null,
     onClick: () -> Unit,
 ) {
     val imageUrl = product?.productThumbnail ?: productByCateModel?.productThumbnail

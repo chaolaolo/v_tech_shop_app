@@ -55,7 +55,6 @@ import java.nio.charset.StandardCharsets
 fun NavigationGraph(startDestination: String = "home") {
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
-
     val productViewModel: ProductViewModel? =
         (LocalContext.current.applicationContext as MyApplication).productViewModel
     val userViewModel: UserViewModel? =
