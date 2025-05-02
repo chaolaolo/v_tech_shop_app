@@ -4,6 +4,7 @@ import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.repository.ProductRepository
 import com.datn.viettech_md_12.viewmodel.CategoryViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import com.datn.viettech_md_12.viewmodel.SearchViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -33,3 +34,10 @@ val productModule = module {
     viewModel { ProductViewModel(networkHelper = get(), repository = get()) }
 }
 
+val searchModule = module {
+    // Inject ProductRepository
+    single { ProductRepository(ApiClient.productService) }
+
+    // Inject SearchViewModel
+    viewModel { SearchViewModel(repository = get()) }
+}

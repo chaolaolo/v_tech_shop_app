@@ -31,7 +31,8 @@ class MyApplication : Application() {
             modules(
                 listOf(
                     categoryModule,
-                    productModule
+                    productModule,
+                    searchModule
                 )
             )
         }
