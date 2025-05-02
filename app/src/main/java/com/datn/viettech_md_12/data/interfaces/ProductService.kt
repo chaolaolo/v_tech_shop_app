@@ -94,6 +94,18 @@ interface ProductService {
         @Header("authorization") token: String,
         @Header("x-client-id") clientId: String
     ) : Response<OrderModel>
+    //huy don hang
+    @Headers(
+        "Content-Type: application/json",
+        "x-api-key: c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
+    )
+    @PUT("bill/{orderId}/status")
+    suspend fun cancelOrder(
+        @Path("orderId") orderId: String,
+        @Body statusBody: Map<String, String>,
+        @Header("authorization") token: String,
+        @Header("x-client-id") clientId: String
+    ): Response<Unit>
 
     //matchVariant
     @POST("shop/products/{id}/match-variant")

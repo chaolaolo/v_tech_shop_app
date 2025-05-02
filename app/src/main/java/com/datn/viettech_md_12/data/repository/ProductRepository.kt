@@ -129,6 +129,16 @@ class ProductRepository(
     ): Response<OrderModel> {
         return apiService.getBillById(orderId, token, clientId)
     }
+    //huy don hang
+    suspend fun cancelOrder(
+        orderId: String,
+        token: String,
+        clientId: String
+    ): Response<Unit> {
+        val body = mapOf("status" to "cancelled")
+        return apiService.cancelOrder(orderId, body, token, clientId)
+    }
+
 
     //matchVariant
     suspend fun matchVariant(
