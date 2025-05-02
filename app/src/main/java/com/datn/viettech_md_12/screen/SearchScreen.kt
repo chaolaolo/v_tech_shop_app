@@ -28,7 +28,6 @@ import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.common.SortOption
 import com.datn.viettech_md_12.component.item.CustomItemProducts
 import com.datn.viettech_md_12.viewmodel.SearchViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,11 +39,20 @@ fun SearchScreen(
     val searchResults by searchViewModel.searchResults.collectAsState()
     val isLoading by searchViewModel.isLoading.collectAsState()
     val errorMessage by searchViewModel.errorMessage.collectAsState()
+    val shouldCloseBottomSheet by searchViewModel.shouldCloseBottomSheet.collectAsState()
 
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val coroutineScope = rememberCoroutineScope()
-    var selectedSortOption by remember { mutableStateOf(SortOption.PRICE_DESC) }
+    var selectedSortOption by remember { mutableStateOf(SortOption.AZ) }
+    var tempSortOption by remember { mutableStateOf(selectedSortOption) }
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(shouldCloseBottomSheet) {
+        if (shouldCloseBottomSheet) {
+            bottomSheetState.hide()
+            showBottomSheet = false
+            searchViewModel.onBottomSheetClosed()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -139,6 +147,7 @@ fun SearchScreen(
 
                     IconButton(
                         onClick = {
+                            tempSortOption = selectedSortOption
                             showBottomSheet = true
                         }
                     ) {
@@ -179,18 +188,19 @@ fun SearchScreen(
             }
         }
 
-        // Modal Bottom Sheet đúng chuẩn Material3
         if (showBottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
+                onDismissRequest = {
+                    showBottomSheet = false // Không thay đổi selectedSortOption
+                },
                 sheetState = bottomSheetState
             ) {
                 FilterBottomSheet(
-                    selectedOption = selectedSortOption,
-                    onOptionSelected = { selectedSortOption = it },
+                    selectedOption = tempSortOption,
+                    onOptionSelected = { tempSortOption = it },
                     onApplyClick = {
-                        searchViewModel.sortSearchResults(selectedSortOption)
-                        coroutineScope.launch { bottomSheetState.hide() }
+                        selectedSortOption = tempSortOption
+                        searchViewModel.applySort(selectedSortOption)
                         showBottomSheet = false
                     }
                 )

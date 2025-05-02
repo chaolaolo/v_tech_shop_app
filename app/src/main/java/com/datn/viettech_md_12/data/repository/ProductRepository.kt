@@ -106,9 +106,9 @@ class ProductRepository(
         return apiService.removeProductFromFavorites(productId, token, clientId, apiKey)
     }
 
-    suspend fun searchProducts(query: String): Response<SearchResponse> {
+    suspend fun searchProducts(query: String, sort: String?): Response<SearchResponse> {
         return withContext(Dispatchers.IO) {
-            apiService.searchProducts(query)
+            apiService.searchProducts(query, sort)
         }
     }
 

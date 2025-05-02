@@ -1,11 +1,19 @@
 package com.datn.viettech_md_12.navigation
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +55,7 @@ import com.datn.viettech_md_12.screen.review.ReviewScreen
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
+import kotlinx.coroutines.delay
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -55,6 +64,26 @@ import java.nio.charset.StandardCharsets
 fun NavigationGraph(startDestination: String = "home") {
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
+    var backPressedCount by remember { mutableIntStateOf(0) }
+
+    val context = LocalContext.current
+    BackHandler {
+        backPressedCount++
+
+        if (backPressedCount == 1) {
+            Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+        } else if (backPressedCount >= 2) {
+            (context as? Activity)?.finish()
+        }
+    }
+
+    LaunchedEffect(backPressedCount) {
+        if (backPressedCount == 1) {
+            delay(2000)
+            backPressedCount = 0
+        }
+    }
+
     val productViewModel: ProductViewModel? =
         (LocalContext.current.applicationContext as MyApplication).productViewModel
     val userViewModel: UserViewModel? =

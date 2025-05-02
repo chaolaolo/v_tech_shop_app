@@ -62,7 +62,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.review_component.uriToFile
-import com.datn.viettech_md_12.screen.authentication.OnbroadingActivity
+import com.datn.viettech_md_12.screen.authentication.OnboardingActivity
 import com.datn.viettech_md_12.viewmodel.ImageViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
@@ -419,7 +419,7 @@ fun ProfileHeader() {
                 TextButton(onClick = {
                     if (refreshToken.isNullOrEmpty()) {
                         // Tạo Intent để chuyển đến màn hình Onboarding
-                        val intent = Intent(context, OnbroadingActivity::class.java)
+                        val intent = Intent(context, OnboardingActivity::class.java)
                         // Xóa hết backstack
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         context.startActivity(intent)
@@ -437,7 +437,7 @@ fun ProfileHeader() {
                                 // Đặt lại token = null
                                 sharedPrefs.edit().putString("accessToken", null).apply()
                                 // Tạo Intent để chuyển đến màn hình Onboarding
-                                val intent = Intent(context, OnbroadingActivity::class.java)
+                                val intent = Intent(context, OnboardingActivity::class.java)
                                 // Xóa hết backstack
                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 context.startActivity(intent)

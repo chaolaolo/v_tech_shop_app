@@ -1,6 +1,5 @@
 package com.datn.viettech_md_12.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -74,15 +73,3 @@ fun CustomTopAppBar(
         )
     )
 }
-
-
-//@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7)
-//@Composable
-//fun PreviewTopAppBar() {
-//    CustomTopAppBar(
-//        "Hehe",
-//        R.drawable.ic_home_page,
-//        R.drawable.ic_home_page,
-//        R.drawable.ic_home_page
-//    )
-//}
