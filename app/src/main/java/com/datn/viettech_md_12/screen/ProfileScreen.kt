@@ -48,11 +48,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -89,7 +91,7 @@ fun ProfileScreen(navController: NavController) {
     )
     {
         Spacer(modifier = Modifier.height(20.dp))
-        ProfileHeader()
+        ProfileHeader(navController)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -200,7 +202,7 @@ fun ProfileScreen(navController: NavController) {
 }
 
 @Composable
-fun ProfileHeader() {
+fun ProfileHeader(navController: NavController) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
@@ -342,73 +344,71 @@ fun ProfileHeader() {
             }
         }
 
-
         Spacer(modifier = Modifier.width(15.dp))
-        Column {
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = if (isLoggedIn) fullName!! else "Họ và tên",
                 color = Color.White,
-                fontSize = 18.sp
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
             )
             Text(
                 text = if (isLoggedIn) email!! else "Địa chỉ email",
                 color = Color.White,
-                fontSize = 18.sp
+                fontSize = 16.sp
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
-//        if (refreshToken.isNullOrEmpty()) {
-//            IconButton(onClick = {
-//                // Tạo Intent để chuyển đến màn hình Onboarding
-//                val intent = Intent(context, OnbroadingActivity::class.java)
-//                // Xóa hết backstack
-//                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//                context.startActivity(intent)
-//                // Kết thúc Activity hiện tại
-//                if (context is Activity) {
-//                    context.finish()
-//                }
-//                showLogoutDialog = true
-//            }) {
-//                Icon(
-//                    painter = painterResource(R.drawable.ic_logout_profile),
-//                    contentDescription = null, tint = Color.White
-//                )
-//            }
-//        } else {
-        IconButton(
-            onClick = {
-                showLogoutDialog = true
-//                userViewModel.logout(context = context,
-//                    onSuccess = { message ->
-//                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-//                        val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-//                        // Đặt lại trạng thái đăng nhập = false
-//                        sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
-//                        // Đặt lại token = null
-//                        sharedPrefs.edit().putString("accessToken", null).apply()
-//                        // Tạo Intent để chuyển đến màn hình Onboarding
-//                        val intent = Intent(context, OnbroadingActivity::class.java)
-//                        // Xóa hết backstack
-//                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//                        context.startActivity(intent)
-//
-//                        // Kết thúc Activity hiện tại
-//                        if (context is Activity) {
-//                            context.finish()
-//                        }
-//                    },
-//                    onError = { errorMessage ->
-//                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-//                    })
-            }
-        ) {
+//        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(10.dp))
+        if (isLoggedIn) {
+            IconButton(
+                onClick = {showLogoutDialog = true}
+            ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_logout_profile),
-                    contentDescription = null, tint = Color.White
+                    contentDescription = null, tint = Color.White,
+                    modifier = Modifier.size(30.dp)
                 )
             }
-//        }
+        }else{
+            Column(
+                modifier = Modifier.width(80.dp),
+            ) {
+                Box(
+                    modifier = Modifier.background(Color.White, shape = RoundedCornerShape(4.dp))
+                        .fillMaxWidth()
+                        .border(width = 0.dp, color = Color.Transparent, shape = RoundedCornerShape(4.dp))
+                        .clickable {
+                            navController.navigate("login") {
+                                launchSingleTop = true
+                                //lưu route của màn này trong backstack
+                                restoreState = true
+                            }
+                        },
+                    contentAlignment = Alignment.Center,
+                ){
+                    Text("Đăng Nhập", color = Color(0xff21D4B4), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,modifier = Modifier.padding(2.dp))
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier.background(Color(0xff21D4B4), RoundedCornerShape(4.dp))
+                        .fillMaxWidth()
+                        .border(
+                            width = 1.dp,
+                            brush = SolidColor(Color.White),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .clickable {
+                            navController.navigate("register")
+                        },
+                    contentAlignment = Alignment.Center
+                ){
+                    Text("Đăng Ký", color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,modifier = Modifier.padding(2.dp))
+                }
+            }
+        }
     }
     if (showLogoutDialog) {
         AlertDialog(
