@@ -154,10 +154,10 @@ fun ProductDetailScreen(
     ),
 ) {
     val context = LocalContext.current.applicationContext as Application
-
+    val networkHelper = NetworkHelper(LocalContext.current)
     // Khởi tạo ReviewViewModel với factory
     val reviewViewModel: ReviewViewModel = viewModel(
-        factory = ReviewViewModelFactory(context)
+        factory = ReviewViewModelFactory(context, networkHelper)
     )
     val contextToCheckLogin = LocalContext.current
     LaunchedEffect(productId) {

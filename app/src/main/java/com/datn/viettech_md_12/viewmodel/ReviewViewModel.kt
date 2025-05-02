@@ -3,14 +3,16 @@ package com.datn.viettech_md_12.viewmodel
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.*
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.data.model.*
 import com.datn.viettech_md_12.data.remote.ApiClient
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 
-class ReviewViewModel(application: Application) : ViewModel() {
+class ReviewViewModel(application: Application, networkHelper: NetworkHelper) : ViewModel() {
 
     private val _repository = ApiClient.reviewRepository
     private val _isLoading = MutableStateFlow(false)
@@ -42,8 +44,18 @@ class ReviewViewModel(application: Application) : ViewModel() {
     fun clearAddReviewResult() {
         _addReviewResult.value = null
     }
+
     fun clearUpReviewResult() {
         _updateReviewResult.value = null
+    }
+
+    init {
+        if (networkHelper.isNetworkConnected()) {
+            getReviewsByAccount()
+        } else {
+            Toast.makeText(application, "Không có kết nối mạng.", Toast.LENGTH_SHORT).show()
+            _isLoading.value = false
+        }
     }
 
     fun addReview(
@@ -161,12 +173,13 @@ class ReviewViewModel(application: Application) : ViewModel() {
 }
 
 class ReviewViewModelFactory(
-    private val application: Application
+    private val application: Application,
+    private val networkHelper: NetworkHelper
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ReviewViewModel::class.java)) {
-            return ReviewViewModel(application) as T
+            return ReviewViewModel(application, networkHelper) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

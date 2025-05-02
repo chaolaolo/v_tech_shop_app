@@ -19,6 +19,8 @@ import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.PostViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import com.onesignal.OneSignal
 import okhttp3.Callback
 import okhttp3.MediaType
@@ -27,6 +29,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import java.io.IOException
+
 class MyApplication : Application() {
     lateinit var productViewModel: ProductViewModel
     lateinit var categoryViewModel: CategoryViewModel
@@ -36,7 +39,7 @@ class MyApplication : Application() {
     lateinit var notificationViewModel: NotificationViewModel
     lateinit var checkoutViewModel: CheckoutViewModel
     lateinit var postViewModel: PostViewModel
-
+    lateinit var reveiewViewModel: ReviewViewModel
     override fun onCreate() {
         super.onCreate()
         // Khởi tạo OneSignal
@@ -86,14 +89,36 @@ class MyApplication : Application() {
 
         val networkHelper = NetworkHelper(this)
         // Khởi tạo các ViewModel
-        productViewModel = ViewModelProvider(ViewModelStore(), ProductViewModelFactory(networkHelper))[ProductViewModel::class.java]
-        categoryViewModel = ViewModelProvider(ViewModelStore(), CategoryViewModelFactory(networkHelper))[CategoryViewModel::class.java]
-        cartViewModel = ViewModelProvider(ViewModelStore(), CartViewModelFactory(this,networkHelper))[CartViewModel::class.java]
-        searchViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(SearchViewModel::class.java)
-        userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
-        notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(NotificationViewModel::class.java)
-        checkoutViewModel = ViewModelProvider(ViewModelStore(), CheckoutViewModelFactory(this,networkHelper))[CheckoutViewModel::class.java]
-        postViewModel = ViewModelProvider(ViewModelStore(), PostViewModelFactory(this,networkHelper))[PostViewModel::class.java]
+        productViewModel = ViewModelProvider(
+            ViewModelStore(),
+            ProductViewModelFactory(networkHelper)
+        )[ProductViewModel::class.java]
+        categoryViewModel = ViewModelProvider(
+            ViewModelStore(),
+            CategoryViewModelFactory(networkHelper)
+        )[CategoryViewModel::class.java]
+        cartViewModel = ViewModelProvider(
+            ViewModelStore(),
+            CartViewModelFactory(this, networkHelper)
+        )[CartViewModel::class.java]
+        searchViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this)
+            .create(SearchViewModel::class.java)
+        userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this)
+            .create(UserViewModel::class.java)
+        notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this)
+            .create(NotificationViewModel::class.java)
+        checkoutViewModel = ViewModelProvider(
+            ViewModelStore(),
+            CheckoutViewModelFactory(this, networkHelper)
+        )[CheckoutViewModel::class.java]
+        postViewModel = ViewModelProvider(
+            ViewModelStore(),
+            PostViewModelFactory(this, networkHelper)
+        )[PostViewModel::class.java]
+        reveiewViewModel = ViewModelProvider(
+            ViewModelStore(),
+            ReviewViewModelFactory(this, networkHelper)
+        )[ReviewViewModel::class.java]
     }
 
 //    private fun setExternalUserId(userId: String) {
