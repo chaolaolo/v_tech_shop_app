@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-//noinspection UsingMaterialAndMaterial3Libraries
-import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,7 +37,7 @@ fun FilterBottomSheet(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SortOption.values().forEach { option ->
+        SortOption.entries.forEach { option ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -47,12 +47,16 @@ fun FilterBottomSheet(
             ) {
                 Checkbox(
                     checked = selectedOption == option,
-                    onCheckedChange = { onOptionSelected(option) }
+                    onCheckedChange = { onOptionSelected(option) },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Color(0xFF1F8BDA),
+                        uncheckedColor = Color.Gray
+                    ),
                 )
                 Text(text = option.label, fontSize = 16.sp)
             }
 
-            Divider()
+            HorizontalDivider()
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -68,3 +72,5 @@ fun FilterBottomSheet(
         }
     }
 }
+
+

@@ -21,30 +21,45 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.datn.viettech_md_12.FilterBottomSheet
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.common.SortOption
 import com.datn.viettech_md_12.component.item.CustomItemProducts
 import com.datn.viettech_md_12.viewmodel.SearchViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
-    searchViewModel: SearchViewModel = viewModel(),
+    searchViewModel: SearchViewModel = koinViewModel()
 ) {
     val text = remember { mutableStateOf("") }
     val searchResults by searchViewModel.searchResults.collectAsState()
     val isLoading by searchViewModel.isLoading.collectAsState()
     val errorMessage by searchViewModel.errorMessage.collectAsState()
+    val shouldCloseBottomSheet by searchViewModel.shouldCloseBottomSheet.collectAsState()
+    val history by searchViewModel.searchHistory.collectAsState()
 
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val coroutineScope = rememberCoroutineScope()
-    var selectedSortOption by remember { mutableStateOf(SortOption.PRICE_DESC) }
+    var selectedSortOption by remember { mutableStateOf(SortOption.AZ) }
+    var tempSortOption by remember { mutableStateOf(selectedSortOption) }
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    var debounceJob by remember { mutableStateOf<Job?>(null) }
+
+    LaunchedEffect(shouldCloseBottomSheet) {
+        if (shouldCloseBottomSheet) {
+            bottomSheetState.hide()
+            showBottomSheet = false
+            searchViewModel.onBottomSheetClosed()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -112,8 +127,13 @@ fun SearchScreen(
                             value = text.value,
                             onValueChange = {
                                 text.value = it
+                                debounceJob?.cancel()
                                 if (it.isNotEmpty()) {
-                                    searchViewModel.searchProducts(it)
+                                    debounceJob = coroutineScope.launch {
+                                        delay(500)
+                                        searchViewModel.searchProducts(it)
+                                        searchViewModel.saveToHistory(it)
+                                    }
                                 } else {
                                     searchViewModel.clearSearchResults()
                                 }
@@ -139,6 +159,7 @@ fun SearchScreen(
 
                     IconButton(
                         onClick = {
+                            tempSortOption = selectedSortOption
                             showBottomSheet = true
                         }
                     ) {
@@ -149,6 +170,36 @@ fun SearchScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     }
+                }
+            }
+
+            if (text.value.isEmpty() && history.isNotEmpty()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Lịch sử tìm kiếm", color = Color.Gray, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    history.forEach { item ->
+                        Text(
+                            text = item,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    text.value = item
+                                    searchViewModel.searchProducts(item)
+                                }
+                                .padding(vertical = 4.dp),
+                            color = Color.Black,
+                            fontSize = 14.sp
+                        )
+                    }
+                    Text(
+                        text = "Xóa tất cả",
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .clickable { searchViewModel.clearSearchHistory() }
+                            .padding(top = 8.dp),
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
                 }
             }
 
@@ -179,18 +230,20 @@ fun SearchScreen(
             }
         }
 
-        // Modal Bottom Sheet đúng chuẩn Material3
         if (showBottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
-                sheetState = bottomSheetState
+                onDismissRequest = {
+                    showBottomSheet = false
+                },
+                sheetState = bottomSheetState,
+                containerColor = Color.White
             ) {
                 FilterBottomSheet(
-                    selectedOption = selectedSortOption,
-                    onOptionSelected = { selectedSortOption = it },
+                    selectedOption = tempSortOption,
+                    onOptionSelected = { tempSortOption = it },
                     onApplyClick = {
-                        searchViewModel.sortSearchResults(selectedSortOption)
-                        coroutineScope.launch { bottomSheetState.hide() }
+                        selectedSortOption = tempSortOption
+                        searchViewModel.applySort(selectedSortOption)
                         showBottomSheet = false
                     }
                 )

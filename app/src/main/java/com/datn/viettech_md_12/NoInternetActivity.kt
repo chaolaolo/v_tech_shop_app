@@ -1,6 +1,7 @@
 package com.datn.viettech_md_12
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,13 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.datn.viettech_md_12.screen.authentication.OnbroadingActivity
-import com.datn.viettech_md_12.screen.authentication.SplashScreen
+import com.datn.viettech_md_12.screen.authentication.OnboardingActivity
 import com.datn.viettech_md_12.ui.theme.VietTech_MD_12Theme
 import com.datn.viettech_md_12.utils.NetworkUtils
 
 class NoInternetActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -43,7 +45,7 @@ class NoInternetActivity : ComponentActivity() {
                                 val targetIntent = if (isLoggedIn) {
                                     Intent(this@NoInternetActivity, MainActivity::class.java)
                                 } else {
-                                    Intent(this@NoInternetActivity, OnbroadingActivity::class.java)
+                                    Intent(this@NoInternetActivity, OnboardingActivity::class.java)
                                 }
 
                                 targetIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
