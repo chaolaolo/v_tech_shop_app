@@ -86,6 +86,7 @@ fun OrderDetailScreen(
     )
 ) {
     val context = LocalContext.current.applicationContext as Application
+    val networkHelper = NetworkHelper(LocalContext.current)
     val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
     val order by viewModel.selectedOrder.collectAsState()
     val BASE_URL = "http://103.166.184.249:3056/"
@@ -96,7 +97,7 @@ fun OrderDetailScreen(
 
     // Khởi tạo ReviewViewModel với factory
     val reviewViewModel: ReviewViewModel = viewModel(
-        factory = ReviewViewModelFactory(context)
+        factory = ReviewViewModelFactory(context,networkHelper)
     )
     var showCancelDialog by remember { mutableStateOf(false) }
     var selectedReason by remember { mutableStateOf<String?>(null) }
@@ -411,7 +412,7 @@ fun OrderDetailScreen(
                         .weight(1f)
                         .padding(end = 6.dp)
                 ) {
-                    Text("Quản Lý Đánh giá")
+                    Text("Quản Lý Đánh Giá")
                 }
                 if(currentOrder.status =="pending"){
                     Button(

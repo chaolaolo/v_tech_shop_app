@@ -15,6 +15,17 @@ import com.datn.viettech_md_12.viewmodel.PostViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 
+import com.datn.viettech_md_12.viewmodel.ReviewViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
+import com.onesignal.OneSignal
+import okhttp3.Callback
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import java.io.IOException
+
 class MyApplication : Application() {
     lateinit var productViewModel: ProductViewModel
     lateinit var cartViewModel: CartViewModel
@@ -22,7 +33,7 @@ class MyApplication : Application() {
     lateinit var notificationViewModel: NotificationViewModel
     lateinit var checkoutViewModel: CheckoutViewModel
     lateinit var postViewModel: PostViewModel
-
+    lateinit var reveiewViewModel: ReviewViewModel
     override fun onCreate() {
         super.onCreate()
 
@@ -45,6 +56,7 @@ class MyApplication : Application() {
         notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(NotificationViewModel::class.java)
         checkoutViewModel = ViewModelProvider(ViewModelStore(), CheckoutViewModelFactory(this,networkHelper))[CheckoutViewModel::class.java]
         postViewModel = ViewModelProvider(ViewModelStore(), PostViewModelFactory(this,networkHelper))[PostViewModel::class.java]
+        reveiewViewModel = ViewModelProvider(ViewModelStore(),ReviewViewModelFactory(this, networkHelper))[ReviewViewModel::class.java]
     }
 
 
