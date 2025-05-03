@@ -47,7 +47,10 @@ fun NotificationScreen(viewModel: NotificationViewModel, navController: NavContr
         modifier = Modifier.fillMaxSize()
     ) {
         NotificationTopBar(
-            onBackClick = { navController.popBackStack() },
+            onBackClick = {
+//                navController.popBackStack()
+                navController.navigate("home")
+                          },
             onMarkAllAsRead = {
                 viewModel.markAllNotificationsAsRead(context) // Gọi hàm API đánh dấu đọc tất cả ở đây
             }
