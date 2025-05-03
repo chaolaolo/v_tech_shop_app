@@ -173,7 +173,7 @@ fun VoucherItem(
 //            text = "Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên",
             when (voucher.discountType?.lowercase()) {
                 "shipping" -> " M"
-                else -> " Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên"
+                else -> " Giảm đến $maxDiscountAmountFormatted₫ giá trị đơn hàng đối với các đơn hàng trị giá $minOrderValueFormatted₫ trở lên"
             },
             fontSize = 14.sp,
             color = Color.Black,

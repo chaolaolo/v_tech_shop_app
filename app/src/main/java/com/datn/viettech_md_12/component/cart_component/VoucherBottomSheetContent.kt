@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.BottomSheetScaffoldState
@@ -132,7 +133,8 @@ fun VoucherBottomSheetContent(
                 onClick = {
                     val enteredCode = voucherCode.value
                     val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
-                    if (matchingVoucher != null) {
+                    when {
+                        matchingVoucher != null -> {
                         selectedVoucherId.value = matchingVoucher.id
                         selectedVoucher.value = matchingVoucher
                         scope.launch {
@@ -141,10 +143,17 @@ fun VoucherBottomSheetContent(
                         scope.launch {
                              scaffoldState.bottomSheetState.hide()
                         }
-                    } else {
+                        }
+                        enteredCode.isBlank() && selectedVoucherId.value == null -> {
+                            scope.launch {
+                                scaffoldState.bottomSheetState.hide()
+                            }
+                        }
+                        else -> {
                         scope.launch {
                             snackbarHostState.showSnackbar("Mã không hợp lệ.")
                         }
+                    }
                     }
                 },
                 modifier = Modifier
@@ -160,7 +169,7 @@ fun VoucherBottomSheetContent(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        "Áp dụng",
+                        "Đồng ý",
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -176,51 +185,62 @@ fun VoucherBottomSheetContent(
 
         // Danh sách mã giảm giá
         LazyColumn(
-            state = lazyListState,
+//            state = lazyListState,
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xfff4f5fd))
                 .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
         ) {
-            items(sortedDiscounts, key = { it.id ?: "" }) { discount ->
+            items(listDiscount, key = { it.id ?: "" }) { discount ->
                 VoucherItem(
                     voucher = discount,
                     selectedVoucher = selectedVoucherId.value == discount.id,
-                    onSelectedVoucher = { selectedVoucher ->
-                        selectedVoucherId.value = selectedVoucher.id
-                        voucherCode.value = selectedVoucher.code ?: ""
-                    },
-                )
-            }
-            item {
-                Spacer(Modifier.height(10.dp))
-                // Button xác nhận dùng mã
-                MyButton(
-                    text = "Xác nhận",
-                    onClick = {
-                        val enteredCode = voucherCode.value
-                        val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
-                        if (matchingVoucher != null) {
-                            selectedVoucherId.value = matchingVoucher.id
-                            selectedVoucher.value = matchingVoucher
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Áp dụng mã thành công!")
-                            }
-                            scope.launch {
-                                scaffoldState.bottomSheetState.hide()
-                            }
+                    onSelectedVoucher = { selected ->
+//                        selectedVoucherId.value = selectedVoucher.id
+//                        voucherCode.value = selectedVoucher.code ?: ""
+                        if (selectedVoucherId.value == selected.id) {
+                            // Deselect if clicking the already selected voucher
+                            selectedVoucherId.value = null
+                            selectedVoucher.value = null
+                            voucherCode.value = ""
                         } else {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Mã không hợp lệ.")
-                            }
+                            // Select new voucher
+                            selectedVoucherId.value = selected.id
+                            selectedVoucher.value = selected
+                            voucherCode.value = selected.code ?: ""
                         }
                     },
-                    modifier = Modifier,
-                    backgroundColor = Color.Black,
-                    textColor = Color.White,
                 )
-                Spacer(Modifier.height(10.dp))
             }
+//            item {
+//                Spacer(Modifier.height(10.dp))
+//                // Button xác nhận dùng mã
+//                MyButton(
+//                    text = "Xác nhận",
+//                    onClick = {
+//                        val enteredCode = voucherCode.value
+//                        val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
+//                        if (matchingVoucher != null) {
+//                            selectedVoucherId.value = matchingVoucher.id
+//                            selectedVoucher.value = matchingVoucher
+//                            scope.launch {
+//                                snackbarHostState.showSnackbar("Áp dụng mã thành công!")
+//                            }
+//                            scope.launch {
+//                                scaffoldState.bottomSheetState.hide()
+//                            }
+//                        } else {
+//                            scope.launch {
+//                                snackbarHostState.showSnackbar("Mã không hợp lệ.")
+//                            }
+//                        }
+//                    },
+//                    modifier = Modifier,
+//                    backgroundColor = Color.Black,
+//                    textColor = Color.White,
+//                )
+//                Spacer(Modifier.height(10.dp))
+//            }
         }
     }
 }
