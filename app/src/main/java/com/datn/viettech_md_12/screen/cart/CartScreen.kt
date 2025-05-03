@@ -140,7 +140,9 @@ import com.datn.viettech_md_12.data.model.CartModel
 import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.screen.checkout.formatCurrency
 import com.datn.viettech_md_12.utils.CartViewModelFactory
+import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CartViewModel
+import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -158,6 +160,7 @@ import java.util.Locale
 fun CartScreen(
     navController: NavController,
     cartViewModel: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current.applicationContext as Application,  NetworkHelper(LocalContext.current))),
+    checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application, NetworkHelper(LocalContext.current))),
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
@@ -199,6 +202,7 @@ fun CartScreen(
     LaunchedEffect(Unit) {
         cartViewModel.fetchCart()
         cartViewModel.getListDisCount()
+        checkoutViewModel.getIsSelectedItemInCart()
     }
 
 
@@ -245,7 +249,8 @@ fun CartScreen(
                 selectedVoucherId = selectedVoucherId,
                 selectedVoucher = selectedVoucher,
                 voucherCode = voucherCode,
-                scope = scope
+                scope = scope,
+                checkoutViewModel = checkoutViewModel
             )
         },
         sheetTonalElevation = 16.dp,
@@ -275,8 +280,11 @@ fun CartScreen(
                     if (!cartState?.body()?.metadata?.cart_products.isNullOrEmpty() && !isErrorDialogDismissed) {
                         TextButton(
                             onClick = {
-//                            isShowVoucherSheet.value = true
-                                scope.launch { scaffoldState.bottomSheetState.expand() }
+                                scope.launch {
+                                    checkoutViewModel.refreshSelectedItems()
+                                    delay(500)
+                                    scaffoldState.bottomSheetState.expand()
+                                }
                             },
                             modifier = Modifier.padding(end = 16.dp)
                         ) {
@@ -306,6 +314,7 @@ fun CartScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Log.d("CartScreen", "accessToken: $accessToken")
+                Log.d("CartScreen", "listDiscount: $listDiscount")
                 when {
                     isLoading && !isRefreshing -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
