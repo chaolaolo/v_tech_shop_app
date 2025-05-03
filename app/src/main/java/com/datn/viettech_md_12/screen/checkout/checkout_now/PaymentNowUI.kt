@@ -830,8 +830,9 @@ fun CheckoutNowItemTile(
         }
         HorizontalDivider(
             thickness = 0.3.dp,
-            color = Color.Gray
+            color = Color.Gray,
         )
+        Spacer(Modifier.height(2.dp))
         if (product.productStock == 0) {
             Text("Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier
                 .fillMaxWidth()
