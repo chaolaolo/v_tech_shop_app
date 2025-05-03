@@ -90,6 +90,15 @@ fun NotificationScreen(viewModel: NotificationViewModel, navController: NavContr
                 "Chưa đọc" -> notifications.filter { !it.isRead } // Lọc các thông báo chưa đọc
                 else -> notifications
             }
+            val sortedNotifications = filteredNotifications.sortedByDescending { notification ->
+                try {
+                    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                    sdf.timeZone = TimeZone.getTimeZone("UTC")
+                    sdf.parse(notification.createdAt)
+                } catch (e: Exception) {
+                    Date(0)
+                }
+            }
             if (filteredNotifications.isEmpty()){
                 if (selectedTab == "Chưa đọc"){
                     EmptyUnreadNotificationScreen()
@@ -99,7 +108,9 @@ fun NotificationScreen(viewModel: NotificationViewModel, navController: NavContr
             }
              else {
                 LazyColumn {
-                    items(filteredNotifications.reversed()) { notification ->
+                    // ver 1 filteredNotifications.reversed()
+                    //ver 2 sortedNotifications
+                    items(sortedNotifications) { notification ->
                         NotificationItem(
                             notification = notification,
                             onNotificationClick = {
@@ -158,8 +169,15 @@ fun NotificationItem(notification: NotificationModel,onNotificationClick :(Strin
                     color = Color.DarkGray
                 )
                 Spacer(modifier = Modifier.height(4.dp))
+//                val date = try {
+//                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(notification.createdAt)
+//                } catch (e: Exception) {
+//                    null
+//                }
                 val date = try {
-                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(notification.createdAt)
+                    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                    sdf.timeZone = TimeZone.getTimeZone("UTC") // Server trả về thời gian UTC
+                    sdf.parse(notification.createdAt)
                 } catch (e: Exception) {
                     null
                 }
