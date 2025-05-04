@@ -8,6 +8,8 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.Checkbox
@@ -61,7 +64,7 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun CartItemTile(
     product: CartModel.Metadata.CartProduct,
@@ -180,69 +183,86 @@ fun CartItemTile(
                     Text(variantValues, fontSize = 13.sp, color = Color.Gray,maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 14.sp)
                 }
                 Text("$itemPriceFormatted₫", fontSize = 13.sp, color = Color.Black)
-              Row(
-                  verticalAlignment = Alignment.CenterVertically
+                if (product.product_details?.category != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.Folder,
+                            contentDescription = "Folder icon",
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(product.product_details.category.name ?: "", color = Color.Black, fontSize = 13.sp)
+                    }
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
               ) {
-                  Row(
-                      modifier = Modifier
-                          .border(
-                              width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(6.dp)
-                          )
-                          .padding(horizontal = 8.dp, vertical = 4.dp),
-                      verticalAlignment = Alignment.CenterVertically,
-                      horizontalArrangement = Arrangement.SpaceBetween
-                  ) {
-                      IconButton(
-                          onClick = {
-                              if (quantityState > 1) {
-                                  quantityState -= 1
-                                  onQuantityChange(quantityState)
-                                  coroutineScope.launch {
-                                      cartViewModel.updateProductQuantity(
-                                          productId = product.productId,
-                                          variantId = product.detailsVariantId ?: "",
-                                          newQuantity = quantityState,
-                                      )
-                                  }
-                              }
-                          },
-                          modifier = Modifier.size(20.dp),
-                          enabled = quantityState > 1
-                      ) {
-                          Icon(Icons.Default.Remove, contentDescription = "Decrease",
-                              tint = if (quantityState > 1) Color.Black else Color.Gray)
-                      }
-                      Text(if(product?.stock == 0) "0" else "${quantityState}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
-                      IconButton(
-                          onClick = {
-                              if (quantityState < (product?.stock ?: Int.MAX_VALUE)) {
-                                  quantityState += 1
-                                  onQuantityChange(quantityState)
-                                  coroutineScope.launch {
-                                      cartViewModel.updateProductQuantity(
-                                          productId = product.productId,
-                                          variantId = product.detailsVariantId ?: "",
-                                          newQuantity = quantityState,
-                                      )
-                                  }
-                              }else if (product!!.stock == 1) {
-                                  coroutineScope.launch {
-                                      snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.stock} trong kho")
-                                  }
-                              }
-                          },
-                          modifier = Modifier.size(20.dp),
-                          enabled = quantityState < (product?.stock ?: Int.MAX_VALUE)
-                      ) {
-                          Icon(Icons.Default.Add, contentDescription = "Increase",
-                              tint = if (quantityState < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
-                          )
-                      }
-                  }
-                  if(product?.stock == 0) {
-                      Spacer(Modifier.width(8.dp))
-                      Text("Hết hàng", color = Color.Red, fontSize = 13.sp)
-                  }
+                    Row(
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp, brush = SolidColor(Color(0xFFF4F5FD)), shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(
+                            onClick = {
+                                if (quantityState > 1) {
+                                    quantityState -= 1
+                                    onQuantityChange(quantityState)
+                                    coroutineScope.launch {
+                                        cartViewModel.updateProductQuantity(
+                                            productId = product.productId,
+                                            variantId = product.detailsVariantId ?: "",
+                                            newQuantity = quantityState,
+                                        )
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(20.dp),
+                            enabled = quantityState > 1
+                        ) {
+                            Icon(
+                                Icons.Default.Remove, contentDescription = "Decrease",
+                                tint = if (quantityState > 1) Color.Black else Color.Gray
+                            )
+                        }
+                        Text(if (product?.stock == 0) "0" else "${quantityState}", fontSize = 13.sp, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                        IconButton(
+                            onClick = {
+                                if (quantityState < (product?.stock ?: Int.MAX_VALUE)) {
+                                    quantityState += 1
+                                    onQuantityChange(quantityState)
+                                    coroutineScope.launch {
+                                        cartViewModel.updateProductQuantity(
+                                            productId = product.productId,
+                                            variantId = product.detailsVariantId ?: "",
+                                            newQuantity = quantityState,
+                                        )
+                                    }
+                                } else if (product!!.stock == 1) {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Số lượng sản phẩm này chỉ còn ${product?.stock} trong kho")
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(20.dp),
+                            enabled = quantityState < (product?.stock ?: Int.MAX_VALUE)
+                        ) {
+                            Icon(
+                                Icons.Default.Add, contentDescription = "Increase",
+                                tint = if (quantityState < (product?.stock ?: Int.MAX_VALUE)) Color.Black else Color.Gray
+                            )
+                        }
+                    }
+                    if (product?.stock == 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Text("Hết hàng", color = Color.Red, fontSize = 13.sp)
+                    }
               }
             }
             Spacer(Modifier.width(4.dp))

@@ -70,16 +70,6 @@ fun VoucherBottomSheetContent(
     scope: CoroutineScope,
     checkoutViewModel: CheckoutViewModel = viewModel(factory = CheckoutViewModelFactory(LocalContext.current.applicationContext as Application, NetworkHelper(LocalContext.current))),
 ) {
-            val sortedDiscounts = remember(voucherCode.value, listDiscount) {
-                if (voucherCode.value.isBlank()) {
-                    listDiscount
-                } else {
-                    val lowerCaseQuery = voucherCode.value.lowercase()
-                    listDiscount.sortedByDescending {
-                        it.code?.lowercase()?.contains(lowerCaseQuery) == true
-                    }
-                }
-            }
     val lazyListState = rememberLazyListState()
     val selectedCartItems = checkoutViewModel.selectedCartItems.collectAsState().value ?: emptyList()
 
@@ -146,43 +136,20 @@ fun VoucherBottomSheetContent(
             Spacer(Modifier.width(4.dp))
             Card(
                 onClick = {
-//                    val enteredCode = voucherCode.value
-//                    val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
-//                    when {
-//                        matchingVoucher != null -> {
-//                            selectedVoucherId.value = matchingVoucher.id
-//                            selectedVoucher.value = matchingVoucher
-//                            scope.launch {
-//                                snackbarHostState.showSnackbar("Áp dụng mã thành công!")
-//                            }
-//                            scope.launch {
-//                                scaffoldState.bottomSheetState.hide()
-//                            }
-//                        }
-//                        enteredCode.isBlank() && selectedVoucherId.value == null -> {
-//                            scope.launch {
-//                                scaffoldState.bottomSheetState.hide()
-//                            }
-//                        }
-//                        else -> {
-//                        scope.launch {
-//                            snackbarHostState.showSnackbar("Mã không hợp lệ.")
-//                        }
-//                    }
-//                    }
                     val enteredCode = voucherCode.value
                     val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
                     val appliedProducts = matchingVoucher?.appliedProducts?.map { it.id } ?: emptyList()
+                    val appliedCategories = matchingVoucher?.appliedCategories?.map { it.id } ?: emptyList()
+
+                    // Kiểm tra xem có sản phẩm/danh mục nào trong giỏ hàng khớp hay không
                     val selectedProductIds = selectedCartItems.map { it.productId }
-                    // Kiểm tra xem có sản phẩm nào trong giỏ hàng khớp với appliedProducts không
+                    val selectedCategoryIds = selectedCartItems.mapNotNull { it.product_details?.category?.id }
+
                     val matchingProducts = selectedProductIds.filter { it in appliedProducts }
                     val nonMatchingProducts = selectedProductIds.filter { it !in appliedProducts }
-//                    val hasMatchingProduct = selectedCartItems.any { selectedItem ->
-//                        appliedProducts.contains(selectedItem.productId)
-//                    }
-//                    val notMatchingProduct = selectedCartItems.any { selectedItem ->
-//                        appliedProducts.contains(selectedItem.productId) && !appliedProducts.contains(selectedItem.productId)
-//                    }
+                    val matchingCategories = selectedCategoryIds.filter { it in appliedCategories }
+                    val nonMatchingCategories = selectedCategoryIds.filter { it !in appliedCategories }
+
                     when {
                         selectedCartItems.isNullOrEmpty()->{
                             scope.launch {
@@ -195,6 +162,12 @@ fun VoucherBottomSheetContent(
                                 snackbarHostState.showSnackbar("Mã này không áp dụng với sản phẩm được chọn.")
                             }
                         }
+                        appliedCategories.isNotEmpty() && matchingCategories.isEmpty() -> {
+                            selectedVoucher.value = null
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Mã giảm giá chỉ áp dụng cho một số danh mục nhất định.")
+                            }
+                        }
                         appliedProducts.isNotEmpty() && nonMatchingProducts.isNotEmpty() -> {
 //                            selectedVoucherId.value = null
                             selectedVoucher.value = null
@@ -202,14 +175,19 @@ fun VoucherBottomSheetContent(
                                 snackbarHostState.showSnackbar("Mã này không áp dụng với một số sản sản phẩm được chọn.")
                             }
                         }
+                        appliedCategories.isNotEmpty() && nonMatchingCategories.isNotEmpty() -> {
+                            selectedVoucher.value = null
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Mã giảm giá chỉ áp dụng cho một số danh mục nhất định.")
+                            }
+                        }
                         matchingVoucher != null && selectedCartItems.isNotEmpty() -> {
                             // Lấy danh sách sản phẩm đã chọn từ CartViewModel
                             checkoutViewModel.getIsSelectedItemInCart()
-                            // Lấy danh sách appliedProducts từ matchingVoucher
 
                             Log.d("VoucherBottomSheetContent", "appliedProducts: $appliedProducts")
                             Log.d("VoucherBottomSheetContent", "hasMatchingProduct: $matchingProducts")
-                            if (matchingProducts.isNotEmpty() || appliedProducts.isNullOrEmpty()) {
+                            if (matchingProducts.isNotEmpty() || appliedProducts.isNullOrEmpty() || matchingCategories.isNotEmpty() || appliedCategories.isNullOrEmpty() ) {
                                 selectedVoucherId.value = matchingVoucher.id
                                 selectedVoucher.value = matchingVoucher
                                 scope.launch {

@@ -47,7 +47,13 @@ data class CartModel(
             @SerializedName("thumbnail") val thumbnail: String,
             @SerializedName("stock") val stock: Int,
             @SerializedName("image_ids") val image_ids: List<String>,
-        )
+            @SerializedName("category") val category: CartProductCategory,
+        ){
+            data class CartProductCategory(
+                @SerializedName("_id") val id: String,
+                @SerializedName("name") val name: String,
+            )
+        }
     }
 }
 

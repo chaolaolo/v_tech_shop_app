@@ -97,7 +97,8 @@ fun VoucherItem(
             .fillMaxWidth()
             .background(
                 Color(0xFFE9FDFB),
-                RoundedCornerShape(10.dp))
+                RoundedCornerShape(10.dp)
+            )
             .border(
                 0.2.dp,
 //                Color(0xFF00C2A8),
@@ -106,7 +107,8 @@ fun VoucherItem(
                     "percentage" -> Color(0xFF00C2A8) // Màu cam cho giảm giá %
                     else -> Color(0xFF00C2A8) // Màu mặc định
                 },
-                RoundedCornerShape(10.dp))
+                RoundedCornerShape(10.dp)
+            )
             .padding(start = 12.dp, end = 12.dp, bottom = 4.dp, top = 0.dp) //padding bên trong
             .clickable { onSelectedVoucher(voucher) }
     ) {
@@ -160,6 +162,38 @@ fun VoucherItem(
                 ),
             )
         }
+        when {
+            !voucher.appliedProducts.isNullOrEmpty() && !voucher.appliedCategories.isNullOrEmpty() -> {
+                Text(
+                    text = "Áp dụng cho một số sản phẩm và danh mục nhất định",
+                    fontSize = 12.sp,
+                    color = Color.Black,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 17.sp
+                )
+            }
+            !voucher.appliedProducts.isNullOrEmpty() ->{
+                Text(
+                    text = "Áp dụng cho một số sản phẩm nhất định",
+                    fontSize = 12.sp,
+                    color = Color.Black,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 17.sp
+                )
+            }
+            !voucher.appliedCategories.isNullOrEmpty() ->{
+                Text(
+                    text = "Áp dụng cho một số danh mục nhất định",
+                    fontSize = 12.sp,
+                    color = Color.Black,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 17.sp
+                )
+            }
+        }
         Text(
             text = "${voucher.code} - ${voucher.name ?: ""} ",
             fontSize = 14.sp,
@@ -172,11 +206,13 @@ fun VoucherItem(
         Text(
 //            text = "Giảm đến $maxDiscountAmountFormatted ₫ giá trị đơn hàng đối với các đơn hàng có trị giá $minOrderValueFormatted₫ trở lên",
             when (voucher.discountType?.lowercase()) {
-                "shipping" -> " M"
-                else -> " Giảm đến $maxDiscountAmountFormatted₫ giá trị đơn hàng đối với các đơn hàng trị giá $minOrderValueFormatted₫ trở lên"
+                "shipping" -> voucher.description ?: "Miễn phí vận chuyển"
+                else -> "Giảm đến $maxDiscountAmountFormatted₫ giá trị đơn hàng đối với các đơn hàng trị giá $minOrderValueFormatted₫ trở lên"
             },
             fontSize = 14.sp,
             color = Color.Black,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
             lineHeight = 17.sp
         )
         Spacer(modifier = Modifier.height(4.dp))
