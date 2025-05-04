@@ -57,6 +57,40 @@ class ReviewViewModel(application: Application, networkHelper: NetworkHelper) : 
             _isLoading.value = false
         }
     }
+    private val _reportReviewResult = MutableStateFlow<Result<BaseReportResponse>?>(null)
+    val reportReviewResult: StateFlow<Result<BaseReportResponse>?> = _reportReviewResult
+
+    fun reportReview(reviewId: String, reason: String) {
+        val token = sharedPreferences.getString("accessToken", "") ?: ""
+        val clientId = sharedPreferences.getString("clientId", "") ?: ""
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = _repository.reportReview(
+                    token = token,
+                    clientId = clientId,
+                    reviewId = reviewId,
+                    accountId = clientId,
+                    reason = reason,
+                    status="under_review"
+                )
+                _reportReviewResult.value = result
+                Log.d("API_Request", "Token: $token")
+                Log.d("API_Request", "ClientId: $clientId")
+                Log.d("API_Request", "ReviewId: $reviewId")
+                Log.d("API_Request", "Reason: $reason")
+                Log.d("API_Request", "Status: under_review")
+
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearReportReviewResult() {
+        _reportReviewResult.value = null
+    }
 
     fun addReview(
         productId: String,

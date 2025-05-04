@@ -14,6 +14,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -85,6 +86,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -221,6 +223,29 @@ fun ProductDetailScreen(
     val productAttributes = attributes?.filter { attr ->
         productDetail?.attributeIds?.contains(attr._id) == true
     } ?: emptyList()
+    // review report
+    val clientId = sharedPreferences.getString("clientId", "") ?: ""
+
+    var selectedReviewId by remember { mutableStateOf<String?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var reportReason by remember { mutableStateOf("") }
+    var reportReasonError by remember { mutableStateOf<String?>(null) }
+    val reportedReviewIds = remember { mutableStateListOf<String>() }
+    val reportResult by reviewViewModel.reportReviewResult.collectAsState()
+    var confirmReportDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(reportResult) {
+        reportResult?.let { result ->
+            if (result.isSuccess) {
+                selectedReviewId?.let { reportedReviewIds.add(it) }
+                Toast.makeText(context, "Tố cáo thành công", Toast.LENGTH_SHORT).show()
+                showReportDialog = false
+                confirmReportDialog = false
+                reviewViewModel.clearReportReviewResult()
+            } else {
+                Toast.makeText(context, "Tố cáo thất bại", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     // Hàm để lọc các options hợp lệ
     fun updateValidOptions(selected: Map<String, String>) {
@@ -1107,15 +1132,14 @@ fun ProductDetailScreen(
                                         }
                                     }
                                 }
-
+                                // review
                                 Spacer(Modifier.height(8.dp))
-                                // Group reviews by username and get the latest review for each user
-                                val latestReviews = reviews
-                                    .groupBy { it.username } // Group by username
-                                    .map { it.value.maxByOrNull { review -> review.updatedAt } } // Get the latest review based on timestamp
-                                    .filterNotNull() // Remove null values in case there's no review for some users
 
-                                // Sort reviews by rating in descending order
+                                val latestReviews = reviews
+                                    .groupBy { it.username }
+                                    .map { it.value.maxByOrNull { review -> review.updatedAt } }
+                                    .filterNotNull()
+
                                 val sortedReviews = latestReviews.sortedByDescending { it.rating }
 
                                 if (sortedReviews.isEmpty()) {
@@ -1136,36 +1160,49 @@ fun ProductDetailScreen(
                                 } else {
                                     LazyColumn(modifier = Modifier.height(300.dp)) {
                                         items(sortedReviews) { review ->
-                                            Column(
-                                                modifier = Modifier
+                                            val avatarUrl = review.avatar.replace(
+                                                "http://localhost:",
+                                                "http://103.166.184.249:"
+                                            )
+                                            val isReported = reportedReviewIds.contains(review._id)
+                                            val isOwnReview = review.account_id == clientId
+
+                                            @OptIn(ExperimentalFoundationApi::class)
+                                            val reviewModifier = if (!isOwnReview && !isReported) {
+                                                Modifier
                                                     .fillMaxWidth()
-                                            ) {
-                                                // ✅ Dòng 1: Avatar + Tên người dùng
+                                                    .combinedClickable(
+                                                        onClick = {},
+                                                        onLongClick = {
+                                                            selectedReviewId = review._id
+                                                            showReportDialog = true
+                                                        }
+                                                    )
+                                            } else {
+                                                Modifier.fillMaxWidth()
+                                            }
+
+                                            Column(modifier = reviewModifier.padding(bottom = 8.dp)) {
+                                                // Dòng 1: Avatar + Tên người dùng
                                                 Row(
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
-                                                    val avatarUrl = review.avatar.replace(
-                                                        "http://localhost:",
-                                                        "http://103.166.184.249:"
-                                                    )
-
                                                     Box(
                                                         modifier = Modifier
                                                             .size(36.dp)
                                                             .clip(CircleShape)
                                                             .border(
-                                                                width = 1.dp,
-                                                                color = Color(0xFFE0E0E0),
-                                                                shape = CircleShape
+                                                                1.dp,
+                                                                Color(0xFFE0E0E0),
+                                                                CircleShape
                                                             )
                                                     ) {
                                                         AsyncImage(
                                                             model = avatarUrl,
                                                             contentDescription = "Avatar",
                                                             contentScale = ContentScale.Crop,
-                                                            modifier = Modifier
-                                                                .fillMaxSize()
+                                                            modifier = Modifier.fillMaxSize()
                                                         )
                                                     }
 
@@ -1187,11 +1224,22 @@ fun ProductDetailScreen(
                                                         fontSize = 14.sp,
                                                         color = Color.Black
                                                     )
+
+                                                    Spacer(modifier = Modifier.weight(1f))
+
+                                                    if (isReported) {
+                                                        Text(
+                                                            text = "Đã tố cáo",
+                                                            color = Color.Red,
+                                                            fontSize = 12.sp,
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                    }
                                                 }
 
                                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                                // ✅ Dòng 2: Sao đánh giá
+                                                // Dòng 2: Sao đánh giá
                                                 Row {
                                                     repeat(5) { index ->
                                                         Icon(
@@ -1207,7 +1255,7 @@ fun ProductDetailScreen(
 
                                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                                // ✅ Dòng 3: Nội dung đánh giá
+                                                // Dòng 3: Nội dung đánh giá
                                                 Text(
                                                     text = review.contents_review,
                                                     fontSize = 14.sp
@@ -1215,20 +1263,18 @@ fun ProductDetailScreen(
 
                                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                                // ✅ Dòng 4: Ảnh đính kèm (nếu có)
+                                                // Dòng 4: Ảnh đính kèm (nếu có)
                                                 if (review.images.isNotEmpty()) {
                                                     LazyRow(
                                                         horizontalArrangement = Arrangement.spacedBy(
                                                             8.dp
-                                                        ),
-                                                        modifier = Modifier.fillMaxWidth()
+                                                        )
                                                     ) {
                                                         items(review.images) { image ->
                                                             val fixedUrl = image.url.replace(
                                                                 "http://localhost:",
                                                                 "http://103.166.184.249:"
                                                             )
-
                                                             AsyncImage(
                                                                 model = fixedUrl,
                                                                 contentDescription = "Review Image",
@@ -1244,24 +1290,113 @@ fun ProductDetailScreen(
                                                             )
                                                         }
                                                     }
-
                                                     Spacer(modifier = Modifier.height(4.dp))
                                                 }
+
                                                 Divider(modifier = Modifier.padding(vertical = 8.dp))
                                             }
                                         }
                                     }
-                                    // Hiển thị Dialog khi showDialog là true
-                                    if (showDialog) {
-                                        ShowImageDialog(imageUrl = selectedImageUrl) {
-                                            showDialog = false // Đóng dialog khi ấn ra ngoài
-                                        }
+                                }
+
+                                // Dialog xem ảnh
+                                if (showDialog) {
+                                    ShowImageDialog(imageUrl = selectedImageUrl) {
+                                        showDialog = false
                                     }
                                 }
 
+                                // Dialog tố cáo review
+                                // Dialog nhập lý do
+                                if (showReportDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = {
+                                            showReportDialog = false
+                                            reportReason = ""
+                                            reportReasonError = null
+                                        },
+                                        title = {
+                                            Text("Tố cáo đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                        },
+                                        text = {
+                                            Column {
+                                                Text("Vui lòng nhập lý do bạn muốn tố cáo đánh giá này:")
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                OutlinedTextField(
+                                                    value = reportReason,
+                                                    onValueChange = {
+                                                        reportReason = it
+                                                        reportReasonError = null
+                                                    },
+                                                    placeholder = { Text("Nhập lý do...") },
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    isError = reportReasonError != null,
+                                                    maxLines = 4,
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                                if (reportReasonError != null) {
+                                                    Text(
+                                                        text = reportReasonError ?: "",
+                                                        color = Color.Red,
+                                                        fontSize = 12.sp,
+                                                        modifier = Modifier.padding(top = 4.dp)
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        confirmButton = {
+                                            Button(
+                                                onClick = {
+                                                    if (reportReason.trim().isEmpty()) {
+                                                        reportReasonError = "Lý do không được để trống"
+                                                    } else {
+                                                        confirmReportDialog = true
+                                                    }
+                                                },
+                                                shape = RoundedCornerShape(6.dp)
+                                            ) {
+                                                Text("Tiếp tục")
+                                            }
+                                        },
+                                        dismissButton = {
+                                            TextButton(onClick = {
+                                                showReportDialog = false
+                                                reportReason = ""
+                                                reportReasonError = null
+                                            }) {
+                                                Text("Hủy")
+                                            }
+                                        }
+                                    )
+                                }
+
+                                // Dialog xác nhận trước khi gửi tố cáo
+                                if (confirmReportDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = { confirmReportDialog = false },
+                                        title = { Text("Xác nhận tố cáo", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                                        text = { Text("Bạn có chắc chắn muốn tố cáo đánh giá này?") },
+                                        confirmButton = {
+                                            Button(onClick = {
+                                                selectedReviewId?.let { reviewId ->
+                                                    Log.d("ReportReview", "Success: ${reportReason}")
+
+                                                    reviewViewModel.reportReview(reviewId, reportReason)
+                                                }
+                                                confirmReportDialog = false
+                                            }) {
+                                                Text("Xác nhận")
+                                            }
+                                        },
+                                        dismissButton = {
+                                            TextButton(onClick = { confirmReportDialog = false }) {
+                                                Text("Hủy")
+                                            }
+                                        }
+                                    )
+                                }
 
                             }
-
                         }
                         BottomAppBar(
                             modifier = Modifier
