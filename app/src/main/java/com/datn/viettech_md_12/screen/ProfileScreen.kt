@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -208,7 +209,7 @@ fun ProfileHeader() {
     val refreshToken = sharedPreferences.getString("refreshToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
-    val userViewModel: UserViewModel = viewModel() // Khởi tạo UserViewModel
+    val userViewModel: UserViewModel = viewModel()
     val isLoggedIn = !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
     val accountId = sharedPreferences.getString("clientId", "") ?: ""
     val imageViewModel: ImageViewModel = viewModel()
@@ -219,6 +220,9 @@ fun ProfileHeader() {
     val coroutineScope = rememberCoroutineScope()
 
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    // Trạng thái loading cho ảnh
+    var isLoading by remember { mutableStateOf(false) }
 
     // Lấy dữ liệu avatar lần đầu
     LaunchedEffect(Unit) {
@@ -256,6 +260,7 @@ fun ProfileHeader() {
             onConfirm = {
                 showConfirmDialog = false
                 selectedUri?.let { uri ->
+                    isLoading = true // Bắt đầu tải ảnh
                     coroutineScope.launch {
                         val result = uploadSingleImage(context, uri, imageViewModel)
                         result.onSuccess { imageId ->
@@ -284,11 +289,13 @@ fun ProfileHeader() {
                             )
                         }.onFailure {
                             Toast.makeText(context, it.message ?: "Lỗi không xác định khi upload ảnh", Toast.LENGTH_SHORT).show()
+                        }.also {
+                            isLoading = false // Kết thúc tải ảnh
                         }
                     }
                 }
             },
-                    onDismiss = {
+            onDismiss = {
                 showConfirmDialog = false
                 selectedUri = null
             }
@@ -309,17 +316,25 @@ fun ProfileHeader() {
                 .size(80.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
-            AsyncImage(
-                model = avatarUrl,
-                contentDescription = "Avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .border(2.dp, Color.White, CircleShape)
-                    .background(Color.White)
-                    .shadow(4.dp, CircleShape, clip = false)
-            )
+            // Hiển thị ảnh hoặc hiệu ứng tải
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White
+                )
+            } else {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "Avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .border(2.dp, Color.White, CircleShape)
+                        .background(Color.White)
+                        .shadow(4.dp, CircleShape, clip = false)
+                )
+            }
 
             if (!profileImage.isNullOrBlank()) {
                 Icon(
@@ -341,7 +356,6 @@ fun ProfileHeader() {
                 )
             }
         }
-
 
         Spacer(modifier = Modifier.width(15.dp))
         Column {
