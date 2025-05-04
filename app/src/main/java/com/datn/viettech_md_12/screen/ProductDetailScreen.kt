@@ -1455,7 +1455,8 @@ fun ProductDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF464646))
+//                            .background(Color(0xFF464646))
+                            .background(Color.White)
                             .border(
                                 width = 1.dp,
                                 color = Color(0xFF00C4B4),
@@ -1487,7 +1488,7 @@ fun ProductDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "Đã thêm vào giỏ hàng!", color = Color.White, fontSize = 14.sp
+                                    "Đã thêm vào giỏ hàng!", color = Color.Black, fontSize = 14.sp
                                 )
                             }
 

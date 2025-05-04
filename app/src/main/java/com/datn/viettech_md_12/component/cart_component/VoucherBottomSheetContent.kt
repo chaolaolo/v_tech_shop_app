@@ -172,25 +172,44 @@ fun VoucherBottomSheetContent(
 //                    }
                     val enteredCode = voucherCode.value
                     val matchingVoucher = listDiscount.firstOrNull { it.code == enteredCode }
+                    val appliedProducts = matchingVoucher?.appliedProducts?.map { it.id } ?: emptyList()
+                    val selectedProductIds = selectedCartItems.map { it.productId }
+                    // Kiểm tra xem có sản phẩm nào trong giỏ hàng khớp với appliedProducts không
+                    val matchingProducts = selectedProductIds.filter { it in appliedProducts }
+                    val nonMatchingProducts = selectedProductIds.filter { it !in appliedProducts }
+//                    val hasMatchingProduct = selectedCartItems.any { selectedItem ->
+//                        appliedProducts.contains(selectedItem.productId)
+//                    }
+//                    val notMatchingProduct = selectedCartItems.any { selectedItem ->
+//                        appliedProducts.contains(selectedItem.productId) && !appliedProducts.contains(selectedItem.productId)
+//                    }
                     when {
                         selectedCartItems.isNullOrEmpty()->{
                             scope.launch {
                                 snackbarHostState.showSnackbar("Vui lòng chọn ít nhất 1 sản phẩm để có thể dùng mã.")
                             }
                         }
+                        appliedProducts.isNotEmpty() && matchingProducts.isEmpty() -> {
+                            selectedVoucher.value = null
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Mã này không áp dụng với sản phẩm được chọn.")
+                            }
+                        }
+                        appliedProducts.isNotEmpty() && nonMatchingProducts.isNotEmpty() -> {
+//                            selectedVoucherId.value = null
+                            selectedVoucher.value = null
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Mã này không áp dụng với một số sản sản phẩm được chọn.")
+                            }
+                        }
                         matchingVoucher != null && selectedCartItems.isNotEmpty() -> {
                             // Lấy danh sách sản phẩm đã chọn từ CartViewModel
                             checkoutViewModel.getIsSelectedItemInCart()
                             // Lấy danh sách appliedProducts từ matchingVoucher
-                            val appliedProducts = matchingVoucher.appliedProducts?.map { it.id } ?: emptyList()
 
-                            // Kiểm tra xem có sản phẩm nào trong giỏ hàng khớp với appliedProducts không
-                            val hasMatchingProduct = selectedCartItems.any { selectedItem ->
-                                appliedProducts.contains(selectedItem.productId)
-                            }
                             Log.d("VoucherBottomSheetContent", "appliedProducts: $appliedProducts")
-                            Log.d("VoucherBottomSheetContent", "hasMatchingProduct: $hasMatchingProduct")
-                            if (hasMatchingProduct || appliedProducts.isNullOrEmpty()) {
+                            Log.d("VoucherBottomSheetContent", "hasMatchingProduct: $matchingProducts")
+                            if (matchingProducts.isNotEmpty() || appliedProducts.isNullOrEmpty()) {
                                 selectedVoucherId.value = matchingVoucher.id
                                 selectedVoucher.value = matchingVoucher
                                 scope.launch {
@@ -200,6 +219,7 @@ fun VoucherBottomSheetContent(
                                     scaffoldState.bottomSheetState.hide()
                                 }
                             } else {
+                                selectedVoucher.value = null
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Mã này không áp dụng với sản phẩm được chọn.")
                                 }
@@ -211,6 +231,7 @@ fun VoucherBottomSheetContent(
                             }
                         }
                         else -> {
+                            selectedVoucher.value = null
                             scope.launch {
                                 snackbarHostState.showSnackbar("Mã không hợp lệ.")
                             }
