@@ -695,7 +695,7 @@ fun CheckoutCartItemTile(
             .fillMaxWidth()
             .background(Color.White, RoundedCornerShape(8.dp))
             .clip(RoundedCornerShape(8.dp))
-            .padding(bottom = 4.dp)
+            .padding(bottom = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -809,6 +809,7 @@ fun CheckoutCartItemTile(
             thickness = 0.3.dp,
             color = Color.Gray
         )
+        Spacer(Modifier.height(4.dp))
         if (product.stock == 0) {
             Text(
                 "Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier

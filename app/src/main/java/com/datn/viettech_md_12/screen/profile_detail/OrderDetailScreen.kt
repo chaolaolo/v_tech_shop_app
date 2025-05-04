@@ -1,9 +1,11 @@
 package com.datn.viettech_md_12.screen.profile_detail
 
 import android.app.Application
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.RateReview
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -31,6 +34,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -93,6 +98,15 @@ fun OrderDetailScreen(
     // Khởi tạo ReviewViewModel với factory
     val reviewViewModel: ReviewViewModel = viewModel(
         factory = ReviewViewModelFactory(context,networkHelper)
+    )
+    var showCancelDialog by remember { mutableStateOf(false) }
+    var selectedReason by remember { mutableStateOf<String?>(null) }
+    val cancelReasons = listOf(
+        "Đặt nhầm sản phẩm",
+        "Muốn thay đổi địa chỉ giao hàng",
+        "Tìm được giá tốt hơn",
+        "Không còn nhu cầu nữa",
+        "Lý do khác"
     )
     LaunchedEffect(orderId) {
         viewModel.getOrderById(context, orderId)
@@ -400,20 +414,84 @@ fun OrderDetailScreen(
                 ) {
                     Text("Quản Lý Đánh Giá")
                 }
-                Button(
-                    onClick = { /* TODO */ },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 6.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Red
-                    ),
-                    border = BorderStroke(1.dp, Color.Red)
-                ) {
-                    Text("Mua lại", color = Color.Red)
+                if(currentOrder.status =="pending"){
+                    Button(
+                        onClick = {
+//                            viewModel.cancelOrder(context, currentOrder._id)
+                            showCancelDialog = true
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 6.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Red
+                        ),
+                        border = BorderStroke(1.dp, Color.Red)
+                    ) {
+                        Text("Huỷ đơn hàng", color = Color.Red)
+                    }
+                    val cancelResult by viewModel.cancelResult.collectAsState()
+                    cancelResult?.let { success ->
+                        if (success) {
+//                            Toast.makeText(context, "Đã huỷ đơn hàng", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        } else {
+//                            Toast.makeText(context, "Không thể huỷ đơn hàng", Toast.LENGTH_SHORT).show()
+                        }
+                        // Reset lại trạng thái để tránh lặp lại thông báo
+                        viewModel.resetCancelResult()
+                    }
                 }
+
             }
+            if (showCancelDialog) {
+                AlertDialog(
+                    onDismissRequest = { showCancelDialog = false },
+                    title = {
+                        Text("Chọn lý do hủy đơn hàng", fontWeight = FontWeight.Bold)
+                    },
+                    text = {
+                        Column {
+                            cancelReasons.forEach { reason ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { selectedReason = reason }
+                                        .padding(vertical = 6.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = selectedReason == reason,
+                                        onClick = { selectedReason = reason }
+                                    )
+                                    Text(reason)
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                if (selectedReason != null) {
+                                    viewModel.cancelOrder(context, currentOrder._id)
+                                    showCancelDialog = false
+                                    Toast.makeText(context, "Đã huỷ đơn hàng với lý do: $selectedReason", Toast.LENGTH_SHORT).show()
+                                    navController.popBackStack()
+                                }
+                            }
+                        ) {
+                            Text("Xác nhận")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCancelDialog = false }) {
+                            Text("Hủy")
+                        }
+                    }
+                )
+            }
+
             Spacer(Modifier.height(24.dp))
         }
     }

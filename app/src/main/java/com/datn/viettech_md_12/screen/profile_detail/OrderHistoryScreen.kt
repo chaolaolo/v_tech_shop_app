@@ -218,7 +218,7 @@ fun OrderListPage(
     useCompletedCard: Boolean = false
 ) {
     if (orderList.isEmpty()) {
-        EmptyOrderScreen()
+        EmptyOrderScreen(navController)
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(orderList) { order ->
@@ -234,31 +234,31 @@ fun OrderListPage(
 
 
 
-@Composable
-fun OngoingOrdersScreen(orderList: List<OrderModel>, navController: NavController) {
-    if (orderList.isEmpty()) {
-        EmptyOrderScreen()
-    } else {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(orderList) { order ->
-                OrderCard(order = order, navController = navController)
-            }
-        }
-    }
-}
-
-@Composable
-fun CompletedOrdersScreen(completedOrders: List<OrderModel>, navController: NavController) {
-    if (completedOrders.isEmpty()) {
-        EmptyOrderScreen()
-    } else {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(completedOrders) { order ->
-                OrderCardCompleted(order = order, navController = navController)
-            }
-        }
-    }
-}
+//@Composable
+//fun OngoingOrdersScreen(orderList: List<OrderModel>, navController: NavController) {
+//    if (orderList.isEmpty()) {
+//        EmptyOrderScreen()
+//    } else {
+//        LazyColumn(modifier = Modifier.fillMaxSize()) {
+//            items(orderList) { order ->
+//                OrderCard(order = order, navController = navController)
+//            }
+//        }
+//    }
+//}
+//
+//@Composable
+//fun CompletedOrdersScreen(completedOrders: List<OrderModel>, navController: NavController) {
+//    if (completedOrders.isEmpty()) {
+//        EmptyOrderScreen()
+//    } else {
+//        LazyColumn(modifier = Modifier.fillMaxSize()) {
+//            items(completedOrders) { order ->
+//                OrderCardCompleted(order = order, navController = navController)
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun OrderCard(order: OrderModel, navController: NavController) {
@@ -619,7 +619,7 @@ fun LoadingScreen() {
     }
 }
 @Composable
-fun EmptyOrderScreen() {
+fun EmptyOrderScreen(navController: NavController) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -650,7 +650,7 @@ fun EmptyOrderScreen() {
         ) {
             Button(
                 onClick = {
-
+navController.navigate("home")
                 },
                 modifier = Modifier
                     .width(380.dp)

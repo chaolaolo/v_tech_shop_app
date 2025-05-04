@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -20,30 +19,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.datn.viettech_md_12.CategoryViewModelFactory
-import com.datn.viettech_md_12.NetworkHelper
-import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.*
 import com.datn.viettech_md_12.component.item.CustomItemProducts
 import com.datn.viettech_md_12.viewmodel.CategoryViewModel
 import com.datn.viettech_md_12.viewmodel.HomeViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavController,
     homeViewModel: HomeViewModel = viewModel(),
-    categoryViewModel: CategoryViewModel = viewModel(
-        factory = CategoryViewModelFactory(
-            NetworkHelper(LocalContext.current),
-        )
-    ),
-    productViewModel: ProductViewModel = viewModel(
-        factory = ProductViewModelFactory(
-            NetworkHelper(LocalContext.current),
-        )
-    )
+    categoryViewModel: CategoryViewModel = koinViewModel(),
+    productViewModel: ProductViewModel = koinViewModel()
 ) {
     val banners by homeViewModel.banners.collectAsState()
     val categories by categoryViewModel.categories.collectAsState()
@@ -116,7 +105,10 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                     if (categories.isEmpty()) {
-                        CircularProgressIndicator(color = Color(0xFF21D4B4),modifier = Modifier.align(Alignment.CenterHorizontally))
+                        CircularProgressIndicator(
+                            color = Color(0xFF21D4B4),
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
                     } else {
                         CustomLazyRow(categories, navController) // 🛠️ Fix thiếu tham số
                     }
@@ -149,7 +141,10 @@ fun HomeScreen(
                         .height(520.dp)
                 ) {
                     if (products.isEmpty()) {
-                        CircularProgressIndicator(color = Color(0xFF21D4B4), modifier = Modifier.align(Alignment.Center))
+                        CircularProgressIndicator(
+                            color = Color(0xFF21D4B4),
+                            modifier = Modifier.align(Alignment.Center)
+                        )
                     } else {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
@@ -157,12 +152,8 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(products) { product ->
-                                val context = LocalContext.current // Lấy context hiện tại
-
                                 CustomItemProducts(
                                     product = product,
-                                    context = context,
-                                    viewModel = productViewModel,
                                     onClick = {
                                         navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
                                     }

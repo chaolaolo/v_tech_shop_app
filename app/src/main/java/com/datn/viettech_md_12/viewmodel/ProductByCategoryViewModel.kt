@@ -18,27 +18,20 @@ class ProductByCategoryViewModel : ViewModel() {
 
     private val productRepository = ApiClient.productRepository
 
+    // Sử dụng cold flow thay vì gọi trực tiếp trong ViewModel
     fun fetchProductsByCategory(categoryId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val response = productRepository.getProductsByCategory(categoryId)
-
-                // Log mã trạng thái và dữ liệu trả về
-                Log.d("ProductByCategoryViewModel", "Response Code: ${response.code()}")
-                Log.d("ProductByCategoryViewModel", "Response Body: ${response.body()}")
-
-                if (response.isSuccessful) {
-                    // Trực tiếp sử dụng List<ProductByCateModel> từ metadata
-                    _products.value = response.body()?.metadata ?: emptyList()
-                } else {
-                    Log.e("ProductByCategoryViewModel", "Error: ${response.message()}")
+            productRepository.getProductsByCategoryFlow(categoryId)
+                .collect { response ->
+                    _isLoading.value = false
+                    if (response.isSuccessful) {
+                        _products.value = response.body()?.metadata ?: emptyList()
+                    } else {
+                        Log.e("ProductByCategoryViewModel", "Error: ${response.message()}")
+                    }
                 }
-            } catch (e: Exception) {
-                Log.e("ProductByCategoryViewModel", "Exception: ${e.message}")
-            } finally {
-                _isLoading.value = false
-            }
         }
     }
 }
+

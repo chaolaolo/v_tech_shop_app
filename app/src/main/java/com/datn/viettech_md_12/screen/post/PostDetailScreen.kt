@@ -263,6 +263,7 @@ fun PostDetailScreen(
                     }
                 }
                 else -> {
+                    if (postDetail != null) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -459,6 +460,7 @@ fun PostDetailScreen(
                         }
                         Spacer(Modifier.height(16.dp))
                     }
+                }
                 }
             }
         }

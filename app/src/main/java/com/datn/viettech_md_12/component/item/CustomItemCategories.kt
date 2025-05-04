@@ -15,7 +15,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -24,6 +23,13 @@ import com.datn.viettech_md_12.R
 @Composable
 fun CustomItemCategories(image: String?, title: String, onClick: () -> Unit) {
     val BASE_URL = "http://103.166.184.249:3056"
+
+    // Xác định URL tải ảnh
+    val imageUrl = if (image != null && image.startsWith("http")) {
+        image // Nếu là URL tuyệt đối thì dùng trực tiếp
+    } else {
+        "$BASE_URL$image" // Nếu không, nối với BASE_URL
+    }
 
     Box(
         modifier = Modifier
@@ -40,7 +46,7 @@ fun CustomItemCategories(image: String?, title: String, onClick: () -> Unit) {
             verticalArrangement = Arrangement.Center
         ) {
             AsyncImage(
-                model = "$BASE_URL$image",
+                model = imageUrl,
                 contentDescription = image,
                 modifier = Modifier
                     .size(50.dp)
@@ -59,4 +65,3 @@ fun CustomItemCategories(image: String?, title: String, onClick: () -> Unit) {
         }
     }
 }
-

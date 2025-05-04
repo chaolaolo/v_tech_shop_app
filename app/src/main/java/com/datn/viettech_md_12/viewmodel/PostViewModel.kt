@@ -185,7 +185,7 @@ class PostViewModel(application: Application, networkHelper: NetworkHelper) : Vi
                 if (response.isSuccessful) {
                     response.body()?.let { apiResponse ->
                         val sameTagPosts = apiResponse.metadata.posts.filter { post ->
-                            post.tags.any { it.equals(tag, ignoreCase = true) }
+                            post.tags.any { it.contains(tag, ignoreCase = true) }
                         }
                         onResult(sameTagPosts)
                         Log.d("getSameTagsPosts", "Filtered posts with tag '$tag': ${sameTagPosts.size} found")

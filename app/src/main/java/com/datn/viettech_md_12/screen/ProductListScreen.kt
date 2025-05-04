@@ -38,8 +38,10 @@ fun ProductListScreen(
 
     // Lấy sản phẩm theo categoryId
     LaunchedEffect(categoryId) {
-        productByCategoryViewModel.fetchProductsByCategory(categoryId)
-        Log.d("ProductListScreen", "ProductListScreen: ${products.size}")
+        if (products.isEmpty()) {
+            productByCategoryViewModel.fetchProductsByCategory(categoryId)
+            Log.d("ProductListScreen", "ProductListScreen: ${products.size}")
+        }
     }
 
     // Scaffold cho layout màn hình
@@ -61,7 +63,7 @@ fun ProductListScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Color(0xFF21D4B4))
             }
         } else {
             // LazyVerticalGrid hiển thị danh sách sản phẩm
@@ -87,4 +89,5 @@ fun ProductListScreen(
         }
     }
 }
+
 

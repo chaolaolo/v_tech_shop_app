@@ -27,6 +27,7 @@
     <string name="validate_user_name_register">Tên đăng nhập không được chứa ký tự đặc biệt.</string>
     <string name="register_success">Đăng ký thành công!</string>
     <string name="invalid_full_name">Họ tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng).</string>
+    <string name="invalid_phone_number">Số điện thoại không hợp lệ(bắt đầu bằng 0 và chỉ được nhập 10 số).</string>
     <string name="invalid_email">Email không đúng định dạng.</string>
     <string name="password_no_spaces">Mật khẩu không được chứa khoảng trắng.</string>
     <string name="password_too_short">Mật khẩu phải có ít nhất 6 ký tự.</string>
