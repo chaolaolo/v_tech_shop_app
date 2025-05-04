@@ -43,6 +43,8 @@ interface ReviewService {
         @Header("Authorization") token: String,
         @Header("x-client-id") clientId: String
     ): Response<BaseReportResponse>
+    @GET("review_report/list")
+    suspend fun getReviewReports(): Response<ReviewReportResponse>
 
     // Cập nhật một đánh giá
     @Headers("Content-Type: application/json", "x-api-key: $API_KEY")

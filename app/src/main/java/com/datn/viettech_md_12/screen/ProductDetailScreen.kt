@@ -166,6 +166,8 @@ fun ProductDetailScreen(
         viewModel.getProductById(productId)
         reviewViewModel.getReviewsByProduct(productId)
         reviewViewModel.getReviewStats(productId)
+        reviewViewModel.fetchReviewReports()
+
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val simpleSnackbarHostState = remember { SnackbarHostState() }
@@ -225,6 +227,7 @@ fun ProductDetailScreen(
     } ?: emptyList()
     // review report
     val clientId = sharedPreferences.getString("clientId", "") ?: ""
+    val reviewReports by reviewViewModel.reviewReports.collectAsState()
 
     var selectedReviewId by remember { mutableStateOf<String?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
@@ -1164,7 +1167,7 @@ fun ProductDetailScreen(
                                                 "http://localhost:",
                                                 "http://103.166.184.249:"
                                             )
-                                            val isReported = reportedReviewIds.contains(review._id)
+                                            val isReported = reviewReports.any { it.review_id?._id == review._id }
                                             val isOwnReview = review.account_id == clientId
 
                                             @OptIn(ExperimentalFoundationApi::class)
@@ -1347,10 +1350,15 @@ fun ProductDetailScreen(
                                         confirmButton = {
                                             Button(
                                                 onClick = {
-                                                    if (reportReason.trim().isEmpty()) {
-                                                        reportReasonError = "Lý do không được để trống"
-                                                    } else {
-                                                        confirmReportDialog = true
+                                                    val reason = reportReason.trim()
+                                                    val wordCount = reason.split("\\s+".toRegex()).size
+
+                                                    when {
+                                                        reason.isEmpty() -> reportReasonError = "Không được để trống"
+                                                        reason.length < 10 -> reportReasonError = "Ít nhất 10 ký tự"
+                                                        wordCount > 1000 -> reportReasonError = "Không được quá 1000 từ"
+                                                        reason.contains(Regex("[<>\\[\\]{}!@#\$%^&*]")) -> reportReasonError = "Không dùng ký tự đặc biệt"
+                                                        else -> confirmReportDialog = true
                                                     }
                                                 },
                                                 shape = RoundedCornerShape(6.dp)
@@ -1379,14 +1387,21 @@ fun ProductDetailScreen(
                                         confirmButton = {
                                             Button(onClick = {
                                                 selectedReviewId?.let { reviewId ->
-                                                    Log.d("ReportReview", "Success: ${reportReason}")
-
                                                     reviewViewModel.reportReview(reviewId, reportReason)
+
+                                                    // 🔄 Gọi lại API để lấy dữ liệu mới nhất
+                                                    reviewViewModel.fetchReviewReports()
+
+                                                    // Reset dialog
+                                                    confirmReportDialog = false
+                                                    showReportDialog = false
+                                                    reportReason = ""
+                                                    reportReasonError = null
                                                 }
-                                                confirmReportDialog = false
                                             }) {
                                                 Text("Xác nhận")
                                             }
+
                                         },
                                         dismissButton = {
                                             TextButton(onClick = { confirmReportDialog = false }) {

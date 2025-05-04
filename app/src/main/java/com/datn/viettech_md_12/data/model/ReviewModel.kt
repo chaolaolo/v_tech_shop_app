@@ -102,3 +102,28 @@ data class BaseReportResponse(
     val message: String,
     val report: ReportReviewResponse
 )
+data class ReviewReport(
+    val _id: String,
+    val review_id: ReviewSummary?,
+    val account_id: AccountSummary?,
+    val reason: String,
+    val status: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class ReviewSummary(
+    val _id: String,
+    val contents_review: String
+)
+
+data class AccountSummary(
+    val _id: String,
+    val username: String,
+    val full_name: String
+)
+
+data class ReviewReportResponse(
+    val success: Boolean,
+    val reports: List<ReviewReport>
+)

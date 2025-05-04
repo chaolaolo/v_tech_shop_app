@@ -123,6 +123,20 @@ class ReviewRepository(private val reviewService: ReviewService) {
             Result.failure(IOException("Failed to fetch review stats: ${e.localizedMessage}", e))
         }
     }
+    suspend fun getReviewReports(): Result<List<ReviewReport>> {
+        return try {
+            val response = reviewService.getReviewReports()
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it.reports)
+                } ?: Result.failure(IOException("Empty response body"))
+            } else {
+                Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(IOException("Failed to fetch review reports: ${e.localizedMessage}", e))
+        }
+    }
 
     suspend fun reportReview(
         token: String,
