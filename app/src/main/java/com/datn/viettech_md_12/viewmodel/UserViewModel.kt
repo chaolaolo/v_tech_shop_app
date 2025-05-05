@@ -6,25 +6,22 @@ import LoginRequest
 import RegisterRequest
 import Tokens
 import UpdateImageToAccountRequest
-import android.app.Application
-import android.content.Context
-import android.content.Intent
+import UserRepository
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.datn.viettech_md_12.data.remote.ApiClient
-import com.datn.viettech_md_12.screen.authentication.LoginScreen
+import com.datn.viettech_md_12.common.PreferenceManager
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.net.UnknownHostException
 
-class UserViewModel(application: Application) : AndroidViewModel(application) {
-    private val userRepository = ApiClient.userRepository
-    val changePasswordState = mutableStateOf<String?>(null)
+class UserViewModel(
+    private val userRepository: UserRepository
+) : ViewModel() {
+
     fun signUp(
         request: RegisterRequest,
-        context: Context,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -37,22 +34,16 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 Log.d("dcm_debug_response", "Response Body: ${response.body()}")
                 if (response.isSuccessful) {
                     response.body()?.let { body ->
-                        val token = body.metadata?.tokens?.accessToken
+                        val token = body.metadata.tokens.accessToken
                         val userId = body.metadata.account._id  // Lấy userId (_id) từ response
                         Log.d("dcm_id", "signUp: $userId")
-                        if (token != null) { // Chỉ lưu token khi nó tồn tại
-                            Log.d("dcm_success_signup", "Đăng ký thành công - Token: $token")
-                            val sharedPreferences =
-                                context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                            sharedPreferences.edit()
-                                .putString("accessToken", token)
-                                .putString("clientId", userId)  // Lưu userId
-                                .putString("userId", userId)  // Lưu userId
-                                .apply()
-                            onSuccess()
-                        } else {
-                            onError("Token không tồn tại")
-                        }
+                        Log.d("dcm_success_signup", "Đăng ký thành công - Token: $token")
+
+                        PreferenceManager.saveAccessToken(token)
+                        PreferenceManager.saveClientId(userId)
+                        PreferenceManager.saveUserId(userId)
+
+                        onSuccess()
                     }
                 } else {
                     val errorBody = response.errorBody()?.string() ?: "Lỗi không xác định"
@@ -74,7 +65,6 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     fun signIn(
         request: LoginRequest,
-        context: Context,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -93,31 +83,29 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.isSuccessful) {
                     response.body()?.let { body ->
-                        val token = body.result?.metadata?.tokens?.accessToken
-                        val refreshToken = body.result?.metadata?.tokens?.refreshToken
-                        val userId = body.result?.metadata?.account?._id
+                        val token = body.result.metadata.tokens.accessToken
+                        val refreshToken = body.result.metadata.tokens.refreshToken
+                        val userId = body.result.metadata.account._id
 
                         Log.d("dcm_debug_signin", "Token nhận được: $token")
                         Log.d("dcm_id", "UserId nhận được: $userId")
 
-                        if (!token.isNullOrEmpty()) {
+                        if (token.isNotEmpty()) {
                             Log.d("dcm_success_signin", "Đăng nhập thành công!")
 
-                            val sharedPreferences =
-                                context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                            sharedPreferences.edit()
-                                .putString("accessToken", token)
-                                .putString("refreshToken", refreshToken)
-                                .putString("clientId", userId)
-                                .putString("userId", userId)  // Lưu userId
-                                .putString("fullname", body.result?.metadata?.account?.full_name)
-                                .putString("email", body.result?.metadata?.account?.email)
-                                .putString("profile_image", body.result?.metadata?.profile_image)
-                                .apply()
+                            // Lưu thông tin vào PreferenceManager
+                            PreferenceManager.saveAccessToken(token)
+                            PreferenceManager.saveRefreshToken(refreshToken)
+                            PreferenceManager.saveClientId(userId)
+                            PreferenceManager.saveUserId(userId)
+                            PreferenceManager.saveFullName(body.result.metadata.account.full_name)
+                            PreferenceManager.saveEmail(body.result.metadata.account.email)
+                            PreferenceManager.saveProfileImage(body.result.metadata.profile_image)
+
                             // Kiểm tra lại token sau khi lưu
-                            val savedToken = sharedPreferences.getString("accessToken", null)
+                            val savedToken = PreferenceManager.getAccessToken()
                             Log.d("dcm_debug_signin", "Token đã lưu: $savedToken")
-                            val profileImage = body.result?.metadata?.profile_image
+                            val profileImage = body.result.metadata.profile_image
                             Log.d("dcm_debug_signin", "Ảnh đại diện nhận được: $profileImage")
                             onSuccess()
                         } else {
@@ -153,8 +141,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
     fun changePassword(
-        context: Context,
         oldPassword: String,
         newPassword: String,
         onSuccess: (String) -> Unit,
@@ -162,9 +150,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         viewModelScope.launch {
             try {
-                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                val clientId = sharedPreferences.getString("clientId", "") ?: ""
-                val token = sharedPreferences.getString("accessToken", "") ?: ""
+                val clientId = PreferenceManager.getClientId() ?: ""
+                val token = PreferenceManager.getAccessToken() ?: ""
 
                 val request = ChangePasswordRequest(
                     accountId = clientId,
@@ -179,34 +166,39 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                     onSuccess(response.body()?.message ?: "Đổi mật khẩu thành công!")
                 } else {
                     val errorBody = response.errorBody()?.string()
+                    val message = try {
+                        val json = JSONObject(errorBody ?: "")
+                        json.getString("message")
+                    } catch (e: Exception) {
+                        "Đổi mật khẩu thất bại. Vui lòng thử lại sau."
+                    }
+
                     Log.e("ChangePassword", "Failed: code=${response.code()}, errorBody=$errorBody")
-                    onError("Đổi mật khẩu thất bại. Mật khẩu mới phải có ít nhất 6 ký tự!")
+                    onError(message)
                 }
             } catch (e: Exception) {
                 onError("Lỗi kết nối: ${e.message}")
             }
         }
     }
+
     fun logout(
-        context: Context,
         onSuccess: (String) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onNavigateToLogin: () -> Unit
     ) {
         viewModelScope.launch {
             try {
-                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                val refreshToken = sharedPreferences.getString("refreshToken", null)
+                val refreshToken = PreferenceManager.getRefreshToken()
 
                 if (refreshToken.isNullOrEmpty()) {
-                    val intent = Intent(context, LoginScreen::class.java)
-                    context.startActivity(intent)
-//                    onError("Không tìm thấy refreshToken!")
+                    onNavigateToLogin()
                     return@launch
                 }
 
-                // Sử dụng Tokens từ SharedPreferences (accessToken và refreshToken)
+                // Sử dụng Tokens từ PreferenceManager (accessToken và refreshToken)
                 val tokens = Tokens(
-                    accessToken = sharedPreferences.getString("accessToken", null) ?: "",
+                    accessToken = PreferenceManager.getAccessToken() ?: "",
                     refreshToken = refreshToken
                 )
 
@@ -215,18 +207,19 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     val message = response.body()?.message ?: "Đăng xuất thành công"
                     Log.d("dcm_logout", "Success: $message")
-                    Log.d("dcm_logout", "refreshToken 1: ${tokens.refreshToken}")
 
                     // Xoá dữ liệu đã lưu (accessToken, refreshToken, v.v...)
-                    sharedPreferences.edit().clear().apply()
+                    PreferenceManager.saveAccessToken("")
+                    PreferenceManager.saveRefreshToken("")
+                    PreferenceManager.saveClientId("")
+                    PreferenceManager.saveUserId("")
+                    PreferenceManager.saveFullName("")
+                    PreferenceManager.saveEmail("")
+                    PreferenceManager.saveProfileImage("")
 
                     onSuccess(message)
                 } else {
-                    val intent = Intent(context, LoginScreen::class.java)
-                    context.startActivity(intent)
-//                    val errorBody = response.errorBody()?.string() ?: "Lỗi không xác định"
-//                    Log.e("dcm_logout", "Failed: $errorBody")
-//                    onError("Lỗi khi đăng xuất: $errorBody")
+                    onNavigateToLogin() // Nếu không thành công, điều hướng đến màn hình đăng nhập
                 }
             } catch (e: Exception) {
                 Log.e("dcm_logout", "Exception: ${e.message}")
@@ -235,16 +228,15 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
     fun updateProfileImage(
-        context: Context,
         imageId: String,
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                val accountId = sharedPreferences.getString("clientId", "") ?: ""
+                val accountId = PreferenceManager.getClientId() ?: ""
 
                 val request = UpdateImageToAccountRequest(
                     accountId = accountId,
@@ -256,8 +248,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                     val newImageUrl = response.body()?.account?.profile_image?.url
                     Log.d("UpdateProfileImage", "Success: New URL = $newImageUrl")
 
-                    // Lưu ảnh đại diện mới vào SharedPreferences (nếu muốn)
-                    sharedPreferences.edit().putString("profile_image", newImageUrl).apply()
+                    // Lưu ảnh đại diện mới vào PreferenceManager (nếu muốn)
+                    PreferenceManager.saveProfileImage(newImageUrl ?: "")
 
                     onSuccess("Cập nhật ảnh đại diện thành công!")
                 } else {
@@ -270,10 +262,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 onError("Lỗi hệ thống: ${e.message}")
             }
         }
-
     }
+
     val accountDetail = mutableStateOf<AccountDetail?>(null)
-    val accountDetailError = mutableStateOf<String?>(null)
 
     fun fetchAccountById(
         id: String,
@@ -294,33 +285,4 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
-
-//    fun changePassword(
-//        request: ChangePasswordRequest,
-//        context: Context
-//    ) {
-//        viewModelScope.launch {
-//            try {
-//                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-//                val token = sharedPreferences.getString("accessToken", null)
-//                val clientId = sharedPreferences.getString("clientId", null)
-//
-//                if (token.isNullOrEmpty() || clientId.isNullOrEmpty()) {
-//                    changePasswordState.value = "Thiếu token hoặc clientId"
-//                    return@launch
-//                }
-//
-//                val response = userRepository.changePassword(token, clientId, request)
-//                if (response.isSuccessful) {
-//                    changePasswordState.value = response.body()?.message ?: "Đổi mật khẩu thành công"
-//                } else {
-//                    val errorBody = response.errorBody()?.string()
-//                    changePasswordState.value = "Thất bại: $errorBody"
-//                }
-//            } catch (e: Exception) {
-//                changePasswordState.value = "Lỗi mạng: ${e.localizedMessage}"
-//            }
-//        }
-//    }
 }

@@ -134,10 +134,10 @@ fun OrderSuccessfullyScreen(navController:NavController) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
                             .border(
-                                BorderStroke(width = 0.4.dp, color = Color(0xFF21D4B4)),
+                                BorderStroke(width = 1.dp, color = Color(0xFF21D4B4)),
                                 shape = RoundedCornerShape(10.dp)
                             ),
-                        backgroundColor = Color.White,
+                        backgroundColor = Color.Transparent,
                         textColor = Color.Black,
                     )
                     //Button

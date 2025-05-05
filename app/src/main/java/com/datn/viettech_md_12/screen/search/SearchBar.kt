@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen
+package com.datn.viettech_md_12.screen.search
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border

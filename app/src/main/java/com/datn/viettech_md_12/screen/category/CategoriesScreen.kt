@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen
+package com.datn.viettech_md_12.screen.category
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,7 +22,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun CategoriesScreen(
     navController: NavController,
-    viewModel: CategoryViewModel = koinViewModel() // <-- Koin inject
+    viewModel: CategoryViewModel = koinViewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()

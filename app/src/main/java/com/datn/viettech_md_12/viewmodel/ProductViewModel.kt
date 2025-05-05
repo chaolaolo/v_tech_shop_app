@@ -1,13 +1,14 @@
 package com.datn.viettech_md_12.viewmodel
 
-import FavoriteItem
 import FavoriteRequest
+import WishlistItem
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.NetworkHelper
+import com.datn.viettech_md_12.common.PreferenceManager
+import com.datn.viettech_md_12.common.ResultState
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.data.model.ProductDetailModel
 import com.datn.viettech_md_12.data.model.ProductDetailResponse
@@ -27,9 +28,8 @@ import java.net.UnknownHostException
 
 class ProductViewModel(
     networkHelper: NetworkHelper,
-    private val repository: ProductRepository
+    private val repository: ProductRepository,
 ) : ViewModel() {
-//    private val repository = ApiClient.productRepository
 
     private val _products = MutableStateFlow<List<ProductModel>>(emptyList())
     val products: StateFlow<List<ProductModel>> = _products
@@ -37,18 +37,16 @@ class ProductViewModel(
     val product: StateFlow<ProductModel?> = _product
     private val _productDetail = MutableStateFlow<ProductDetailModel?>(null)
     val productDetail: StateFlow<ProductDetailModel?> = _productDetail
-//    val productResponse = MutableStateFlow<ProductResponse?>(null)
+
+    //    val productResponse = MutableStateFlow<ProductResponse?>(null)
     val productDetailResponse = MutableStateFlow<ProductDetailResponse?>(null)
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
-    private val _isLoadingFavourite = MutableStateFlow(true)
-//    val isLoadingFavourite: StateFlow<Boolean> = _isLoadingFavourite
 
-//    private val myColorHexList = listOf("FF1C1B1B", "FF08E488", "FF21D4B4")
-
-
-    private val _favoriteProducts = MutableStateFlow<List<FavoriteItem>>(emptyList())
-    val favoriteProducts: StateFlow<List<FavoriteItem>> = _favoriteProducts
+    private val _favoriteProducts = MutableStateFlow<List<WishlistItem>>(emptyList())
+    val favoriteProducts: StateFlow<List<WishlistItem>> = _favoriteProducts
+    private val _isLoadingFavorite = MutableStateFlow(false)
+    val isLoadingFavorite: StateFlow<Boolean> = _isLoadingFavorite
 
     //hien thi don hang
     private val _orders = MutableStateFlow<List<OrderModel>>(emptyList())
@@ -73,6 +71,9 @@ class ProductViewModel(
     fun setBottomSheetType(type: String) {
         _bottomSheetType.value = type
     }
+
+    private val _favoriteStatusMessage = MutableStateFlow<String?>(null)
+    val favoriteStatusMessage: StateFlow<String?> get() = _favoriteStatusMessage
 
     init {
         if (networkHelper.isNetworkConnected()) {
@@ -122,35 +123,6 @@ class ProductViewModel(
         }
     }
 
-//    fun getAllProduct() {
-//        viewModelScope.launch {
-//            _isLoading.value = true
-//            try {
-//                val response = repository.getAllProducts()
-//                if (response.isSuccessful) {
-//                    response.body()?.let {
-//                        _products.value = it.products
-//                        Log.d("lol", "Danh sách sản phẩm: ${it.products}")
-//                    }
-//                } else {
-//                    Log.e("dcm_error", "Error: ${response.code()} ${response.message()}")
-//                }
-//            } catch (e: UnknownHostException) {
-//                Log.e("dcm_error", "Lỗi mạng: Không thể kết nối với máy chủ")
-//            } catch (e: SocketTimeoutException) {
-//                Log.e("dcm_error", "Lỗi mạng: Đã hết thời gian chờ")
-//            } catch (e: HttpException) {
-//                Log.e("dcm_error", "Lỗi HTTP: ${e.message}")
-//            } catch (e: JsonSyntaxException) {
-//                Log.e("dcm_error", "Lỗi dữ liệu: Invalid JSON response")
-//            } catch (e: Exception) {
-//                Log.e("dcm_error", "Lỗi chung: ${e.message}")
-//            } finally {
-//                _isLoading.value = false
-//            }
-//        }
-//    }
-
     private fun getAllProduct() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -174,65 +146,37 @@ class ProductViewModel(
         }
     }
 
-    fun addToFavorites(productId: String, context: Context) {
+    fun addToFavorites(productId: String) {
         viewModelScope.launch {
-            //lay token
-            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-            val token = sharedPreferences.getString("accessToken", "")
-            val clientId = sharedPreferences.getString("clientId", "")
-            val editor = sharedPreferences.edit() // luu trang thai cua favorite khi load lai trang
-            Log.d("dcm_debug", "Token: Bearer $token")
-            Log.d("dcm_debug", "ClientId: $clientId")
+            val token = PreferenceManager.getAccessToken()
+            val clientId = PreferenceManager.getClientId()
+
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 val favoriteRequest = FavoriteRequest(productId = productId)
-                Log.d(
-                    "dcm_request",
-                    "Sending request: $favoriteRequest"
-                )
-                try {
-                    val response = repository.addToFavorites(
-                        favoriteRequest, token, clientId
-                    )
-                    Log.d("dcm_token_id", "Token used: Bearer $token")
-                    if (response.isSuccessful) {
-                        response.body()?.let {
-                            editor.putBoolean(
-                                productId,
-                                true
-                            ) // Lưu trạng thái yêu thích của sản phẩm
-                            editor.apply()
-                            Log.d(
-                                "dcm_success_fav",
-                                "Thêm vào danh sách yêu thích thành công: ${it.favorite}"
-                            )
-                            Toast.makeText(
-                                context,
-                                "Đã thêm vào danh sách yêu thích!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            getFavoriteProducts(context)
+
+                repository.addToFavorites(favoriteRequest, token, clientId)
+                    .collect { result ->
+                        when (result) {
+                            is ResultState.Success -> {
+                                PreferenceManager.saveFavoriteStatus(productId, true)
+                                _favoriteStatusMessage.value = "Thêm vào danh sách yêu thích thành công"
+                                Log.d("dcm_success_fav", "Thêm vào danh sách yêu thích thành công")
+                            }
+                            is ResultState.Error -> {
+                                Log.e("dcm_error_fav", "Lỗi khi thêm yêu thích: ${result.message}")
+                                _favoriteStatusMessage.value = "Lỗi khi thêm yêu thích: ${result.message}"
+                            }
                         }
-                    } else {
-                        Log.e(
-                            "dcm_error_fav",
-                            "Lỗi thêm vào danh sách yêu thích: ${response.code()} - ${response.message()}"
-                        )
-                        Log.e("dcm_error_fav", "Chi tiết lỗi: ${response.errorBody()?.string()}")
-
-                        Toast.makeText(
-                            context,
-                            "Sản phẩm này đã có trong danh sách yêu thích!",
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
-                } catch (e: Exception) {
-                    Log.e("dcm_error_fav", "Lỗi khi thêm yêu thích: ${e.message}")
-                }
-
             } else {
                 Log.e("dcm_error_fav", "Token hoặc UserId không tồn tại trong SharedPreferences")
+                _favoriteStatusMessage.value = "Token hoặc UserId không tồn tại"
             }
         }
+    }
+
+    fun clearFavoriteMessage() {
+        _favoriteStatusMessage.value = null
     }
 
     fun addProductToCart(
@@ -249,7 +193,6 @@ class ProductViewModel(
             val userId = sharedPreferences.getString("clientId", "")
             Log.d("CartViewModel", "token $token")
             Log.d("CartViewModel", "token $userId")
-//            _isLoading.value = true
             try {
                 val response = cartRepository.addToCart(
                     token = token ?: "",
@@ -294,87 +237,58 @@ class ProductViewModel(
         }
     }
 
-    fun getFavoriteProducts(context: Context) {
-        viewModelScope.launch {
-            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-            val token = sharedPreferences.getString("accessToken", "")
-            val clientId = sharedPreferences.getString("clientId", "")
+    fun getFavoriteProducts() {
+        val token = PreferenceManager.getAccessToken()
+        val clientId = PreferenceManager.getClientId()
 
-            if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
-                try {
-                    _isLoadingFavourite.value = true
-                    val response = repository.getFavoriteProducts(token, clientId)
-                    if (response.isSuccessful) {
-                        response.body()?.let {
-                            _favoriteProducts.value = it.favorites
-                            Log.d(
-                                "dcm_success_fav_list",
-                                "Danh sách sản phẩm yêu thích: ${it.favorites}"
-                            )
+        if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
+            _isLoadingFavorite.value = true
+            viewModelScope.launch {
+                repository.getFavoriteProducts(token, clientId)
+                    .collect { result ->
+                        when (result) {
+                            is ResultState.Success -> {
+                                _favoriteProducts.value = result.data.favorites
+                            }
+
+                            is ResultState.Error -> {
+                                Log.e("dcm_error_fav", result.message)
+                            }
                         }
-                    } else {
-                        Log.e(
-                            "dcm_error_fav",
-                            "Lỗi lấy danh sách yêu thích: ${response.code()} - ${response.message()}"
-                        )
+                        _isLoadingFavorite.value = false
                     }
-                } catch (e: UnknownHostException) {
-                    Log.e("dcm_error_fav", "Lỗi mạng: Không thể kết nối với máy chủ")
-                } catch (e: SocketTimeoutException) {
-                    Log.e("dcm_error_fav", "Lỗi mạng: Đã hết thời gian chờ")
-                } catch (e: HttpException) {
-                    Log.e("dcm_error_fav", "Lỗi HTTP: ${e.message}")
-                } catch (e: Exception) {
-                    Log.e("dcm_error_fav", "Lỗi chung: ${e.message}")
-                } finally {
-                    _isLoadingFavourite.value = false
-                }
-            } else {
-                Log.e("dcm_error_fav", "Token hoặc ClientId không tồn tại")
             }
+        } else {
+            Log.e("dcm_error_fav", "Token hoặc ClientId không tồn tại")
         }
     }
 
-    fun removeFromFavorites(productId: String, context: Context) {
+
+    fun removeFromFavorites(productId: String) {
         viewModelScope.launch {
-            val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-            val token = sharedPreferences.getString("accessToken", "")
-            val clientId = sharedPreferences.getString("clientId", "")
-            val apiKey =
-                "c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683" // Đảm bảo apiKey đúng
-            val editor = sharedPreferences.edit()// luu trang thai cua favorite khi load lai trang
+            val token = PreferenceManager.getAccessToken()
+            val clientId = PreferenceManager.getClientId()
 
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
-                try {
-                    val response =
-                        repository.removeFromFavorites(productId, token, clientId, apiKey)
-                    if (response.isSuccessful) {
-                        Toast.makeText(
-                            context,
-                            "Đã xoá sản phẩm yêu thích thành công",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        getFavoriteProducts(context)
+                val apiKey = "c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
 
-                        editor.putBoolean(
-                            productId,
-                            false
-                        ) // Cập nhật trạng thái yêu thích của sản phẩm
-                        editor.apply()
-                    } else {
-                        Log.e(
-                            "dcm_error_remove",
-                            "Lỗi xóa sản phẩm yêu thích: ${response.code()} - ${response.message()}"
-                        )
+                repository.removeFromFavorites(productId, token, clientId, apiKey)
+                    .collect { result ->
+                        when (result) {
+                            is ResultState.Success -> {
+                                PreferenceManager.saveFavoriteStatus(productId, false)
+                                _favoriteStatusMessage.value = "Đã xoá sản phẩm yêu thích thành công"
+                                getFavoriteProducts()
+                            }
+                            is ResultState.Error -> {
+                                Log.e("dcm_error_remove", "Lỗi xóa sản phẩm yêu thích: ${result.message}")
+                                _favoriteStatusMessage.value = "Lỗi xóa sản phẩm yêu thích: ${result.message}"
+                            }
+                        }
                     }
-                } catch (e: Exception) {
-                    Log.e("dcm_error_remove", "Lỗi khi xóa yêu thích: ${e.message}")
-                }
             } else {
-                Log.e(
-                    "dcm_error_remove",
-                    "Token hoặc ClientId không tồn tại trong SharedPreferences"
-                )
+                Log.e("dcm_error_remove", "Token hoặc ClientId không tồn tại trong SharedPreferences")
+                _favoriteStatusMessage.value = "Token hoặc ClientId không tồn tại"
             }
         }
     }
@@ -478,7 +392,10 @@ class ProductViewModel(
                     if (response.isSuccessful) {
                         _cancelResult.value = true
                     } else {
-                        Log.e("cancel_order", "Thất bại: ${response.code()} - ${response.message()}")
+                        Log.e(
+                            "cancel_order",
+                            "Thất bại: ${response.code()} - ${response.message()}"
+                        )
                         _cancelResult.value = false
                     }
                 } catch (e: Exception) {
@@ -488,11 +405,10 @@ class ProductViewModel(
             }
         }
     }
+
     fun resetCancelResult() {
         _cancelResult.value = null
     }
-
-
 
     fun matchVariant(productId: String, selectedAttributes: Map<String, String>) {
         viewModelScope.launch {
