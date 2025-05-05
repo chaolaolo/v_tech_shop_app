@@ -1,5 +1,6 @@
 package com.datn.viettech_md_12.data.repository
 
+import android.util.Log
 import com.datn.viettech_md_12.data.interfaces.ReviewService
 import com.datn.viettech_md_12.data.model.*
 import com.datn.viettech_md_12.data.remote.ApiClient
@@ -120,6 +121,60 @@ class ReviewRepository(private val reviewService: ReviewService) {
             }
         } catch (e: Exception) {
             Result.failure(IOException("Failed to fetch review stats: ${e.localizedMessage}", e))
+        }
+    }
+    suspend fun getReviewReports(): Result<List<ReviewReport>> {
+        return try {
+            val response = reviewService.getReviewReports()
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.success(it.reports)
+                } ?: Result.failure(IOException("Empty response body"))
+            } else {
+                Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(IOException("Failed to fetch review reports: ${e.localizedMessage}", e))
+        }
+    }
+
+    suspend fun reportReview(
+        token: String,
+        clientId: String,
+        reviewId: String,
+        accountId: String,
+        reason: String,
+        status:String
+    ): Result<BaseReportResponse> {
+        return try {
+            val request = ReportReviewRequest(
+                review_id = reviewId,
+                account_id = accountId,
+                reason = reason,
+                status=status
+            )
+            val response = reviewService.reportReview(request, token, clientId)
+
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Log.d("ReportReview", "Success: ${it.message}")
+                    Result.success(it)
+                } ?: run {
+                    Log.e("ReportReview", "Empty response body")
+                    Result.failure(IOException("Empty response body"))
+                }
+            } else {
+                Log.e(
+                    "ReportReview",
+                    "API error - Code: ${response.code()}, Message: ${response.message()}, Body: ${
+                        response.errorBody()?.string()
+                    }"
+                )
+                Result.failure(IOException("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Log.e("ReportReview", "Exception: ${e.localizedMessage}", e)
+            Result.failure(IOException("Failed to report review: ${e.localizedMessage}", e))
         }
     }
 }

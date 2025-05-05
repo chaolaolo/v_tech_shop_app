@@ -8,6 +8,7 @@ import androidx.lifecycle.*
 import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.data.model.*
 import com.datn.viettech_md_12.data.remote.ApiClient
+import com.datn.viettech_md_12.data.repository.ReviewRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
@@ -40,6 +41,8 @@ class ReviewViewModel(application: Application, networkHelper: NetworkHelper) : 
         application.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val _reviewsByAccount = MutableStateFlow<List<Review>>(emptyList())
     val reviewsByAccount: StateFlow<List<Review>> = _reviewsByAccount
+    private val _reviewReports = MutableStateFlow<List<ReviewReport>>(emptyList())
+    val reviewReports: StateFlow<List<ReviewReport>> = _reviewReports
 
     fun clearAddReviewResult() {
         _addReviewResult.value = null
@@ -56,6 +59,57 @@ class ReviewViewModel(application: Application, networkHelper: NetworkHelper) : 
             Toast.makeText(application, "Không có kết nối mạng.", Toast.LENGTH_SHORT).show()
             _isLoading.value = false
         }
+    }
+
+    private val _reportReviewResult = MutableStateFlow<Result<BaseReportResponse>?>(null)
+    val reportReviewResult: StateFlow<Result<BaseReportResponse>?> = _reportReviewResult
+    fun fetchReviewReports() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = _repository.getReviewReports()
+                if (result.isSuccess) {
+                    _reviewReports.value = result.getOrNull() ?: emptyList()
+                } else {
+                    Log.e("REVIEW_REPORTS", "Lỗi: ${result.exceptionOrNull()?.message}")
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun reportReview(reviewId: String, reason: String) {
+        val token = sharedPreferences.getString("accessToken", "") ?: ""
+        val clientId = sharedPreferences.getString("clientId", "") ?: ""
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = _repository.reportReview(
+                    token = token,
+                    clientId = clientId,
+                    reviewId = reviewId,
+                    accountId = clientId,
+                    reason = reason,
+                    status = "under_review"
+                )
+                _reportReviewResult.value = result
+                fetchReviewReports()
+                Log.d("API_Request", "Token: $token")
+                Log.d("API_Request", "ClientId: $clientId")
+                Log.d("API_Request", "ReviewId: $reviewId")
+                Log.d("API_Request", "Reason: $reason")
+                Log.d("API_Request", "Status: under_review")
+
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearReportReviewResult() {
+        _reportReviewResult.value = null
     }
 
     fun addReview(

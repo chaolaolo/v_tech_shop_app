@@ -246,7 +246,6 @@ fun UpdateReviewDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
                 if (selectedUris.isEmpty() && uploadedImageUrls.isNotEmpty()) {
-                    Text("Ảnh hiện tại:", fontWeight = FontWeight.SemiBold)
                     ImagePreviewRow(uploadedImageUrls.map {
                         it.replace("http://localhost:", "http://103.166.184.249:")
                     })
@@ -267,18 +266,20 @@ fun UpdateReviewDialog(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Row(
+
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Hủy")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
                     if (canUpdate) {
                         Button(
                             onClick = { showConfirmDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(10.dp)),
+                            enabled = !isUploading
                         ) {
                             if (isUploading) {
                                 CircularProgressIndicator(
@@ -287,7 +288,6 @@ fun UpdateReviewDialog(
                                     strokeWidth = 2.dp
                                 )
                             } else {
-                                Icon(Icons.Default.Send, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Cập nhật")
                             }
@@ -295,7 +295,21 @@ fun UpdateReviewDialog(
                     } else {
                         Text("Đã quá 2 ngày", color = Color.Gray)
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(10.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xffffffff))
+                    ) {
+                        Text("Hủy", color = Color.Black)
+                    }
                 }
+
             }
         }
     }

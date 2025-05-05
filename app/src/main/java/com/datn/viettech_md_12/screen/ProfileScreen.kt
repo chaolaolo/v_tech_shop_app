@@ -35,6 +35,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -282,6 +284,9 @@ fun ProfileHeader(navController: NavController) {
 
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    // Trạng thái loading cho ảnh
+    var isLoading by remember { mutableStateOf(false) }
+
     // Lấy dữ liệu avatar lần đầu
     LaunchedEffect(Unit) {
         userViewModel.fetchAccountById(
@@ -318,6 +323,7 @@ fun ProfileHeader(navController: NavController) {
             onConfirm = {
                 showConfirmDialog = false
                 selectedUri?.let { uri ->
+                    isLoading = true // Bắt đầu tải ảnh
                     coroutineScope.launch {
                         val result = uploadSingleImage(context, uri, imageViewModel)
                         result.onSuccess { imageId ->
@@ -360,6 +366,8 @@ fun ProfileHeader(navController: NavController) {
                                 it.message ?: "Lỗi không xác định khi upload ảnh",
                                 Toast.LENGTH_SHORT
                             ).show()
+                        }.also {
+                            isLoading = false // Kết thúc tải ảnh
                         }
                     }
                 }
@@ -385,17 +393,25 @@ fun ProfileHeader(navController: NavController) {
                 .size(80.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
-            AsyncImage(
-                model = avatarUrl,
-                contentDescription = "Avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .border(2.dp, Color.White, CircleShape)
-                    .background(Color.White)
-                    .shadow(4.dp, CircleShape, clip = false)
-            )
+            // Hiển thị ảnh hoặc hiệu ứng tải
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White
+                )
+            } else {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "Avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .border(2.dp, Color.White, CircleShape)
+                        .background(Color.White)
+                        .shadow(4.dp, CircleShape, clip = false)
+                )
+            }
 
             if (!profileImage.isNullOrBlank()) {
                 Icon(

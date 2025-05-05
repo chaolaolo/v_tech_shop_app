@@ -11,11 +11,11 @@ import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.PostViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModel
+import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 
-import com.datn.viettech_md_12.viewmodel.ReviewViewModel
-import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 
 class MyApplication : Application() {
     //    lateinit var productViewModel: ProductViewModel

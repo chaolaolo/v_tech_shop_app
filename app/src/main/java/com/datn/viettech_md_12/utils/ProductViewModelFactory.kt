@@ -17,7 +17,7 @@ class ProductViewModelFactory (
             return ProductViewModel(
                 networkHelper,
                 repository = ApiClient.productRepository,
-                preferenceManager = PreferenceManager,
+//                preferenceManager = PreferenceManager,
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
