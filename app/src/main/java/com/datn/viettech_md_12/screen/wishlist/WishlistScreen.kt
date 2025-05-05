@@ -56,7 +56,7 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
     val accessToken = sharedPreferences.getString("accessToken", null)
 
     LaunchedEffect(Unit) {
-        viewModel.getFavoriteProducts(context)
+        viewModel.getFavoriteProducts()
     }
 
     Scaffold(
@@ -117,7 +117,7 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
                                     wishlistItem = product,
                                     onItemDismissed = { item ->
                                         deletedItem = item
-                                        viewModel.removeFromFavorites(item.product.id, context)
+                                        viewModel.removeFromFavorites(item.product.id)
                                     },
                                     navController = navController
                                 )

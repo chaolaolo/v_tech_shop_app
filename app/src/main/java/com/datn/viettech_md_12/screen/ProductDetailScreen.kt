@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,7 +35,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -236,6 +236,7 @@ fun ProductDetailScreen(
     //lấy giá của variant
     val matchedVariantId by viewModel.matchedVariantId.collectAsState()
     val matchedVariantPrice by viewModel.matchedVariantPrice.collectAsState()
+
     // Khi selectedAttributes thay đổi, cập nhật validOptions
     LaunchedEffect(selectedAttributes) {
         delay(50)
@@ -246,6 +247,13 @@ fun ProductDetailScreen(
         updateValidOptions(selectedAttributes)
     }
 
+    val message by viewModel.favoriteStatusMessage.collectAsState()
+    LaunchedEffect(message) {
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearFavoriteMessage()
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         //log imageIds
@@ -810,17 +818,14 @@ fun ProductDetailScreen(
                                             }
                                             isFavorite = !isFavorite
                                             if (isFavorite) {
-                                                val productId = productDetail?.id
-                                                if (productId != null) {
-                                                    viewModel.addToFavorites(productId)
+                                                val addProductId = productDetail?.id
+                                                if (addProductId != null) {
+                                                    viewModel.addToFavorites(addProductId)
                                                 }
                                             } else {
-                                                val favoriteId = productDetail?.id
-                                                if (favoriteId != null) {
-                                                    viewModel.removeFromFavorites(
-                                                        favoriteId,
-                                                        context
-                                                    )
+                                                val removeProductId = productDetail?.id
+                                                if (removeProductId != null) {
+                                                    viewModel.removeFromFavorites(removeProductId)
                                                 }
                                             }
                                         },
@@ -1265,7 +1270,11 @@ fun ProductDetailScreen(
 
                                                     Spacer(modifier = Modifier.height(4.dp))
                                                 }
-                                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                                HorizontalDivider(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 8.dp
+                                                    )
+                                                )
                                             }
                                         }
                                     }

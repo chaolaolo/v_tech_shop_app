@@ -4,7 +4,6 @@ import FavoriteRequest
 import WishlistItem
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.datn.viettech_md_12.NetworkHelper
@@ -30,9 +29,7 @@ import java.net.UnknownHostException
 class ProductViewModel(
     networkHelper: NetworkHelper,
     private val repository: ProductRepository,
-    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
-//    private val repository = ApiClient.productRepository
 
     private val _products = MutableStateFlow<List<ProductModel>>(emptyList())
     val products: StateFlow<List<ProductModel>> = _products
@@ -74,6 +71,9 @@ class ProductViewModel(
     fun setBottomSheetType(type: String) {
         _bottomSheetType.value = type
     }
+
+    private val _favoriteStatusMessage = MutableStateFlow<String?>(null)
+    val favoriteStatusMessage: StateFlow<String?> get() = _favoriteStatusMessage
 
     init {
         if (networkHelper.isNetworkConnected()) {
@@ -148,8 +148,8 @@ class ProductViewModel(
 
     fun addToFavorites(productId: String) {
         viewModelScope.launch {
-            val token = preferenceManager.getAccessToken()
-            val clientId = preferenceManager.getClientId()
+            val token = PreferenceManager.getAccessToken()
+            val clientId = PreferenceManager.getClientId()
 
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 val favoriteRequest = FavoriteRequest(productId = productId)
@@ -158,18 +158,25 @@ class ProductViewModel(
                     .collect { result ->
                         when (result) {
                             is ResultState.Success -> {
-                                preferenceManager.saveFavoriteStatus(productId, true)
+                                PreferenceManager.saveFavoriteStatus(productId, true)
+                                _favoriteStatusMessage.value = "Thêm vào danh sách yêu thích thành công"
                                 Log.d("dcm_success_fav", "Thêm vào danh sách yêu thích thành công")
                             }
                             is ResultState.Error -> {
                                 Log.e("dcm_error_fav", "Lỗi khi thêm yêu thích: ${result.message}")
+                                _favoriteStatusMessage.value = "Lỗi khi thêm yêu thích: ${result.message}"
                             }
                         }
                     }
             } else {
                 Log.e("dcm_error_fav", "Token hoặc UserId không tồn tại trong SharedPreferences")
+                _favoriteStatusMessage.value = "Token hoặc UserId không tồn tại"
             }
         }
+    }
+
+    fun clearFavoriteMessage() {
+        _favoriteStatusMessage.value = null
     }
 
     fun addProductToCart(
@@ -230,10 +237,9 @@ class ProductViewModel(
         }
     }
 
-    fun getFavoriteProducts(context: Context) {
-        val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        val token = sharedPreferences.getString("accessToken", "")
-        val clientId = sharedPreferences.getString("clientId", "")
+    fun getFavoriteProducts() {
+        val token = PreferenceManager.getAccessToken()
+        val clientId = PreferenceManager.getClientId()
 
         if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
             _isLoadingFavorite.value = true
@@ -257,33 +263,32 @@ class ProductViewModel(
         }
     }
 
-    fun removeFromFavorites(productId: String, context: Context) {
+
+    fun removeFromFavorites(productId: String) {
         viewModelScope.launch {
             val token = PreferenceManager.getAccessToken()
             val clientId = PreferenceManager.getClientId()
 
             if (!token.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
                 val apiKey = "c244dcd1532c91ab98a1c028e4f24f81457cdb2ac83e2ca422d36046fec84233589a4b51eda05e24d8871f73653708e3b13cf6dd1415a6330eaf6707217ef683"
-                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
 
                 repository.removeFromFavorites(productId, token, clientId, apiKey)
                     .collect { result ->
                         when (result) {
                             is ResultState.Success -> {
-                                editor.putBoolean(productId, false)
-                                editor.apply()
-
-                                Toast.makeText(context, "Đã xoá sản phẩm yêu thích thành công", Toast.LENGTH_SHORT).show()
-                                getFavoriteProducts(context)
+                                PreferenceManager.saveFavoriteStatus(productId, false)
+                                _favoriteStatusMessage.value = "Đã xoá sản phẩm yêu thích thành công"
+                                getFavoriteProducts()
                             }
                             is ResultState.Error -> {
                                 Log.e("dcm_error_remove", "Lỗi xóa sản phẩm yêu thích: ${result.message}")
+                                _favoriteStatusMessage.value = "Lỗi xóa sản phẩm yêu thích: ${result.message}"
                             }
                         }
                     }
             } else {
                 Log.e("dcm_error_remove", "Token hoặc ClientId không tồn tại trong SharedPreferences")
+                _favoriteStatusMessage.value = "Token hoặc ClientId không tồn tại"
             }
         }
     }
