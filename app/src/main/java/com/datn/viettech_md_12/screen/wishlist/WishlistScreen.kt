@@ -4,14 +4,17 @@ import WishlistItem
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -44,6 +48,7 @@ import com.datn.viettech_md_12.viewmodel.ProductViewModel
 fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val favoriteProducts by viewModel.favoriteProducts.collectAsState(initial = emptyList())
+    val isLoadingFavorite by viewModel.isLoadingFavorite.collectAsState()
     val context = LocalContext.current
 
     var deletedItem by remember { mutableStateOf<WishlistItem?>(null) }
@@ -93,25 +98,33 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
                 .background(Color.White)
                 .padding(innerPadding)
         ) {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (favoriteProducts.isNotEmpty()) {
-                    items(favoriteProducts, key = { it.product.id }) { product ->
-                        ItemWishlist(
-                            wishlistItem = product,
-                            onItemDismissed = { item ->
-                                deletedItem = item
-                                viewModel.removeFromFavorites(item.product.id, context)
-                            },
-                        )
+            if (isLoadingFavorite) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentSize(Alignment.Center)
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF21D4B4))
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (favoriteProducts.isNotEmpty()) {
+                        items(favoriteProducts, key = { it.product.id }) { product ->
+                            ItemWishlist(
+                                wishlistItem = product,
+                                onItemDismissed = { item ->
+                                    deletedItem = item
+                                    viewModel.removeFromFavorites(item.product.id, context)
+                                },
+                            )
+                        }
+                    } else if (accessToken.isNullOrEmpty()) {
+                        item { CartNotLogin(navController) }
+                    } else {
+                        item { EmptyWishList(navController) }
                     }
-
-                } else if (accessToken.isNullOrEmpty()) {
-                    item { CartNotLogin(navController) }
-                } else {
-                    item { EmptyWishList(navController) }
                 }
             }
         }
     }
 }
-

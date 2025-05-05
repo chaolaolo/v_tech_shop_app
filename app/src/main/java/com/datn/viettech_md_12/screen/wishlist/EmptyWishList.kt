@@ -42,7 +42,6 @@ fun EmptyWishList(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        //ảnh giỏ hàng
         Spacer(Modifier.height(10.dp))
         Box(
             modifier = Modifier

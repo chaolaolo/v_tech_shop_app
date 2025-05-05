@@ -41,7 +41,6 @@ fun ItemWishlist(
         }
     }
 
-    // Sử dụng SwipeToDismissBox
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
