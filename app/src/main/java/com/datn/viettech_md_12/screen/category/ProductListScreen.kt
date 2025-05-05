@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen
+package com.datn.viettech_md_12.screen.category
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement

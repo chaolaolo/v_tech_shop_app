@@ -5,8 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -25,19 +24,40 @@ import java.util.Locale
 @Composable
 fun ItemWishlist(
     wishlistItem: WishlistItem,
-    onItemDismissed: (WishlistItem) -> Unit
+    onItemDismissed: (WishlistItem) -> Unit,
+    navController: NavController
 ) {
     val product = wishlistItem.product
     val BASE_URL = "http://103.166.184.249:3056/"
-    val itemPriceFormatted = NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(product.product_price)
+    val itemPriceFormatted =
+        NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(product.product_price)
 
     var showDeleteConfirm by remember { mutableStateOf(false) } // xac nhan xoa
     val coroutineScope = rememberCoroutineScope()
     val dismissState = rememberSwipeToDismissBoxState()
+    var showDetailItem by remember { mutableStateOf(false) }
 
     LaunchedEffect(dismissState.targetValue) {
-        if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-            showDeleteConfirm = true
+        when (dismissState.targetValue) {
+            SwipeToDismissBoxValue.EndToStart -> {
+                showDeleteConfirm = true
+            }
+
+            SwipeToDismissBoxValue.StartToEnd -> {
+                showDetailItem = true
+            }
+
+            else -> {
+                showDeleteConfirm = false
+            }
+        }
+    }
+
+    if (showDetailItem) {
+        LaunchedEffect(Unit) {
+            navController.navigate("product_detail/${product.id}")
+            showDetailItem = false
+            coroutineScope.launch { dismissState.reset() }
         }
     }
 
@@ -47,7 +67,7 @@ fun ItemWishlist(
             val color by animateColorAsState(
                 when (dismissState.targetValue) {
                     SwipeToDismissBoxValue.Settled -> Color.Transparent
-                    SwipeToDismissBoxValue.StartToEnd -> Color.Green
+                    SwipeToDismissBoxValue.StartToEnd -> Color(0xFF21D4B4)
                     SwipeToDismissBoxValue.EndToStart -> Color.Red
                 }, label = ""
             )
@@ -59,7 +79,6 @@ fun ItemWishlist(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 if (showDeleteConfirm) {
-                    // Hiển thị nút xác nhận xóa
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Xác nhận xoá?",
@@ -76,20 +95,21 @@ fun ItemWishlist(
                         ) {
                             Text("Xoá", fontWeight = FontWeight.Bold, color = Color.White)
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(
+                            onClick = {
+                                showDeleteConfirm = false
+                                coroutineScope.launch { dismissState.reset() }
+                            }
+                        ) {
+                            Text("Hủy", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
                     }
-                } else {
-                    // Nền mặc định khi chưa vuốt
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Xóa",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
                 }
             }
         },
-        enableDismissFromEndToStart = true, // Cho phép vuốt từ phải qua trái (EndToStart)
-        enableDismissFromStartToEnd = false, // Không cho phép vuốt từ trái qua phải (StartToEnd)
+        enableDismissFromEndToStart = true,
+        enableDismissFromStartToEnd = true,
         content = {
             Card(
                 modifier = Modifier

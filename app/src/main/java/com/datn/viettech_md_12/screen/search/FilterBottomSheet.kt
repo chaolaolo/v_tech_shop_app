@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12
+package com.datn.viettech_md_12.screen.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

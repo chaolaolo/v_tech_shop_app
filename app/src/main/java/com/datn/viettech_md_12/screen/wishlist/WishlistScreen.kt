@@ -98,30 +98,33 @@ fun WishlistScreen(viewModel: ProductViewModel, navController: NavController) {
                 .background(Color.White)
                 .padding(innerPadding)
         ) {
-            if (isLoadingFavorite) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .wrapContentSize(Alignment.Center)
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF21D4B4))
-                }
+            if (accessToken.isNullOrEmpty()) {
+                CartNotLogin(navController)
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (favoriteProducts.isNotEmpty()) {
-                        items(favoriteProducts, key = { it.product.id }) { product ->
-                            ItemWishlist(
-                                wishlistItem = product,
-                                onItemDismissed = { item ->
-                                    deletedItem = item
-                                    viewModel.removeFromFavorites(item.product.id, context)
-                                },
-                            )
+                if (isLoadingFavorite) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .wrapContentSize(Alignment.Center)
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF21D4B4))
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (favoriteProducts.isNotEmpty()) {
+                            items(favoriteProducts, key = { it.product.id }) { product ->
+                                ItemWishlist(
+                                    wishlistItem = product,
+                                    onItemDismissed = { item ->
+                                        deletedItem = item
+                                        viewModel.removeFromFavorites(item.product.id, context)
+                                    },
+                                    navController = navController
+                                )
+                            }
+                        } else {
+                            item { EmptyWishList(navController) }
                         }
-                    } else if (accessToken.isNullOrEmpty()) {
-                        item { CartNotLogin(navController) }
-                    } else {
-                        item { EmptyWishList(navController) }
                     }
                 }
             }

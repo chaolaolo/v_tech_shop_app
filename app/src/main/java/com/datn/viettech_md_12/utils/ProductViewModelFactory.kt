@@ -1,7 +1,8 @@
-package com.datn.viettech_md_12
+package com.datn.viettech_md_12.utils
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.common.PreferenceManager
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
