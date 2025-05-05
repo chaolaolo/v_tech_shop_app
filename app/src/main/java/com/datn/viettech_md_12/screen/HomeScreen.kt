@@ -110,7 +110,7 @@ fun HomeScreen(
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     } else {
-                        CustomLazyRow(categories, navController) // 🛠️ Fix thiếu tham số
+                        CustomLazyRow(categories, navController)
                     }
                 }
             }
@@ -155,7 +155,7 @@ fun HomeScreen(
                                 CustomItemProducts(
                                     product = product,
                                     onClick = {
-                                        navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
+                                        navController.navigate("product_detail/${product.id}")
                                     }
                                 )
                             }

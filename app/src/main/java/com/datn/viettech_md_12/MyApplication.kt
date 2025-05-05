@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 import androidx.lifecycle.ViewModelStore
+import com.datn.viettech_md_12.common.PreferenceManager
 import com.datn.viettech_md_12.utils.CartViewModelFactory
 import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
 import com.datn.viettech_md_12.utils.PostViewModelFactory
@@ -37,6 +38,8 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        PreferenceManager.initialize(this)
+
         startKoin {
             androidContext(this@MyApplication)
             modules(
@@ -49,6 +52,7 @@ class MyApplication : Application() {
         }
 
         val networkHelper = NetworkHelper(this)
+
         // Khởi tạo các ViewModel
         productViewModel = ViewModelProvider(ViewModelStore(), ProductViewModelFactory(networkHelper))[ProductViewModel::class.java]
         cartViewModel = ViewModelProvider(ViewModelStore(), CartViewModelFactory(this,networkHelper))[CartViewModel::class.java]

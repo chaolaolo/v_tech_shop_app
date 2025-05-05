@@ -4,13 +4,7 @@ import MyButton
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +12,6 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -42,24 +35,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -85,6 +72,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -112,7 +100,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.datn.viettech_md_12.NetworkHelper
 import com.datn.viettech_md_12.ProductViewModelFactory
 import com.datn.viettech_md_12.R
@@ -120,13 +107,6 @@ import com.datn.viettech_md_12.component.product_detail_components.ProductDetail
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.component.product_detail_components.toColor
 import com.datn.viettech_md_12.component.product_detail_components.toVietColor
-import com.datn.viettech_md_12.component.review_component.UpdateReviewDialog
-import com.datn.viettech_md_12.data.model.Image
-import com.datn.viettech_md_12.data.model.Review
-import com.datn.viettech_md_12.screen.authentication.LoginScreen
-import com.datn.viettech_md_12.screen.authentication.RegisterScreen
-import com.datn.viettech_md_12.data.remote.ApiClient
-import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
@@ -134,17 +114,41 @@ import com.google.accompanist.flowlayout.FlowMainAxisAlignment
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
 import java.text.NumberFormat
 import java.util.Locale
 
+@Composable
+fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        // Sử dụng Surface để tạo khung cho ảnh
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Black.copy(alpha = 0.9f),
+            modifier = Modifier
+                .fillMaxWidth(0.9f) // Khung chiếm 90% chiều rộng màn hình
+                .wrapContentHeight() // Chiều cao sẽ tự động thay đổi theo ảnh
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                // AsyncImage để tải ảnh từ URL
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Full Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight() // Cho phép ảnh có chiều cao tự động theo kích thước của ảnh
+                        .padding(16.dp), // Padding xung quanh ảnh để không bị chặt vào khung
+                    contentScale = ContentScale.Fit // Đảm bảo ảnh không bị cắt và tỷ lệ đúng
+                )
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
+@SuppressLint(
+    "UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition",
+    "AutoboxingStateCreation"
+)
 @Composable
 fun ProductDetailScreen(
     navController: NavController,
@@ -183,8 +187,8 @@ fun ProductDetailScreen(
     val defaultVariant = productDetailResponse?.defaultVariant
     val isLoading by viewModel.isLoading.collectAsState()
     var isAddingToCart by remember { mutableStateOf(false) }
-    var quantity by remember { mutableStateOf(1) }
-    val listImages = productDetail?.imageIds?.mapNotNull {
+    var quantity by remember { mutableIntStateOf(1) }
+    val listImages = productDetail?.imageIds?.map {
         "http://103.166.184.249:3056/${it.file_path.replace("\\", "/")}"
     }
         ?.filter { it.isNotBlank() }
@@ -633,7 +637,7 @@ fun ProductDetailScreen(
                                                         viewModel.matchedVariantId.value?.let { variantId ->
                                                             val selectedVariant =
                                                                 variants?.find { it.id == variantId }
-                                                            if (selectedVariant?.stock ?: 0 > 0) {
+                                                            if ((selectedVariant?.stock ?: 0) > 0) {
                                                                 isAddingToCart = true
                                                                 productDetail?.let { product ->
                                                                     viewModel.addProductToCart(
@@ -794,7 +798,7 @@ fun ProductDetailScreen(
                                 ) {
                                     IconButton(
                                         onClick = {
-                                            val token = context?.getSharedPreferences(
+                                            val token = context.getSharedPreferences(
                                                 "MyPrefs",
                                                 Context.MODE_PRIVATE
                                             )
@@ -808,7 +812,7 @@ fun ProductDetailScreen(
                                             if (isFavorite) {
                                                 val productId = productDetail?.id
                                                 if (productId != null) {
-                                                    viewModel.addToFavorites(productId, context)
+                                                    viewModel.addToFavorites(productId)
                                                 }
                                             } else {
                                                 val favoriteId = productDetail?.id
@@ -942,7 +946,7 @@ fun ProductDetailScreen(
                                             reviewStats?.getOrNull()?.averageRating ?: 0f
 
                                         Text(
-                                            text = "${averageRating} (${totalReviews} reviews)",
+                                            text = "$averageRating (${totalReviews} reviews)",
                                             fontSize = 12.sp,
                                             color = Color.Black
                                         )
@@ -1009,7 +1013,10 @@ fun ProductDetailScreen(
                                 ) {
                                     val hasColorAttribute = remember(attributes) {
                                         attributes?.any {
-                                            it.name.equals("Color", ignoreCase = true) || it.name.equals("Màu sắc", ignoreCase = true)
+                                            it.name.equals(
+                                                "Color",
+                                                ignoreCase = true
+                                            ) || it.name.equals("Màu sắc", ignoreCase = true)
                                         } ?: false
                                     }
                                     Log.d(
@@ -1031,10 +1038,20 @@ fun ProductDetailScreen(
                                             )
                                             Row(modifier = Modifier.padding(top = 4.dp)) {
                                                 val colorAttribute = attributes?.first {
-                                                    it.name.equals("Color", ignoreCase = true) || it.name.equals("Màu sắc", ignoreCase = true)
+                                                    it.name.equals(
+                                                        "Color",
+                                                        ignoreCase = true
+                                                    ) || it.name.equals(
+                                                        "Màu sắc",
+                                                        ignoreCase = true
+                                                    )
                                                 }
                                                 colorAttribute?.values?.forEach { colorValue ->
-                                                    val color = if(colorAttribute.name.equals("Color", ignoreCase = true)) colorValue.toColor() else colorValue.toVietColor()
+                                                    val color = if (colorAttribute.name.equals(
+                                                            "Color",
+                                                            ignoreCase = true
+                                                        )
+                                                    ) colorValue.toColor() else colorValue.toVietColor()
                                                     Box(
                                                         modifier = Modifier
                                                             .size(28.dp)
@@ -1285,7 +1302,7 @@ fun ProductDetailScreen(
                                     text = "Mua ngay",
                                     onClick = {
                                         //check bat dang nhap hoac dang ki moi cho su dung
-                                        val token = contextToCheckLogin?.getSharedPreferences(
+                                        val token = contextToCheckLogin.getSharedPreferences(
                                             "MyPrefs",
                                             Context.MODE_PRIVATE
                                         )
@@ -1326,9 +1343,9 @@ fun ProductDetailScreen(
                                 MyButton(
                                     text = "Thêm vào giỏ",
                                     onClick = {
-                                        Log.d("ProductDetailScreen", "productId: " + productId)
+                                        Log.d("ProductDetailScreen", "productId: $productId")
                                         //check bat dang nhap hoac dang ki moi cho su dung
-                                        val token = contextToCheckLogin?.getSharedPreferences(
+                                        val token = contextToCheckLogin.getSharedPreferences(
                                             "MyPrefs",
                                             Context.MODE_PRIVATE
                                         )
@@ -1449,7 +1466,7 @@ fun ProductDetailScreen(
                         .padding(start = 16.dp, end = 16.dp, top = 10.dp)
                         .systemBarsPadding()
                         .background(Color.Transparent),
-                ) { data ->
+                ) {
                     // Custom Snackbar with white background and rounded corners
                     Box(
                         modifier = Modifier
@@ -1463,7 +1480,7 @@ fun ProductDetailScreen(
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .pointerInput(Unit) {
-                                detectVerticalDragGestures { change, dragAmount ->
+                                detectVerticalDragGestures { _, dragAmount ->
                                     if (dragAmount < -10) { // Vuốt lên
                                         snackbarHostState.currentSnackbarData?.dismiss()
                                     }
@@ -1527,33 +1544,3 @@ fun ProductDetailScreen(
         }
     }
 }
-
-@Composable
-fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        // Sử dụng Surface để tạo khung cho ảnh
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.Black.copy(alpha = 0.9f),
-            modifier = Modifier
-                .fillMaxWidth(0.9f) // Khung chiếm 90% chiều rộng màn hình
-                .wrapContentHeight() // Chiều cao sẽ tự động thay đổi theo ảnh
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                // AsyncImage để tải ảnh từ URL
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = "Full Image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight() // Cho phép ảnh có chiều cao tự động theo kích thước của ảnh
-                        .padding(16.dp), // Padding xung quanh ảnh để không bị chặt vào khung
-                    contentScale = ContentScale.Fit // Đảm bảo ảnh không bị cắt và tỷ lệ đúng
-                )
-            }
-        }
-    }
-}
-
-
-
