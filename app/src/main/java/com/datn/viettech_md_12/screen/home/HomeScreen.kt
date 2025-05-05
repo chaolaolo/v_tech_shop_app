@@ -42,8 +42,8 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CustomTopAppBar(
-                title = "ietTech",
-                iconLogo = R.drawable.ic_logo,
+                title = "",
+                iconLogo = R.drawable.logo,
                 icon1 = R.drawable.search,
                 icon2 = R.drawable.notification,
                 navController = navController,
