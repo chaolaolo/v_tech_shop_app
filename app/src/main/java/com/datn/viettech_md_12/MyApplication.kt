@@ -16,8 +16,6 @@ import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 
-import com.datn.viettech_md_12.viewmodel.ReviewViewModel
-import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
 
 class MyApplication : Application() {
     //    lateinit var productViewModel: ProductViewModel
@@ -54,13 +52,7 @@ class MyApplication : Application() {
 //        userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
 
         cartViewModel = ViewModelProvider(ViewModelStore(), CartViewModelFactory(this,networkHelper))[CartViewModel::class.java]
-        productViewModel = ViewModelProvider(ViewModelStore(), ProductViewModelFactory(networkHelper))[ProductViewModel::class.java]
-        cartViewModel = ViewModelProvider(ViewModelStore(), CartViewModelFactory(this, networkHelper))[CartViewModel::class.java]
-        userViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(UserViewModel::class.java)
         notificationViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(this).create(NotificationViewModel::class.java)
-        checkoutViewModel = ViewModelProvider(ViewModelStore(), CheckoutViewModelFactory(this, networkHelper))[CheckoutViewModel::class.java]
-        postViewModel = ViewModelProvider(ViewModelStore(), PostViewModelFactory(this, networkHelper))[PostViewModel::class.java]
-        reveiewViewModel = ViewModelProvider(ViewModelStore(), ReviewViewModelFactory(this, networkHelper))[ReviewViewModel::class.java]
         checkoutViewModel = ViewModelProvider(ViewModelStore(), CheckoutViewModelFactory(this,networkHelper))[CheckoutViewModel::class.java]
         postViewModel = ViewModelProvider(ViewModelStore(), PostViewModelFactory(this,networkHelper))[PostViewModel::class.java]
         reveiewViewModel = ViewModelProvider(ViewModelStore(),ReviewViewModelFactory(this, networkHelper))[ReviewViewModel::class.java]

@@ -53,6 +53,7 @@ import com.google.accompanist.flowlayout.MainAxisAlignment
 import android.content.pm.ActivityInfo
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.koin.androidx.compose.koinViewModel
 
 class LoginScreen : ComponentActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
@@ -60,9 +61,10 @@ class LoginScreen : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         super.onCreate(savedInstanceState)
-        val userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
+
         enableEdgeToEdge()
         setContent {
+            val userViewModel: UserViewModel = koinViewModel()
             LoginUser(userViewModel, rememberNavController())
         }
     }

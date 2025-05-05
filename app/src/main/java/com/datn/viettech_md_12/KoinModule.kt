@@ -32,7 +32,7 @@ val productModule = module {
 
     single { PreferenceManager }
 
-    viewModel { ProductViewModel(networkHelper = get(), repository = get(), get()) }
+    viewModel { ProductViewModel(networkHelper = get(), repository = get()) }
 }
 
 val searchModule = module {

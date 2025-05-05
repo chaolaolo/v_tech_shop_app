@@ -271,8 +271,6 @@ fun ProfileHeader(navController: NavController) {
     val refreshToken = sharedPreferences.getString("refreshToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
-    val userViewModel: UserViewModel = viewModel()
-    val isLoggedIn = !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
     val userViewModel: UserViewModel = koinViewModel() // Khởi tạo UserViewModel
     val isLoggedIn =
         !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()

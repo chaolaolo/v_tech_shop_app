@@ -6,6 +6,7 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,7 +47,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.*
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -146,7 +147,7 @@ fun ShowImageDialog(imageUrl: String, onDismiss: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @SuppressLint(
     "UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition",
     "AutoboxingStateCreation"
@@ -1193,7 +1194,6 @@ fun ProductDetailScreen(
                                             val isReported = reviewReports.any { it.review_id?._id == review._id }
                                             val isOwnReview = review.account_id == clientId
 
-                                            @OptIn(ExperimentalFoundationApi::class)
                                             val reviewModifier = if (!isOwnReview && !isReported) {
                                                 Modifier
                                                     .fillMaxWidth()
