@@ -119,6 +119,7 @@ import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.product_detail_components.ProductDetailImageSlider
 import com.datn.viettech_md_12.component.product_detail_components.ProductStockNotifyDialog
 import com.datn.viettech_md_12.component.product_detail_components.toColor
+import com.datn.viettech_md_12.component.product_detail_components.toVietColor
 import com.datn.viettech_md_12.component.review_component.UpdateReviewDialog
 import com.datn.viettech_md_12.data.model.Image
 import com.datn.viettech_md_12.data.model.Review
@@ -129,6 +130,7 @@ import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
+import com.google.accompanist.flowlayout.FlowMainAxisAlignment
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -154,10 +156,10 @@ fun ProductDetailScreen(
     ),
 ) {
     val context = LocalContext.current.applicationContext as Application
-
+    val networkHelper = NetworkHelper(LocalContext.current)
     // Khởi tạo ReviewViewModel với factory
     val reviewViewModel: ReviewViewModel = viewModel(
-        factory = ReviewViewModelFactory(context)
+        factory = ReviewViewModelFactory(context, networkHelper)
     )
     val contextToCheckLogin = LocalContext.current
     LaunchedEffect(productId) {
@@ -865,7 +867,7 @@ fun ProductDetailScreen(
                                             .padding(horizontal = 4.dp, vertical = 2.dp)
                                     ) {
                                         Text(
-                                            "Top Rated",
+                                            "Bán chạy",
                                             modifier = Modifier,
                                             color = Color.White,
                                             fontSize = 10.sp,
@@ -880,7 +882,7 @@ fun ProductDetailScreen(
                                             .padding(horizontal = 4.dp, vertical = 2.dp)
                                     ) {
                                         Text(
-                                            "Free Shipping",
+                                            "Miễn phí vận chuyển",
                                             color = Color.White,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
@@ -997,17 +999,17 @@ fun ProductDetailScreen(
 
                                 // chọn màu, số lượng
                                 Spacer(Modifier.height(4.dp))
-                                Row(
+                                FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.Bottom
+//                                    horizontalArrangement = Arrangement.SpaceBetween,
+//                                    verticalAlignment = Alignment.Bottom
+                                    mainAxisSpacing = 8.dp,
+                                    crossAxisSpacing = 8.dp,
+                                    mainAxisAlignment = FlowMainAxisAlignment.SpaceBetween
                                 ) {
                                     val hasColorAttribute = remember(attributes) {
                                         attributes?.any {
-                                            it.name.equals(
-                                                "Color",
-                                                ignoreCase = true
-                                            )
+                                            it.name.equals("Color", ignoreCase = true) || it.name.equals("Màu sắc", ignoreCase = true)
                                         } ?: false
                                     }
                                     Log.d(
@@ -1019,24 +1021,23 @@ fun ProductDetailScreen(
                                     Log.d("hasColorAttribute", "variants: $variants")
                                     Log.d("hasColorAttribute", "default_variant: $defaultVariant")
                                     if (hasColorAttribute) {
-                                        Column {
+                                        Column(
+                                            modifier = Modifier.weight(1f),
+                                        ) {
                                             Text(
-                                                text = "Color",
+                                                text = "Màu sắc",
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier.padding(top = 10.dp)
                                             )
                                             Row(modifier = Modifier.padding(top = 4.dp)) {
                                                 val colorAttribute = attributes?.first {
-                                                    it.name.equals(
-                                                        "Color",
-                                                        ignoreCase = true
-                                                    )
+                                                    it.name.equals("Color", ignoreCase = true) || it.name.equals("Màu sắc", ignoreCase = true)
                                                 }
                                                 colorAttribute?.values?.forEach { colorValue ->
-                                                    val color = colorValue.toColor()
+                                                    val color = if(colorAttribute.name.equals("Color", ignoreCase = true)) colorValue.toColor() else colorValue.toVietColor()
                                                     Box(
                                                         modifier = Modifier
-                                                            .size(32.dp)
+                                                            .size(28.dp)
                                                             .background(color, CircleShape)
                                                             .border(
                                                                 0.dp,
@@ -1454,7 +1455,8 @@ fun ProductDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF464646))
+//                            .background(Color(0xFF464646))
+                            .background(Color.White)
                             .border(
                                 width = 1.dp,
                                 color = Color(0xFF00C4B4),
@@ -1486,7 +1488,7 @@ fun ProductDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "Đã thêm vào giỏ hàng!", color = Color.White, fontSize = 14.sp
+                                    "Đã thêm vào giỏ hàng!", color = Color.Black, fontSize = 14.sp
                                 )
                             }
 

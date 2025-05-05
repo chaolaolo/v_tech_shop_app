@@ -96,7 +96,7 @@ class PostViewModel(application: Application, networkHelper: NetworkHelper) : Vi
                     }
                 } else {
                     val errorMsg = "Fetch posts failed: ${response.code()} - ${response.message()}"
-                    _errorMessage.value = errorMsg
+//                    _errorMessage.value = errorMsg
                     Log.e("getAllPosts", errorMsg)
                 }
             } catch (e: UnknownHostException) {
@@ -144,7 +144,7 @@ class PostViewModel(application: Application, networkHelper: NetworkHelper) : Vi
                     }
                 } else {
                     val errorMsg = "Fetch post detail  failed: ${response.code()} - ${response.message()}"
-                    _errorMessage.value = errorMsg
+//                    _errorMessage.value = errorMsg
                     Log.e("getPostById", errorMsg)
 
                 }
@@ -192,7 +192,7 @@ class PostViewModel(application: Application, networkHelper: NetworkHelper) : Vi
                     }
                 } else {
                     val errorMsg = "Fetch posts failed: ${response.code()} - ${response.message()}"
-                    _errorMessage.value = errorMsg
+//                    _errorMessage.value = errorMsg
                     Log.e("getSameTagsPosts", errorMsg)
                 }
             } catch (e: UnknownHostException) {
