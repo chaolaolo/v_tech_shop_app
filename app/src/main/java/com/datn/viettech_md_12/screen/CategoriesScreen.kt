@@ -22,7 +22,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun CategoriesScreen(
     navController: NavController,
-    viewModel: CategoryViewModel = koinViewModel() // <-- Koin inject
+    viewModel: CategoryViewModel = koinViewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()

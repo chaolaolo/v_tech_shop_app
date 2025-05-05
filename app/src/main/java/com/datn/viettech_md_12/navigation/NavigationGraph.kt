@@ -31,8 +31,8 @@ import com.datn.viettech_md_12.screen.HomeScreen
 import com.datn.viettech_md_12.screen.ProductDetailScreen
 import com.datn.viettech_md_12.screen.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
-import com.datn.viettech_md_12.screen.SearchScreen
-import com.datn.viettech_md_12.screen.WishlistScreen
+import com.datn.viettech_md_12.screen.search.SearchScreen
+import com.datn.viettech_md_12.screen.wishlist.WishlistScreen
 import com.datn.viettech_md_12.screen.authentication.LoginUser
 import com.datn.viettech_md_12.screen.authentication.OnboardingScreen
 import com.datn.viettech_md_12.screen.authentication.SignUpUser

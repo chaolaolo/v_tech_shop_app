@@ -1,7 +1,7 @@
 package com.datn.viettech_md_12.viewmodel
 
-import FavoriteItem
 import FavoriteRequest
+import WishlistItem
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
@@ -47,8 +47,8 @@ class ProductViewModel(
 //    private val myColorHexList = listOf("FF1C1B1B", "FF08E488", "FF21D4B4")
 
 
-    private val _favoriteProducts = MutableStateFlow<List<FavoriteItem>>(emptyList())
-    val favoriteProducts: StateFlow<List<FavoriteItem>> = _favoriteProducts
+    private val _favoriteProducts = MutableStateFlow<List<WishlistItem>>(emptyList())
+    val favoriteProducts: StateFlow<List<WishlistItem>> = _favoriteProducts
 
     //hien thi don hang
     private val _orders = MutableStateFlow<List<OrderModel>>(emptyList())
