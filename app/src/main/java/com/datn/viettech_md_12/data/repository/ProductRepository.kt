@@ -110,7 +110,7 @@ class ProductRepository(
         }
     }
 
-     fun removeFromFavorites(
+    fun removeFromFavorites(
         productId: String,
         token: String,
         clientId: String,
