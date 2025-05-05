@@ -33,7 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.NetworkHelper
-import com.datn.viettech_md_12.ProductViewModelFactory
+import com.datn.viettech_md_12.utils.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.review_component.UpdateReviewDialog
 import com.datn.viettech_md_12.data.model.ProductDetailModel

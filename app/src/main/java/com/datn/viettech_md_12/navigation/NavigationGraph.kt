@@ -26,10 +26,10 @@ import androidx.navigation.navArgument
 import com.datn.viettech_md_12.MyApplication
 import com.datn.viettech_md_12.component.CustomNavigationBar
 import com.datn.viettech_md_12.component.checkout.AddressScreen
-import com.datn.viettech_md_12.screen.CategoriesScreen
-import com.datn.viettech_md_12.screen.HomeScreen
+import com.datn.viettech_md_12.screen.category.CategoriesScreen
+import com.datn.viettech_md_12.screen.home.HomeScreen
 import com.datn.viettech_md_12.screen.ProductDetailScreen
-import com.datn.viettech_md_12.screen.ProductListScreen
+import com.datn.viettech_md_12.screen.category.ProductListScreen
 import com.datn.viettech_md_12.screen.ProfileScreen
 import com.datn.viettech_md_12.screen.search.SearchScreen
 import com.datn.viettech_md_12.screen.wishlist.WishlistScreen

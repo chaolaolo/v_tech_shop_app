@@ -9,6 +9,7 @@ import com.datn.viettech_md_12.common.PreferenceManager
 import com.datn.viettech_md_12.utils.CartViewModelFactory
 import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
 import com.datn.viettech_md_12.utils.PostViewModelFactory
+import com.datn.viettech_md_12.utils.ProductViewModelFactory
 import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
@@ -18,14 +19,6 @@ import org.koin.core.context.GlobalContext.startKoin
 
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
-import com.onesignal.OneSignal
-import okhttp3.Callback
-import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import java.io.IOException
 
 class MyApplication : Application() {
     lateinit var productViewModel: ProductViewModel

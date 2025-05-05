@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen
+package com.datn.viettech_md_12.screen.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
