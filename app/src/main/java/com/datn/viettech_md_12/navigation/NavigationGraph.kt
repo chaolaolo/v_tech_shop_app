@@ -56,6 +56,7 @@ import com.datn.viettech_md_12.viewmodel.NotificationViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
+import org.koin.androidx.compose.koinViewModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -84,10 +85,8 @@ fun NavigationGraph(startDestination: String = "home") {
         }
     }
 
-    val productViewModel: ProductViewModel? =
-        (LocalContext.current.applicationContext as MyApplication).productViewModel
-    val userViewModel: UserViewModel? =
-        (LocalContext.current.applicationContext as MyApplication).userViewModel
+    val productViewModel: ProductViewModel = koinViewModel()
+    val userViewModel: UserViewModel = koinViewModel()
     val notificationViewModel: NotificationViewModel? =
         (LocalContext.current.applicationContext as MyApplication).notificationViewModel
 
@@ -125,20 +124,14 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("categories") { CategoriesScreen(navController) }
             composable("cart") { CartScreen(navController) }
             composable("wishlist") {
-                if (productViewModel != null) {
-                    WishlistScreen(viewModel = productViewModel,navController)
-                }
+                WishlistScreen(viewModel = productViewModel,navController)
             }
             composable("profile") { ProfileScreen(navController) }
             composable("change_password_screen") {
-                if (userViewModel != null) {
-                    ChangePasswordScreen(navController,userViewModel = userViewModel)
-                }
+                ChangePasswordScreen(navController,userViewModel = userViewModel)
             }
             composable("order_history_screen") {
-                if (productViewModel != null) {
-                    OrderHistoryScreen(navController, viewModel = productViewModel)
-                }
+                OrderHistoryScreen(navController, viewModel = productViewModel)
             }
             composable("shipping_screen") { ShippingScreen(navController) }
             composable("search") { SearchScreen(navController) }
@@ -235,14 +228,10 @@ fun NavigationGraph(startDestination: String = "home") {
                 )
             }
             composable("login") {
-                if (userViewModel != null) {
-                    LoginUser(userViewModel, navController)
-                }
+                LoginUser(userViewModel, navController)
             }
             composable("register") {
-                if (userViewModel != null) {
-                    SignUpUser(userViewModel, navController)
-                }
+                SignUpUser(userViewModel, navController)
             }
         }
     }

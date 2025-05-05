@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,22 +22,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ScrollableTabRow
 import androidx.compose.material.Tab
-import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,14 +44,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -66,20 +58,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.R
-import com.datn.viettech_md_12.data.model.OrderItem
 import com.datn.viettech_md_12.data.model.OrderModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel) {
     val context = LocalContext.current
@@ -87,7 +74,8 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
     val isLoading = viewModel.isLoading.collectAsState()
 
     // Kiểm tra SharedPreferences để lấy token và clientId
-    val sharedPreferences: SharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+    val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     val token = sharedPreferences.getString("accessToken", null)
     val clientId = sharedPreferences.getString("clientId", null)
 
@@ -101,10 +89,14 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
 //    }
     val tabTitles = listOf("Chờ xác nhận", "Đang giao", "Đã huỷ", "Hoàn thành")
 
-    val waitingOrders = orders.value.filter { it.status == "pending" }.sortedByDescending { it.createdAt }
-    val deliveringOrders = orders.value.filter { it.status == "active" }.sortedByDescending { it.createdAt }
-    val canceledOrders = orders.value.filter { it.status == "cancelled" }.sortedByDescending { it.createdAt }
-    val completedOrders = orders.value.filter { it.status == "completed" }.sortedByDescending { it.createdAt }
+    val waitingOrders =
+        orders.value.filter { it.status == "pending" }.sortedByDescending { it.createdAt }
+    val deliveringOrders =
+        orders.value.filter { it.status == "active" }.sortedByDescending { it.createdAt }
+    val canceledOrders =
+        orders.value.filter { it.status == "cancelled" }.sortedByDescending { it.createdAt }
+    val completedOrders =
+        orders.value.filter { it.status == "completed" }.sortedByDescending { it.createdAt }
     LaunchedEffect(Unit) {
         //comment doan nay de tich hop loading screen ( tranh bi 2 giay lai loading du lieu )
 //        while (true) {
@@ -190,7 +182,7 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
             }
 
         }
-        if (isLoading.value){
+        if (isLoading.value) {
             LoadingScreen()
         } else if (token != null && clientId != null) {
             HorizontalPager(
@@ -204,7 +196,11 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
                     0 -> OrderListPage(orderList = waitingOrders, navController = navController)
                     1 -> OrderListPage(orderList = deliveringOrders, navController = navController)
                     2 -> OrderListPage(orderList = canceledOrders, navController = navController)
-                    3 -> OrderListPage(orderList = completedOrders, navController = navController, useCompletedCard = true)
+                    3 -> OrderListPage(
+                        orderList = completedOrders,
+                        navController = navController,
+                        useCompletedCard = true
+                    )
                 }
             }
         }
@@ -231,7 +227,6 @@ fun OrderListPage(
         }
     }
 }
-
 
 
 //@Composable
@@ -305,7 +300,12 @@ fun OrderCard(order: OrderModel, navController: NavController) {
                 Text("Yêu thích", color = Color.White, fontSize = 10.sp)
             }
             Spacer(Modifier.width(6.dp))
-            Text("VietTech", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+            Text(
+                "VietTech",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
         }
         Spacer(modifier = Modifier.height(5.dp))
         // Sản phẩm đầu tiên
@@ -429,8 +429,6 @@ fun OrderCard(order: OrderModel, navController: NavController) {
 }
 
 
-
-
 @Composable
 fun OrderCardCompleted(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
@@ -476,7 +474,12 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
                 Text("Yêu thích", color = Color.White, fontSize = 10.sp)
             }
             Spacer(Modifier.width(6.dp))
-            Text("VietTech", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+            Text(
+                "VietTech",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
         }
         Spacer(modifier = Modifier.height(5.dp))
 
@@ -601,11 +604,6 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
 }
 
 
-
-
-
-
-
 @Composable
 fun LoadingScreen() {
     Box(
@@ -618,6 +616,7 @@ fun LoadingScreen() {
         )
     }
 }
+
 @Composable
 fun EmptyOrderScreen(navController: NavController) {
     Column(
@@ -650,7 +649,7 @@ fun EmptyOrderScreen(navController: NavController) {
         ) {
             Button(
                 onClick = {
-navController.navigate("home")
+                    navController.navigate("home")
                 },
                 modifier = Modifier
                     .width(380.dp)
@@ -669,9 +668,9 @@ navController.navigate("home")
 
 @Composable
 fun DividerItemOrder() {
-    Divider(
-        color = Color(0xffF4F5FD),
+    HorizontalDivider(
         thickness = 1.dp,
+        color = Color(0xffF4F5FD)
     )
 }
 

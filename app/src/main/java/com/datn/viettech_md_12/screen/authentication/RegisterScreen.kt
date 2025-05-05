@@ -47,6 +47,7 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 
 class RegisterScreen : ComponentActivity() {
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
@@ -283,13 +284,10 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
                         val request = RegisterRequest(username, fullName, phone, email, password)
                         userViewModel.signUp(
                             request,
-                            context,
                             onSuccess = {
                                 isLoading = false
                                 Toast.makeText(context,
                                     context.getString(R.string.register_success), Toast.LENGTH_SHORT).show()
-//                                val intent = Intent(context, LoginScreen::class.java)
-//                                context.startActivity(intent)
                                 if (navController.currentBackStackEntry != null) {
                                     navController.navigate("login") {
                                         // Xóa màn hình đăng ký khỏi back stack

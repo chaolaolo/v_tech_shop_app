@@ -55,6 +55,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 
 class LoginScreen : ComponentActivity() {
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
@@ -213,7 +214,6 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
                     val request = LoginRequest(username, password)
                     userViewModel.signIn(
                         request,
-                        context,
                         onSuccess = {
                             isLoading = false
                             Toast.makeText(context,
