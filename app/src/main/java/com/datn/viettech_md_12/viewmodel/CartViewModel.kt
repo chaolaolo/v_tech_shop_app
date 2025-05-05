@@ -348,9 +348,9 @@ class CartViewModel(application: Application, networkHelper: NetworkHelper) : Vi
                 if (response.isSuccessful) {
                     val body = response.body()
                     val currentDate = Instant.now()
-//                    val formatter = DateTimeFormatter.ISO_DATE
 
                     val filteredMetadata = body?.data?.filter { discount ->
+                        if (discount.isDraft == true) return@filter false //không hiện discount có isDraft = true
                         val startDateStr = discount.startDate
                         val endDateStr = discount.endDate ?: discount.expirationDate
                         val isActive = try {

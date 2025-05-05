@@ -90,6 +90,12 @@ class MainActivity : ComponentActivity() {
             val notification = result.notification
             val actionId = result.action?.actionId
             Log.d("dcm_onesignal", "Thông báo được mở: ${notification.title}, actionId: $actionId")
+            // dieu huong khi nguoi dung an vo thong bao
+            val intent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("notification", "notification")
+            }
+            startActivity(intent)
         }
 
         enableEdgeToEdge()
@@ -106,8 +112,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             VietTech_MD_12Theme {
                 RequestNotificationPermission()
+                // dieu huong khi nguoi dung an vo thong bao
+                val destinationFromNotification = intent.getStringExtra("notification")
                 // Điều hướng dựa trên trạng thái đăng nhập và đã xem onboarding
                 val startDestination = when {
+                    destinationFromNotification == "notification" -> "notification"
                     isLoggedIn -> "home" // Nếu đã đăng nhập, đi đến màn Home
                     hasSeenOnboarding -> "home" // Nếu đã xem onboarding nhưng chưa đăng nhập, đi đến Home
                     else -> "onb_screen" // Nếu chưa xem onboarding, đi đến Onboarding
