@@ -176,12 +176,12 @@ fun PaymentNowUI(
                 showProduct = false
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 context.startActivity(intent)
-                navController.navigate("order_successfully"){
-                    popUpTo("product_detail/$productId") {
-                        inclusive = false
-                    }
-                    launchSingleTop = true
-                }
+//                navController.navigate("order_successfully"){
+//                    popUpTo("product_detail/$productId") {
+//                        inclusive = false
+//                    }
+//                    launchSingleTop = true
+//                }
             } catch (e: ActivityNotFoundException) {
                 showProduct = true
                 Toast.makeText(context, "Không thể mở trình duyệt", Toast.LENGTH_SHORT).show()
