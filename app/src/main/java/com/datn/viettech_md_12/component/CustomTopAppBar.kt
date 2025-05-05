@@ -1,7 +1,9 @@
 package com.datn.viettech_md_12.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
@@ -13,6 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.datn.viettech_md_12.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,11 +33,11 @@ fun CustomTopAppBar(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(id = iconLogo),
-                    contentDescription = "logo",
-                    modifier = Modifier.size(24.dp)
-                )
+//                Icon(
+//                    painter = painterResource(id = iconLogo),
+//                    contentDescription = "logo",
+//                    modifier = Modifier.size(24.dp)
+//                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = title,
@@ -42,6 +45,14 @@ fun CustomTopAppBar(
                     color = Color(0xFF309A5F)
                 )
             }
+        },
+        modifier = Modifier.padding(start = 16.dp),
+        navigationIcon = {
+            Icon(
+                painter = painterResource(id = iconLogo),
+                contentDescription = "logo",
+                tint = Color(0xFF309A5F),
+            )
         },
         actions = {
             icon1?.let {
