@@ -34,7 +34,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -76,6 +76,7 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -268,7 +269,7 @@ fun ProfileHeader(navController: NavController) {
     val refreshToken = sharedPreferences.getString("refreshToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
-    val userViewModel: UserViewModel = viewModel() // Khởi tạo UserViewModel
+    val userViewModel: UserViewModel = koinViewModel() // Khởi tạo UserViewModel
     val isLoggedIn =
         !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
     val accountId = sharedPreferences.getString("clientId", "") ?: ""
@@ -321,7 +322,6 @@ fun ProfileHeader(navController: NavController) {
                         val result = uploadSingleImage(context, uri, imageViewModel)
                         result.onSuccess { imageId ->
                             userViewModel.updateProfileImage(
-                                context = context,
                                 imageId = imageId,
                                 onSuccess = {
                                     userViewModel.fetchAccountById(
@@ -521,7 +521,7 @@ fun ProfileHeader(navController: NavController) {
                             context.finish()
                         }
                     } else {
-                        userViewModel.logout(context = context,
+                        userViewModel.logout(
                             onSuccess = { message ->
                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 val sharedPrefs =
@@ -544,7 +544,14 @@ fun ProfileHeader(navController: NavController) {
                             },
                             onError = { errorMessage ->
                                 Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                            })
+                            },
+                            onNavigateToLogin = {
+                                navController.navigate("login") {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
                     }
                 }) {
                     Text("Đăng Xuất", color = Color.Black, fontWeight = FontWeight.W600)
@@ -626,9 +633,9 @@ fun ProfileItem(icon: Int, title: String, onClick: () -> Unit) {
 
 @Composable
 fun DividerItem() {
-    Divider(
-        color = Color(0xffF4F5FD),
+    HorizontalDivider(
         thickness = 1.dp,
+        color = Color(0xffF4F5FD)
     )
 }
 
