@@ -115,8 +115,10 @@ class MainActivity : ComponentActivity() {
                 // dieu huong khi nguoi dung an vo thong bao
                 val destinationFromNotification = intent.getStringExtra("notification")
                 // Điều hướng dựa trên trạng thái đăng nhập và đã xem onboarding
+                val deepLinkUri = intent?.data
                 val startDestination = when {
                     destinationFromNotification == "notification" -> "notification"
+                    deepLinkUri?.scheme == "viettechapp" && deepLinkUri.host == "payment-success" -> "home"
                     isLoggedIn -> "home" // Nếu đã đăng nhập, đi đến màn Home
                     hasSeenOnboarding -> "home" // Nếu đã xem onboarding nhưng chưa đăng nhập, đi đến Home
                     else -> "onb_screen" // Nếu chưa xem onboarding, đi đến Onboarding

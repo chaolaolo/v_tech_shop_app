@@ -42,9 +42,20 @@
             android:theme="@style/Theme.VietTech_MD_12" />
         <activity
             android:name=".MainActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/title_activity_test_sign_up_api"
-            android:theme="@style/Theme.VietTech_MD_12" />
+            android:theme="@style/Theme.VietTech_MD_12">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="payment-success"
+                    android:scheme="viettechapp" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".screen.authentication.RegisterScreen"
             android:exported="false"
