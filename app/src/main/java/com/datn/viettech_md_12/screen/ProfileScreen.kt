@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,7 +32,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -59,6 +62,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -72,6 +76,7 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -84,12 +89,17 @@ fun ProfileScreen(navController: NavController) {
     //link faqs
     val url3 = "https://sites.google.com/view/faqs-md-12/trang-ch%E1%BB%A7"
 
+    val token = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        ?.getString("accessToken", "")
+    val isLoggedIn = !token.isNullOrEmpty()
+
+    var showDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xff21D4B4))
-    )
-    {
+    ) {
         Spacer(modifier = Modifier.height(20.dp))
         ProfileHeader(navController)
         LazyColumn(
@@ -98,6 +108,7 @@ fun ProfileScreen(navController: NavController) {
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(Color.White)
         ) {
+            // Các item trước đó...
             item { Spacer(modifier = Modifier.height(26.dp)) }
             item { ProfileTitle(stringResource(R.string.personal_information)) }
             item {
@@ -107,14 +118,6 @@ fun ProfileScreen(navController: NavController) {
                     onClick = { navController.navigate("address_screen") }
                 )
             }
-//            item { DividerItem() }
-//            item {
-//                ProfileItem(
-//                    R.drawable.ic_payment_profile,
-//                    stringResource(R.string.payment_method),
-//                    onClick = { navController.navigate("payment_screen") }
-//                )
-//            }
             item { DividerItem() }
             item {
                 ProfileItem(
@@ -181,25 +184,81 @@ fun ProfileScreen(navController: NavController) {
             item { DividerItem() }
             item { Spacer(modifier = Modifier.height(26.dp)) }
             item { ProfileTitle(stringResource(R.string.account_mangager)) }
+
             item {
-                ProfileItem(
-                    R.drawable.ic_change_password,
-                    stringResource(R.string.change_password),
-                    onClick = { navController.navigate("change_password_screen") }
-                )
+                if (isLoggedIn) {
+                    ProfileItem(
+                        R.drawable.ic_change_password,
+                        stringResource(R.string.change_password),
+                        onClick = { navController.navigate("change_password_screen") }
+                    )
+                } else {
+                    ProfileItem(
+                        R.drawable.ic_change_password,
+                        stringResource(R.string.change_password),
+                        onClick = {
+                            showDialog = true
+                        }
+                    )
+                }
             }
+
             item { DividerItem() }
-//            item {
-//                ProfileItem(
-//                    R.drawable.ic_dark_theme_profile,
-//                    stringResource(R.string.dark_theme),
-//                    onClick = {}
-//                )
-//            }
-//            item { DividerItem() }
+        }
+
+        // Dialog hiển thị sau LazyColumn
+        if (showDialog) {
+            Dialog(onDismissRequest = { showDialog = false }) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.width(300.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = "Bạn cần đăng nhập",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Vui lòng đăng nhập hoặc tạo tài khoản để thực hiện hành động này.",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = {
+                                showDialog = false
+                                navController.navigate("register")
+                            }) {
+                                Text("Tạo tài khoản mới")
+                            }
+                            TextButton(onClick = {
+                                showDialog = false
+                                navController.navigate("login") {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }) {
+                                Text("Đăng nhập")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
 
 @Composable
 fun ProfileHeader(navController: NavController) {
@@ -210,8 +269,9 @@ fun ProfileHeader(navController: NavController) {
     val refreshToken = sharedPreferences.getString("refreshToken", null)
     val fullName = sharedPreferences.getString("fullname", "")
     val email = sharedPreferences.getString("email", "")
-    val userViewModel: UserViewModel = viewModel() // Khởi tạo UserViewModel
-    val isLoggedIn = !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
+    val userViewModel: UserViewModel = koinViewModel() // Khởi tạo UserViewModel
+    val isLoggedIn =
+        !accessToken.isNullOrEmpty() && !fullName.isNullOrEmpty() && !email.isNullOrEmpty()
     val accountId = sharedPreferences.getString("clientId", "") ?: ""
     val imageViewModel: ImageViewModel = viewModel()
 
@@ -262,35 +322,49 @@ fun ProfileHeader(navController: NavController) {
                         val result = uploadSingleImage(context, uri, imageViewModel)
                         result.onSuccess { imageId ->
                             userViewModel.updateProfileImage(
-                                context = context,
                                 imageId = imageId,
                                 onSuccess = {
                                     userViewModel.fetchAccountById(
                                         id = accountId,
                                         onSuccess = {
-                                            val newAvatarUrl = userViewModel.accountDetail.value?.profile_image?.url
-                                                ?.replace("http://localhost:", "http://103.166.184.249:")
+                                            val newAvatarUrl =
+                                                userViewModel.accountDetail.value?.profile_image?.url
+                                                    ?.replace(
+                                                        "http://localhost:",
+                                                        "http://103.166.184.249:"
+                                                    )
                                             if (!newAvatarUrl.isNullOrEmpty()) {
                                                 profileImage = newAvatarUrl
                                             }
                                         },
                                         onError = {
-                                            Log.e("ProfileHeader", "Không thể reload avatar sau khi cập nhật: $it")
+                                            Log.e(
+                                                "ProfileHeader",
+                                                "Không thể reload avatar sau khi cập nhật: $it"
+                                            )
                                         }
                                     )
-                                    Toast.makeText(context, "Cập nhật ảnh đại diện thành công!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Cập nhật ảnh đại diện thành công!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 },
                                 onError = {
                                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                                 }
                             )
                         }.onFailure {
-                            Toast.makeText(context, it.message ?: "Lỗi không xác định khi upload ảnh", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                it.message ?: "Lỗi không xác định khi upload ảnh",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 }
             },
-                    onDismiss = {
+            onDismiss = {
                 showConfirmDialog = false
                 selectedUri = null
             }
@@ -364,7 +438,7 @@ fun ProfileHeader(navController: NavController) {
         Spacer(modifier = Modifier.width(10.dp))
         if (isLoggedIn) {
             IconButton(
-                onClick = {showLogoutDialog = true}
+                onClick = { showLogoutDialog = true }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_logout_profile),
@@ -372,14 +446,19 @@ fun ProfileHeader(navController: NavController) {
                     modifier = Modifier.size(30.dp)
                 )
             }
-        }else{
+        } else {
             Column(
                 modifier = Modifier.width(80.dp),
             ) {
                 Box(
-                    modifier = Modifier.background(Color.White, shape = RoundedCornerShape(4.dp))
+                    modifier = Modifier
+                        .background(Color.White, shape = RoundedCornerShape(4.dp))
                         .fillMaxWidth()
-                        .border(width = 0.dp, color = Color.Transparent, shape = RoundedCornerShape(4.dp))
+                        .border(
+                            width = 0.dp,
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(4.dp)
+                        )
                         .clickable {
                             navController.navigate("login") {
                                 launchSingleTop = true
@@ -388,12 +467,19 @@ fun ProfileHeader(navController: NavController) {
                             }
                         },
                     contentAlignment = Alignment.Center,
-                ){
-                    Text("Đăng Nhập", color = Color(0xff21D4B4), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,modifier = Modifier.padding(2.dp))
+                ) {
+                    Text(
+                        "Đăng Nhập",
+                        color = Color(0xff21D4B4),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(2.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Box(
-                    modifier = Modifier.background(Color(0xff21D4B4), RoundedCornerShape(4.dp))
+                    modifier = Modifier
+                        .background(Color(0xff21D4B4), RoundedCornerShape(4.dp))
                         .fillMaxWidth()
                         .border(
                             width = 1.dp,
@@ -404,8 +490,14 @@ fun ProfileHeader(navController: NavController) {
                             navController.navigate("register")
                         },
                     contentAlignment = Alignment.Center
-                ){
-                    Text("Đăng Ký", color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,modifier = Modifier.padding(2.dp))
+                ) {
+                    Text(
+                        "Đăng Ký",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(2.dp)
+                    )
                 }
             }
         }
@@ -421,17 +513,19 @@ fun ProfileHeader(navController: NavController) {
                         // Tạo Intent để chuyển đến màn hình Onboarding
                         val intent = Intent(context, OnboardingActivity::class.java)
                         // Xóa hết backstack
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         context.startActivity(intent)
                         // Kết thúc Activity hiện tại
                         if (context is Activity) {
                             context.finish()
                         }
                     } else {
-                        userViewModel.logout(context = context,
+                        userViewModel.logout(
                             onSuccess = { message ->
                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                val sharedPrefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                                val sharedPrefs =
+                                    context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                                 // Đặt lại trạng thái đăng nhập = false
                                 sharedPrefs.edit().putBoolean("IS_LOGGED_IN", false).apply()
                                 // Đặt lại token = null
@@ -439,7 +533,8 @@ fun ProfileHeader(navController: NavController) {
                                 // Tạo Intent để chuyển đến màn hình Onboarding
                                 val intent = Intent(context, OnboardingActivity::class.java)
                                 // Xóa hết backstack
-                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                intent.flags =
+                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 context.startActivity(intent)
 
                                 // Kết thúc Activity hiện tại
@@ -449,7 +544,14 @@ fun ProfileHeader(navController: NavController) {
                             },
                             onError = { errorMessage ->
                                 Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                            })
+                            },
+                            onNavigateToLogin = {
+                                navController.navigate("login") {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
                     }
                 }) {
                     Text("Đăng Xuất", color = Color.Black, fontWeight = FontWeight.W600)
@@ -531,9 +633,9 @@ fun ProfileItem(icon: Int, title: String, onClick: () -> Unit) {
 
 @Composable
 fun DividerItem() {
-    Divider(
-        color = Color(0xffF4F5FD),
+    HorizontalDivider(
         thickness = 1.dp,
+        color = Color(0xffF4F5FD)
     )
 }
 
@@ -542,6 +644,7 @@ fun DividerItem() {
 fun ProfileScreenPreview() {
 
 }
+
 suspend fun uploadSingleImage(
     context: Context,
     uri: Uri,

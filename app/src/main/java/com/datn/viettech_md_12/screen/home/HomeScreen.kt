@@ -1,4 +1,4 @@
-package com.datn.viettech_md_12.screen
+package com.datn.viettech_md_12.screen.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -110,7 +110,7 @@ fun HomeScreen(
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     } else {
-                        CustomLazyRow(categories, navController) // 🛠️ Fix thiếu tham số
+                        CustomLazyRow(categories, navController)
                     }
                 }
             }
@@ -155,7 +155,7 @@ fun HomeScreen(
                                 CustomItemProducts(
                                     product = product,
                                     onClick = {
-                                        navController.navigate("product_detail/${product.id}") // Chuyển đến chi tiết sản phẩm
+                                        navController.navigate("product_detail/${product.id}")
                                     }
                                 )
                             }

@@ -1,10 +1,13 @@
 package com.datn.viettech_md_12
 
+import UserRepository
+import com.datn.viettech_md_12.common.PreferenceManager
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.data.repository.ProductRepository
 import com.datn.viettech_md_12.viewmodel.CategoryViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.SearchViewModel
+import com.datn.viettech_md_12.viewmodel.UserViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -27,15 +30,25 @@ val productModule = module {
 
     single { ProductRepository(ApiClient.productService) }
 
-    viewModel { ProductViewModel(networkHelper = get(), repository = get()) }
+    single { PreferenceManager }
+
+    viewModel { ProductViewModel(networkHelper = get(), repository = get(), get()) }
 }
 
 val searchModule = module {
     single { ProductRepository(ApiClient.productService) }
     single { DataStoreManager(get()) }
 
-    viewModel { SearchViewModel(
-        get(),
-        get()
-    ) }
+    viewModel {
+        SearchViewModel(
+            get(),
+            get()
+        )
+    }
+}
+
+val userModule = module {
+    single { ApiClient.userService }
+    single { UserRepository(get()) }
+    viewModel { UserViewModel(get()) }
 }

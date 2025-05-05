@@ -8,8 +8,6 @@ import com.datn.viettech_md_12.data.model.DiscountResponse
 import com.datn.viettech_md_12.data.model.UpdateCartRequest
 import com.datn.viettech_md_12.data.model.UpdateIsSelectedRequest
 import com.datn.viettech_md_12.data.remote.ApiClient
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
 import retrofit2.Response
 
 
@@ -124,10 +122,4 @@ class CartRepository(
             userId = userId,
         )
     }
-}
-
-
-// Extension function đơn giản hóa
-fun String.toResponseBody(contentType: String = "text/plain"): ResponseBody {
-    return this.toResponseBody(contentType.toMediaType().toString())
 }
