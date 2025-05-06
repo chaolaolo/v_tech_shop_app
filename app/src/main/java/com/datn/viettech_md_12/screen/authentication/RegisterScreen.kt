@@ -39,12 +39,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.viewmodel.UserViewModel
+import org.koin.androidx.compose.koinViewModel
 
 class RegisterScreen : ComponentActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
@@ -52,9 +52,9 @@ class RegisterScreen : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         super.onCreate(savedInstanceState)
-        val userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
         enableEdgeToEdge()
         setContent {
+            val userViewModel: UserViewModel = koinViewModel()
             SignUpUser(userViewModel, rememberNavController())
         }
     }
@@ -62,7 +62,7 @@ class RegisterScreen : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
+fun SignUpUser(userViewModel: UserViewModel, navController: NavController) {
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
@@ -95,7 +95,7 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
         )
         Row(
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Text(
                 "Bạn đã có tài khoản? ",
                 fontSize = 16.sp,
@@ -111,7 +111,7 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
                             // This will keep the screen before register in the back stack
                             launchSingleTop = true
                         }
-                    }else{
+                    } else {
                         context.startActivity(Intent(context, LoginScreen::class.java))
                     }
                 },
@@ -248,37 +248,62 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
 
                 when {
                     username.isBlank() || fullName.isBlank() || phone.isBlank() || email.isBlank() || password.isBlank() -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.validate_check_all), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.validate_check_all), Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     !regexUsername.matches(username) -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.validate_user_name_register), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.validate_user_name_register),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     !regexName.matches(fullName) -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.invalid_full_name), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.invalid_full_name), Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     !regexPhoneNumber.matches(phone) -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.invalid_phone_number), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.invalid_phone_number), Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     !regexEmail.matches(email) -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.invalid_email), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.invalid_email), Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     hasSpace -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.password_no_spaces), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.password_no_spaces), Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     !isLengthValid -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.password_too_short), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.password_too_short), Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     !hasLetter || !hasDigit -> {
-                        Toast.makeText(context,
-                            context.getString(R.string.password_requirements), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.password_requirements), Toast.LENGTH_SHORT
+                        ).show()
                     }
+
                     else -> {
                         isLoading = true
                         val request = RegisterRequest(username, fullName, phone, email, password)
@@ -286,15 +311,17 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
                             request,
                             onSuccess = {
                                 isLoading = false
-                                Toast.makeText(context,
-                                    context.getString(R.string.register_success), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.register_success), Toast.LENGTH_SHORT
+                                ).show()
                                 if (navController.currentBackStackEntry != null) {
                                     navController.navigate("login") {
                                         // Xóa màn hình đăng ký khỏi back stack
                                         popUpTo("register") { inclusive = true }
                                         launchSingleTop = true
                                     }
-                                }else{
+                                } else {
                                     context.startActivity(Intent(context, LoginScreen::class.java))
                                 }
                             },

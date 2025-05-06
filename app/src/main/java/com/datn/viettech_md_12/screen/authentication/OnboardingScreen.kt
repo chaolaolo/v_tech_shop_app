@@ -58,12 +58,14 @@ class OnboardingActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         setContent {
             NavigationGraph(startDestination = "onb_screen")
         }
     }
 }
+
 @Composable
 fun OnboardingScreen(navController: NavController) {
     val context = LocalContext.current
@@ -170,7 +172,7 @@ fun OnboardingScreen(navController: NavController) {
                     onClick = {
                         skipLogin(context) // gọi hàm xoá token + đánh dấu là guest
                         navController.navigate("home")
-                              },
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .height(60.dp),
@@ -225,6 +227,7 @@ fun OnboardingScreen(navController: NavController) {
 }
 
 data class OnboardingPage(val image: Int, val title: String, val description: String)
+
 fun skipLogin(context: Context) {
     val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     sharedPreferences.edit()
@@ -300,10 +303,4 @@ fun OnbroadingPager(page: OnboardingPage) {
             }
         }
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_7")
-@Composable
-fun PreviewOnbroading() {
-//    OnbroadingPager()
 }
