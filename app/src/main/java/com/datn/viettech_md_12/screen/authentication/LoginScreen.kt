@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
 import com.datn.viettech_md_12.MainActivity
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.MyTextField
@@ -69,6 +68,7 @@ class LoginScreen : ComponentActivity() {
         }
     }
 }
+
 fun saveLoginState(context: Context, isLoggedIn: Boolean) {
     val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     with(sharedPreferences.edit()) {
@@ -76,9 +76,10 @@ fun saveLoginState(context: Context, isLoggedIn: Boolean) {
         apply()
     }
 }
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
+fun LoginUser(userViewModel: UserViewModel, navController: NavController) {
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -110,9 +111,9 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         )
-        Row (
+        Row(
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Text(
                 "Bạn chưa có tài khoản? ",
                 fontSize = 16.sp,
@@ -202,15 +203,21 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
             onClick = {
                 // Kiểm tra đầu vào
                 if (username.isBlank() || password.isBlank()) {
-                    Toast.makeText(context,
-                        context.getString(R.string.validate_login_password), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.validate_login_password), Toast.LENGTH_SHORT
+                    ).show()
                 } else if (!username.matches(Regex("^[a-zA-Z0-9]+$"))) {
-                    Toast.makeText(context,
-                        context.getString(R.string.username_failed), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.username_failed), Toast.LENGTH_SHORT
+                    ).show()
                 } else if (password.length < 6) {
-                    Toast.makeText(context,
-                        context.getString(R.string.validate_pass), Toast.LENGTH_SHORT).show()
-                }  else {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.validate_pass), Toast.LENGTH_SHORT
+                    ).show()
+                } else {
                     // Nếu tất cả kiểm tra hợp lệ, thực hiện đăng nhập
                     isLoading = true
                     val request = LoginRequest(username, password)
@@ -218,8 +225,10 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
                         request,
                         onSuccess = {
                             isLoading = false
-                            Toast.makeText(context,
-                                context.getString(R.string.login_success), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.login_success), Toast.LENGTH_SHORT
+                            ).show()
                             saveLoginState(context, true)
                             Log.d("LoginUser", "previousRoute: $previousRoute")
                             when {
@@ -231,8 +240,9 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
                                     )
                                     navController.popBackStack()
                                 }
+
                                 previousRoute == "cart" -> {
-                                    navController.navigate("cart"){
+                                    navController.navigate("cart") {
                                         popUpTo("cart") { inclusive = true }
                                         launchSingleTop = true
                                     }
@@ -248,7 +258,8 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
                                     val intent = Intent(context, MainActivity::class.java).apply {
                                         putExtra("isLoggedIn", true)
                                     }
-                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong không quay lại màn này
+                                    intent.flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // đăng nhập xong không quay lại màn này
                                     context.startActivity(intent)
                                 }
                             }
@@ -256,8 +267,10 @@ fun LoginUser(userViewModel: UserViewModel,  navController: NavController) {
                         onError = { error ->
                             isLoading = false
                             Log.e("dcm_error_signin", error)
-                            Toast.makeText(context,
-                                context.getString(R.string.logiin_failed), Toast.LENGTH_SHORT).show()  // Mật khẩu sai
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.logiin_failed), Toast.LENGTH_SHORT
+                            ).show()  // Mật khẩu sai
                         }
                     )
                 }
