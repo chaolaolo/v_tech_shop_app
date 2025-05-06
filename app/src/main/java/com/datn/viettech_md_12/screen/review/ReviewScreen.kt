@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
@@ -325,7 +326,7 @@ fun ReviewDetailDialog(
                     )
                     IconButton(onClick = onDismiss) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_logout_profile),
+                            imageVector = Icons.Default.Close,
                             contentDescription = "Đóng",
                             tint = Color.Gray
                         )

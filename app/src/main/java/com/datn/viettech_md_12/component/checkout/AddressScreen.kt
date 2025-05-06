@@ -345,7 +345,7 @@ fun AddressScreen(
                        Text(text = "Thông báo", color = Color.Black)
                    },
                    text = {
-                       Text("Bạn chưa lưu địa chỉ, bạn có muốn thoát tiền trình hiện tại?", color = Color.Black)
+                       Text("Bạn chưa lưu địa chỉ, bạn có muốn thoát tiến trình hiện tại?", color = Color.Black)
                    },
                    confirmButton = {
                        TextButton(onClick = { showSaveOrNotDialog = false }) {
