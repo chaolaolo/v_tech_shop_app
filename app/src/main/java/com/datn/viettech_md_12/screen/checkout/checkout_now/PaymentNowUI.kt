@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -86,7 +85,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.NetworkHelper
-import com.datn.viettech_md_12.ProductViewModelFactory
+import com.datn.viettech_md_12.utils.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.model.ProductDetailModel
 import com.datn.viettech_md_12.data.model.ProductModel
@@ -94,7 +93,6 @@ import com.datn.viettech_md_12.screen.checkout.PayMethodItem
 import com.datn.viettech_md_12.screen.checkout.PaymentMethod
 import com.datn.viettech_md_12.screen.checkout.formatCurrency
 import com.datn.viettech_md_12.utils.CheckoutViewModelFactory
-import com.datn.viettech_md_12.viewmodel.CartViewModel
 import com.datn.viettech_md_12.viewmodel.CheckoutViewModel
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import kotlinx.coroutines.launch
@@ -176,12 +174,12 @@ fun PaymentNowUI(
                 showProduct = false
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 context.startActivity(intent)
-                navController.navigate("order_successfully"){
-                    popUpTo("product_detail/$productId") {
-                        inclusive = false
-                    }
-                    launchSingleTop = true
-                }
+//                navController.navigate("order_successfully"){
+//                    popUpTo("product_detail/$productId") {
+//                        inclusive = false
+//                    }
+//                    launchSingleTop = true
+//                }
             } catch (e: ActivityNotFoundException) {
                 showProduct = true
                 Toast.makeText(context, "Không thể mở trình duyệt", Toast.LENGTH_SHORT).show()
@@ -830,8 +828,9 @@ fun CheckoutNowItemTile(
         }
         HorizontalDivider(
             thickness = 0.3.dp,
-            color = Color.Gray
+            color = Color.Gray,
         )
+        Spacer(Modifier.height(2.dp))
         if (product.productStock == 0) {
             Text("Sản phẩm này đã hết hàng", color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier
                 .fillMaxWidth()

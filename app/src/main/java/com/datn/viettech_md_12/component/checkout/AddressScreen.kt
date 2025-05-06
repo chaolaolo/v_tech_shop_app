@@ -203,7 +203,7 @@ fun AddressScreen(
                    onValueChange = {
                        phoneNumber = it
 //                       phoneNumberError = it.isBlank()
-                       phoneNumberError = !Regex("^[0-9]{10,11}$").matches(it)
+                       phoneNumberError = !Regex("^[0-9]{10}$").matches(it)
                    },
                    modifier = Modifier,
                    isPassword = false

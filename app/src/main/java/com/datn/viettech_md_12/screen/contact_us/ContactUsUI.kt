@@ -156,7 +156,7 @@ fun ContactUsUI(navController: NavController) {
                 Spacer(modifier = Modifier.height(30.dp))
                 ContactOption(
                     iconPainter = painterResource(id = R.drawable.zalo_logo), // Thêm icon Zalo vào drawable
-                    contactMethod = "Liên hệ qua Zalo - ",
+                    contactMethod = "Zalo - ",
                     contactValue = "VietTech Store",
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW).apply {

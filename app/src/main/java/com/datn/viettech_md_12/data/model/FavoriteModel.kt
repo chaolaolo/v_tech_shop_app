@@ -1,4 +1,3 @@
-import com.datn.viettech_md_12.data.model.ProductModel
 import com.google.gson.annotations.SerializedName
 
 data class FavoriteResponse(
@@ -20,11 +19,11 @@ data class FavoriteRequest(
 )
 data class FavoriteListResponse(
     val success: Boolean,
-    val favorites: List<FavoriteItem>
+    val favorites: List<WishlistItem>
 )
 
 // Mỗi mục yêu thích
-data class FavoriteItem(
+data class WishlistItem(
     @SerializedName("_id") val id: String,
     val user: String,
     val product: ProductModel02,

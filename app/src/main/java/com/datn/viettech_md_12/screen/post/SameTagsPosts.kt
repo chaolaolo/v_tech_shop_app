@@ -51,6 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,10 +61,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toLowerCase
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -101,12 +105,14 @@ fun SameTagsPosts(
         }
     )
     val isErrorDialogDismissed by postViewModel.isErrorDialogDismissed.collectAsState()
+    val isFirstLoadDone = remember { mutableStateOf(false) }
 
     LaunchedEffect(tag) {
         postViewModel.getSameTagsPosts(tag)
         { result ->
             posts.clear()
             posts.addAll(result)
+            isFirstLoadDone.value = true
         }
     }
     Scaffold(
@@ -239,8 +245,7 @@ fun SameTagsPosts(
                             )
                         }
                     }
-
-                    posts.isEmpty() && !isRefreshing && !isLoading -> {
+                    posts.isEmpty() && isFirstLoadDone.value && !isRefreshing && !isLoading-> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.TopCenter
@@ -253,13 +258,13 @@ fun SameTagsPosts(
                             )
                         }
                     }
-
                     else -> {
                         Spacer(Modifier.height(10.dp))
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
                             Text(
@@ -438,19 +443,54 @@ fun SameTagsPostsItemTile(
                     ) {
                         Log.d("SameTagsPostsItemTile", "tags: ${post.tags}")
                         post.tags.forEach { tag ->
-                            val isHighlighted = tag.lowercase() == highlightTag.lowercase()
-                            val backgroundColor = if (isHighlighted) Color(0xFFFFF59D) else Color(0xFF21D4B4).copy(alpha = 0.1f)
-                            val textColor = if (isHighlighted) Color(0xFFF9A825) else Color(0xFF21D4B4)
+//                            val isHighlighted = tag.lowercase() == highlightTag.lowercase()
+//                            val backgroundColor = if (isHighlighted) Color(0xFFFFF59D) else Color(0xFF21D4B4).copy(alpha = 0.1f)
+//                            val textColor = if (isHighlighted) Color(0xFFF9A825) else Color(0xFF21D4B4)
+                            val normalTag = tag.lowercase()
+                            val highlightTag = highlightTag.lowercase()
+
+                            val isExactMatch = normalTag == highlightTag
+                            val isPartialMatch = !isExactMatch && normalTag.contains(highlightTag)
+
+                            val backgroundColor = when {
+                                isExactMatch -> Color(0xFFFFF59D)
+                                isPartialMatch -> Color(0xFF21D4B4).copy(alpha = 0.05f)
+                                else -> {
+                                    Color(0xFF21D4B4).copy(alpha = 0.1f)
+                                }
+                            }
                             Box(
                                 modifier = Modifier
                                     .background(backgroundColor, RoundedCornerShape(2.dp))
                                     .clip(RoundedCornerShape(2.dp))
                                     .clickable {}
                             ) {
-                                Text(
-                                    tag, fontSize = 10.sp, color = textColor,
-                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                                )
+                                if (isPartialMatch) {
+                                    val startIndex = normalTag.indexOf(highlightTag)
+                                    val endIndex = startIndex + highlightTag.length
+
+                                    val before = tag.substring(0, startIndex)
+                                    val match = tag.substring(startIndex, endIndex)
+                                    val after = tag.substring(endIndex)
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            withStyle(style = SpanStyle(color = Color(0xFF21D4B4))) { append(before) }
+                                            withStyle(style = SpanStyle(color = Color(0xFFF9A825))) { append(match) }
+                                            withStyle(style = SpanStyle(color = Color(0xFF21D4B4))) { append(after) }
+                                        },
+                                        fontSize = 10.sp,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        tag, fontSize = 10.sp,
+                                        color = when {
+                                            isExactMatch -> Color(0xFFF9A825)
+                                            else -> Color(0xFF21D4B4)
+                                        },
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                }
                             }
                         }
                     }

@@ -4,6 +4,7 @@ import MyButton
 import RegisterRequest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -12,7 +13,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,12 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
@@ -50,7 +47,10 @@ import com.datn.viettech_md_12.component.MyTextField
 import com.datn.viettech_md_12.viewmodel.UserViewModel
 
 class RegisterScreen : ComponentActivity() {
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         super.onCreate(savedInstanceState)
         val userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
         enableEdgeToEdge()
@@ -239,6 +239,7 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
             onClick = {
                 val regexName = "^[a-zA-ZÀ-ỹ\\s]+\$".toRegex()
                 val regexUsername = "^[a-zA-Z0-9_]+\$".toRegex()
+                val regexPhoneNumber = "^[0-9]{10}$".toRegex()
                 val regexEmail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$".toRegex()
                 val hasSpace = password.contains(" ")
                 val isLengthValid = password.length >= 6
@@ -257,6 +258,10 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
                     !regexName.matches(fullName) -> {
                         Toast.makeText(context,
                             context.getString(R.string.invalid_full_name), Toast.LENGTH_SHORT).show()
+                    }
+                    !regexPhoneNumber.matches(phone) -> {
+                        Toast.makeText(context,
+                            context.getString(R.string.invalid_phone_number), Toast.LENGTH_SHORT).show()
                     }
                     !regexEmail.matches(email) -> {
                         Toast.makeText(context,
@@ -279,13 +284,10 @@ fun SignUpUser( userViewModel: UserViewModel, navController: NavController) {
                         val request = RegisterRequest(username, fullName, phone, email, password)
                         userViewModel.signUp(
                             request,
-                            context,
                             onSuccess = {
                                 isLoading = false
                                 Toast.makeText(context,
                                     context.getString(R.string.register_success), Toast.LENGTH_SHORT).show()
-//                                val intent = Intent(context, LoginScreen::class.java)
-//                                context.startActivity(intent)
                                 if (navController.currentBackStackEntry != null) {
                                     navController.navigate("login") {
                                         // Xóa màn hình đăng ký khỏi back stack

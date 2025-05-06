@@ -23,23 +23,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ScrollableTabRow
 import androidx.compose.material.Tab
-import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -215,7 +211,7 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
             }
 
         }
-        if (isLoading.value){
+        if (isLoading.value) {
             LoadingScreen()
         } else if (token != null && clientId != null) {
             HorizontalPager(
@@ -229,7 +225,11 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
                     0 -> OrderListPage(orderList = waitingOrders, navController = navController)
                     1 -> OrderListPage(orderList = deliveringOrders, navController = navController)
                     2 -> OrderListPage(orderList = canceledOrders, navController = navController)
-                    3 -> OrderListPage(orderList = completedOrders, navController = navController, useCompletedCard = true)
+                    3 -> OrderListPage(
+                        orderList = completedOrders,
+                        navController = navController,
+                        useCompletedCard = true
+                    )
                 }
             }
         }
@@ -330,7 +330,12 @@ fun OrderCard(order: OrderModel, navController: NavController) {
                 Text("Yêu thích", color = Color.White, fontSize = 10.sp)
             }
             Spacer(Modifier.width(6.dp))
-            Text("VietTech", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+            Text(
+                "VietTech",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
         }
         Spacer(modifier = Modifier.height(5.dp))
         // Sản phẩm đầu tiên
@@ -454,8 +459,6 @@ fun OrderCard(order: OrderModel, navController: NavController) {
 }
 
 
-
-
 @Composable
 fun OrderCardCompleted(order: OrderModel, navController: NavController) {
     val BASE_URL = "http://103.166.184.249:3056/"
@@ -501,7 +504,12 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
                 Text("Yêu thích", color = Color.White, fontSize = 10.sp)
             }
             Spacer(Modifier.width(6.dp))
-            Text("VietTech", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+            Text(
+                "VietTech",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
         }
         Spacer(modifier = Modifier.height(5.dp))
 
@@ -626,11 +634,6 @@ fun OrderCardCompleted(order: OrderModel, navController: NavController) {
 }
 
 
-
-
-
-
-
 @Composable
 fun LoadingScreen() {
     Box(
@@ -643,6 +646,7 @@ fun LoadingScreen() {
         )
     }
 }
+
 @Composable
 fun EmptyOrderScreen(navController: NavController) {
     Column(
@@ -675,7 +679,7 @@ fun EmptyOrderScreen(navController: NavController) {
         ) {
             Button(
                 onClick = {
-navController.navigate("home")
+                    navController.navigate("home")
                 },
                 modifier = Modifier
                     .width(380.dp)
@@ -694,9 +698,9 @@ navController.navigate("home")
 
 @Composable
 fun DividerItemOrder() {
-    Divider(
-        color = Color(0xffF4F5FD),
+    HorizontalDivider(
         thickness = 1.dp,
+        color = Color(0xffF4F5FD)
     )
 }
 

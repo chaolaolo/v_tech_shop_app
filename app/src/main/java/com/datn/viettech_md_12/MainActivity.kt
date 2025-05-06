@@ -1,6 +1,5 @@
 package com.datn.viettech_md_12
 
-import NotificationModel
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -10,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.util.Log
@@ -21,8 +21,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,15 +28,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.datn.viettech_md_12.MainActivity.Companion.CHANNEL_ID
-import com.datn.viettech_md_12.MainActivity.Companion.CHANNEL_NAME
 import com.datn.viettech_md_12.navigation.NavigationGraph
 import com.datn.viettech_md_12.ui.theme.VietTech_MD_12Theme
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.onesignal.OSNotificationReceivedEvent
 import com.onesignal.OneSignal
 class MainActivity : ComponentActivity() {
@@ -50,6 +44,8 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("WrongConstant")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         // Khởi tạo OneSignal
         OneSignal.initWithContext(this)
         OneSignal.setAppId("29ae4e65-bafd-49fb-8c3b-cde54d2bf2bb")
@@ -119,8 +115,10 @@ class MainActivity : ComponentActivity() {
                 // dieu huong khi nguoi dung an vo thong bao
                 val destinationFromNotification = intent.getStringExtra("notification")
                 // Điều hướng dựa trên trạng thái đăng nhập và đã xem onboarding
+                val deepLinkUri = intent?.data
                 val startDestination = when {
                     destinationFromNotification == "notification" -> "notification"
+                    deepLinkUri?.scheme == "viettechapp" && deepLinkUri.host == "payment-success" -> "home"
                     isLoggedIn -> "home" // Nếu đã đăng nhập, đi đến màn Home
                     hasSeenOnboarding -> "home" // Nếu đã xem onboarding nhưng chưa đăng nhập, đi đến Home
                     else -> "onb_screen" // Nếu chưa xem onboarding, đi đến Onboarding

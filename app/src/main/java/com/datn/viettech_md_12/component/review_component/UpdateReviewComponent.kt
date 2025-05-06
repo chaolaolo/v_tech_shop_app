@@ -11,7 +11,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Send
@@ -24,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +34,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.data.remote.ApiClient
 import com.datn.viettech_md_12.viewmodel.ImageViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
@@ -47,7 +51,7 @@ fun UpdateReviewDialog(
     initialRating: Int,
     initialContent: String,
     initialImageUrls: List<String>,
-    createdAt: String, // 👈 thêm dòng này
+    createdAt: String,
     initialImageIds: List<String>,
     reviewViewModel: ReviewViewModel,
     navController: NavController,
@@ -69,7 +73,7 @@ fun UpdateReviewDialog(
 
     val uploadedImageUrls by remember { mutableStateOf(initialImageUrls.toMutableList()) }
     val uploadedImageIds by remember { mutableStateOf(initialImageIds.toMutableList()) }
-    Log.d("UPDATE_REVIEW", "Review ID: $uploadedImageIds") // <-- Thêm dòng này
+
     var isUploading by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
 
@@ -85,17 +89,14 @@ fun UpdateReviewDialog(
     LaunchedEffect(updateReviewResult) {
         updateReviewResult?.onSuccess {
             Toast.makeText(context, "Cập nhật đánh giá thành công!", Toast.LENGTH_SHORT).show()
-            Log.d("UPDATE_REVIEW", "Success = ${it.success}, Data = ${it.data}")
             onReviewSubmitted()
-            reviewViewModel.clearUpReviewResult() // 👈 Thêm dòng này
+            reviewViewModel.clearUpReviewResult()
             onDismiss()
-            navController.navigate("product_detail/${productId}") // Chuyển đến chi tiết sản phẩm
+            navController.navigate("product_detail/${productId}")
         }?.onFailure {
-            Log.d("UPDATE_REVIEW", "Review failed: $it")
             Toast.makeText(context, "Cập nhật đánh giá thất bại!", Toast.LENGTH_SHORT).show()
-            reviewViewModel.clearUpReviewResult() // 👈 Thêm dòng này
+            reviewViewModel.clearUpReviewResult()
             onDismiss()
-
         }
     }
 
@@ -140,7 +141,7 @@ fun UpdateReviewDialog(
                             }
                         }
                     } else {
-                        imageIds.addAll(uploadedImageIds) // Không chọn ảnh mới -> dùng ảnh cũ
+                        imageIds.addAll(uploadedImageIds)
                     }
 
                     isUploading = false
@@ -162,15 +163,79 @@ fun UpdateReviewDialog(
             tonalElevation = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(5.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Cập nhật đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            // Sử dụng LazyColumn để cuộn nội dung
+            val scrollState = rememberScrollState()
+
+            Column(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .verticalScroll(scrollState)  // Áp dụng scroll cho Column
+            ) {
 
                 Spacer(modifier = Modifier.height(12.dp))
-                RatingStars(rating) { rating = it }
+
+                // Phần hiển thị cảm xúc và tiêu đề phụ đề dựa trên rating
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val emotionIcon = when (rating) {
+                        5 -> R.drawable.good
+                        4 -> R.drawable.good_normal
+                        3 -> R.drawable.sad
+                        2 -> R.drawable.very_sad
+                        1 -> R.drawable.very_sad_x2
+                        else -> null
+                    }
+                    emotionIcon?.let {
+                        Image(
+                            painter = painterResource(id = it),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .padding(bottom = 10.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        val (title, subtitle) = when (rating) {
+                            5 -> "Sản phẩm rất tốt!" to "Cảm ơn bạn đã góp ý!"
+                            4 -> "Tốt lắm!" to "Cảm ơn bạn đã góp ý!"
+                            3 -> "Cũng ổn!" to "Cảm ơn bạn đã góp ý!"
+                            2 -> "Cần cải thiện sản phẩm!" to "Cảm ơn bạn đã góp ý!"
+                            1 -> "Sản phẩm rất tệ!" to "Cảm ơn bạn đã góp ý!"
+                            else -> "" to ""
+                        }
+
+                        Text(
+                            title,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                        Text(subtitle, fontSize = 14.sp)
+                    }
+
+                    // Phần đánh giá sao
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(5) { index ->
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = if (index < rating) Color(0xFFFFD700) else Color.Gray,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable { rating = index + 1 }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
+
                 OutlinedTextField(
                     value = content,
                     onValueChange = { content = it },
@@ -181,7 +246,6 @@ fun UpdateReviewDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
                 if (selectedUris.isEmpty() && uploadedImageUrls.isNotEmpty()) {
-                    Text("Ảnh hiện tại:", fontWeight = FontWeight.SemiBold)
                     ImagePreviewRow(uploadedImageUrls.map {
                         it.replace("http://localhost:", "http://103.166.184.249:")
                     })
@@ -202,18 +266,20 @@ fun UpdateReviewDialog(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Row(
+
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Hủy")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
                     if (canUpdate) {
                         Button(
                             onClick = { showConfirmDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(10.dp)),
+                            enabled = !isUploading
                         ) {
                             if (isUploading) {
                                 CircularProgressIndicator(
@@ -222,7 +288,6 @@ fun UpdateReviewDialog(
                                     strokeWidth = 2.dp
                                 )
                             } else {
-                                Icon(Icons.Default.Send, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Cập nhật")
                             }
@@ -231,29 +296,22 @@ fun UpdateReviewDialog(
                         Text("Đã quá 2 ngày", color = Color.Gray)
                     }
 
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(10.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xffffffff))
+                    ) {
+                        Text("Hủy", color = Color.Black)
+                    }
                 }
+
             }
         }
-    }
-}
-
-// --- Các hàm phụ trợ ---
-
-@Composable
-fun RatingStars(currentRating: Int, onRatingChanged: (Int) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        repeat(5) { index ->
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null,
-                tint = if (index < currentRating) Color(0xFFFFD700) else Color.Gray,
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable { onRatingChanged(index + 1) }
-            )
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("$currentRating sao")
     }
 }
 

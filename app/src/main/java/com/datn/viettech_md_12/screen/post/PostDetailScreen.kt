@@ -263,6 +263,7 @@ fun PostDetailScreen(
                     }
                 }
                 else -> {
+                    if (postDetail != null) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -460,6 +461,7 @@ fun PostDetailScreen(
                         Spacer(Modifier.height(16.dp))
                     }
                 }
+                }
             }
         }
     }
@@ -493,7 +495,7 @@ fun RelatedProductItemTile(
                 .fillMaxWidth()
                 .background(Color.White)
                 .padding(start = 4.dp, end = 6.dp, top = 4.dp, bottom = 2.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             AsyncImage(
                 model = imageUrl,
@@ -513,13 +515,13 @@ fun RelatedProductItemTile(
             ) {
                 Text(
                     product.productName,
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.W600,
                     color = Color.Black,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text("$itemPriceFormatted₫", fontSize = 12.sp, fontWeight = FontWeight.W500, color = Color.Black)
+                Text("$itemPriceFormatted₫", fontSize = 14.sp, fontWeight = FontWeight.W500, color = Color.Black)
                 Text(
                     product.productDescription,
                     fontSize = 12.sp,
@@ -531,7 +533,7 @@ fun RelatedProductItemTile(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("${product.productStock} còn hàng", fontSize = 12.sp, color = Color.Black)
+                    Text("${product.productStock} còn hàng", fontSize = 14.sp, color = Color.Black)
                     VerticalDivider()
                     Row(
                         verticalAlignment = Alignment.CenterVertically

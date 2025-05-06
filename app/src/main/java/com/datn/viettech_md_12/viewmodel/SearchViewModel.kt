@@ -1,17 +1,19 @@
 package com.datn.viettech_md_12.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.datn.viettech_md_12.DataStoreManager
 import com.datn.viettech_md_12.common.SortOption
 import com.datn.viettech_md_12.data.model.ProductModel
-import com.datn.viettech_md_12.data.remote.ApiClient
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.datn.viettech_md_12.data.repository.ProductRepository
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class SearchViewModel: ViewModel() {
-    private val repository = ApiClient.productRepository
+class SearchViewModel(
+    private val repository: ProductRepository,
+    private val dataStoreManager: DataStoreManager
+) : ViewModel() {
+
     private val _searchResults = MutableStateFlow<List<ProductModel>>(emptyList())
     val searchResults: StateFlow<List<ProductModel>> = _searchResults
 
@@ -21,18 +23,47 @@ class SearchViewModel: ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    fun searchProducts(query: String) {
+    private val _shouldCloseBottomSheet = MutableStateFlow(false)
+    val shouldCloseBottomSheet: StateFlow<Boolean> = _shouldCloseBottomSheet
+
+    private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
+    val searchHistory: StateFlow<List<String>> = _searchHistory
+
+    private var currentSortOption: SortOption? = null
+    private var currentQuery: String = ""
+
+    init {
+        viewModelScope.launch {
+            dataStoreManager.getSearchHistory().collect {
+                _searchHistory.value = it
+            }
+        }
+    }
+
+    fun searchProducts(query: String, sortOption: SortOption? = currentSortOption) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
+            currentQuery = query
+            currentSortOption = sortOption
             try {
-                val result = repository.searchProducts(query)
-                if (result.isSuccessful) {
-                    result.body()?.let {
-                        _searchResults.value = it.products
+                val sortQuery = sortOption?.let {
+                    when (it) {
+                        SortOption.PRICE_ASC -> "price_asc"
+                        SortOption.PRICE_DESC -> "price_desc"
+                        SortOption.AZ -> "name_asc"
+                        SortOption.ZA -> "name_desc"
                     }
-                } else {
-                    Log.e("ProductViewModel", "Error: ${result.code()} ${result.message()}")
+                }
+
+                repository.searchProducts(query, sortQuery).collect { result ->
+                    if (result.isSuccessful) {
+                        result.body()?.let {
+                            _searchResults.value = it.products
+                        }
+                    } else {
+                        _errorMessage.value = "Lỗi: ${result.code()} ${result.message()}"
+                    }
                 }
             } catch (e: Exception) {
                 _errorMessage.value = e.localizedMessage ?: "Lỗi không xác định"
@@ -41,17 +72,34 @@ class SearchViewModel: ViewModel() {
             }
         }
     }
-    fun clearSearchResults() {
-        _searchResults.value = emptyList()
+
+    fun applySort(sortOption: SortOption?) {
+        currentSortOption = sortOption
+        if (currentQuery.isNotEmpty()) {
+            searchProducts(currentQuery, sortOption)
+        }
+        _shouldCloseBottomSheet.value = true
     }
 
-    fun sortSearchResults(option: SortOption) {
-//        val sortedList = when (option) {
-//            SortOption.PRICE_ASC -> _searchResults.value.sortedBy { it.price }
-//            SortOption.PRICE_DESC -> _searchResults.value.sortedByDescending { it.price }
-//            SortOption.AZ -> _searchResults.value.sortedBy { it.name }
-//            SortOption.ZA -> _searchResults.value.sortedByDescending { it.name }
-//        }
-//        _searchResults.value = sortedList
+
+    fun clearSearchResults() {
+        _searchResults.value = emptyList()
+        currentQuery = ""
+    }
+
+    fun onBottomSheetClosed() {
+        _shouldCloseBottomSheet.value = false
+    }
+
+    fun saveToHistory(query: String) {
+        viewModelScope.launch {
+            dataStoreManager.saveSearchQuery(query)
+        }
+    }
+
+    fun clearSearchHistory() {
+        viewModelScope.launch {
+            dataStoreManager.clearSearchHistory()
+        }
     }
 }

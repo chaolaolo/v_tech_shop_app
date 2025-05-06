@@ -54,7 +54,7 @@ fun OrderSummary(
     val discount = remember { 0.0 }
     val discountPercentage = selectedVoucher?.discountValue ?: 0.0
     val discountAmount = remember(subtotal, discountPercentage) {
-        (subtotal * discountPercentage / 100)
+        if (discountPercentage > 0) (subtotal * discountPercentage / 100) else 0.0
     }
     val maxDiscountAmount = selectedVoucher?.maxDiscountAmount ?: Double.MAX_VALUE
     val finalDiscountAmount = remember(discountAmount, maxDiscountAmount) {

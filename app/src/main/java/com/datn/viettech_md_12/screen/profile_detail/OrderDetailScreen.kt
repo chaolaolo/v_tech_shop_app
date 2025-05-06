@@ -3,7 +3,6 @@ package com.datn.viettech_md_12.screen.profile_detail
 import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +29,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,17 +41,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,11 +59,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.datn.viettech_md_12.NetworkHelper
-import com.datn.viettech_md_12.ProductViewModelFactory
+import com.datn.viettech_md_12.utils.ProductViewModelFactory
 import com.datn.viettech_md_12.R
 import com.datn.viettech_md_12.component.review_component.AddReviewDialog
-import com.datn.viettech_md_12.data.model.OrderModel
-import com.datn.viettech_md_12.data.model.OrderProduct
 import com.datn.viettech_md_12.viewmodel.ProductViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModel
 import com.datn.viettech_md_12.viewmodel.ReviewViewModelFactory
@@ -88,6 +80,7 @@ fun OrderDetailScreen(
     )
 ) {
     val context = LocalContext.current.applicationContext as Application
+    val networkHelper = NetworkHelper(LocalContext.current)
     val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
     val order by viewModel.selectedOrder.collectAsState()
     val BASE_URL = "http://103.166.184.249:3056/"
@@ -98,7 +91,7 @@ fun OrderDetailScreen(
 
     // Khởi tạo ReviewViewModel với factory
     val reviewViewModel: ReviewViewModel = viewModel(
-        factory = ReviewViewModelFactory(context)
+        factory = ReviewViewModelFactory(context,networkHelper)
     )
     var showCancelDialog by remember { mutableStateOf(false) }
     var selectedReason by remember { mutableStateOf<String?>(null) }
@@ -413,7 +406,7 @@ fun OrderDetailScreen(
                         .weight(1f)
                         .padding(end = 6.dp)
                 ) {
-                    Text("Quản Lý Đánh giá")
+                    Text("Quản Lý Đánh Giá")
                 }
                 if(currentOrder.status =="pending"){
                     Button(
