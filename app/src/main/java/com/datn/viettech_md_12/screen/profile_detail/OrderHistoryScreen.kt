@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -121,7 +122,10 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             IconButton(onClick = {
                 navController.popBackStack()
@@ -133,13 +137,34 @@ fun OrderHistoryScreen(navController: NavController, viewModel: ProductViewModel
                     tint = Color.Black
                 )
             }
-            Text(
-                text = stringResource(R.string.order_history),
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White)
+                    .clickable { navController.navigate("search_order") }
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Tìm kiếm",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Tìm kiếm đơn hàng của bạn",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
+                }
+            }
         }
+
 
         DividerItemOrder()
         Spacer(modifier = Modifier.height(10.dp))
