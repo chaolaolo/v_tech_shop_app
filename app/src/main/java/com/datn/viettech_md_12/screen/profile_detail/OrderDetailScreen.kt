@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
+import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -33,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
@@ -91,8 +93,6 @@ fun OrderDetailScreen(
     val reviewViewModel: ReviewViewModel = viewModel(
         factory = ReviewViewModelFactory(context, networkHelper)
     )
-    var showProductDialog by remember { mutableStateOf(false) }
-
     var showCancelDialog by remember { mutableStateOf(false) }
     var selectedReason by remember { mutableStateOf<String?>(null) }
     val cancelReasons = listOf(
