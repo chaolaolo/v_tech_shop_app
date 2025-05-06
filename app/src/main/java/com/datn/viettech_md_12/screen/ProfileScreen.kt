@@ -128,6 +128,13 @@ fun ProfileScreen(navController: NavController) {
                     onClick = { navController.navigate("order_history_screen") }
                 )
             }
+            item {
+                ProfileItem(
+                    R.drawable.ic_terms_profile,
+                    stringResource(R.string.review),
+                    onClick = { navController.navigate("review_screen") }
+                )
+            }
             item { DividerItem() }
             item { Spacer(modifier = Modifier.height(26.dp)) }
             item { ProfileTitle(stringResource(R.string.support_information)) }

@@ -1191,7 +1191,8 @@ fun ProductDetailScreen(
                                                 "http://localhost:",
                                                 "http://103.166.184.249:"
                                             )
-                                            val isReported = reviewReports.any { it.review_id?._id == review._id }
+                                            val isReported =
+                                                reviewReports.any { it.review_id?._id == review._id }
                                             val isOwnReview = review.account_id == clientId
 
                                             val reviewModifier = if (!isOwnReview && !isReported) {
@@ -1345,7 +1346,11 @@ fun ProductDetailScreen(
                                             reportReasonError = null
                                         },
                                         title = {
-                                            Text("Tố cáo đánh giá", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                            Text(
+                                                "Tố cáo đánh giá",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 18.sp
+                                            )
                                         },
                                         text = {
                                             Column {
@@ -1377,17 +1382,32 @@ fun ProductDetailScreen(
                                             Button(
                                                 onClick = {
                                                     val reason = reportReason.trim()
-                                                    val wordCount = reason.split("\\s+".toRegex()).size
+                                                    val wordCount =
+                                                        reason.split("\\s+".toRegex()).size
 
                                                     when {
-                                                        reason.isEmpty() -> reportReasonError = "Không được để trống"
-                                                        reason.length < 10 -> reportReasonError = "Ít nhất 10 ký tự"
-                                                        wordCount > 1000 -> reportReasonError = "Không được quá 1000 từ"
-                                                        reason.contains(Regex("[<>\\[\\]{}!@#\$%^&*]")) -> reportReasonError = "Không dùng ký tự đặc biệt"
+                                                        reason.isEmpty() -> reportReasonError =
+                                                            "Không được để trống"
+
+                                                        reason.length < 10 -> reportReasonError =
+                                                            "Ít nhất 10 ký tự"
+
+                                                        wordCount > 1000 -> reportReasonError =
+                                                            "Không được quá 1000 từ"
+
+                                                        reason.contains(Regex("[<>\\[\\]{}!@#\$%^&*]")) -> reportReasonError =
+                                                            "Không dùng ký tự đặc biệt"
+
                                                         else -> confirmReportDialog = true
                                                     }
                                                 },
-                                                shape = RoundedCornerShape(6.dp)
+                                                shape = RoundedCornerShape(6.dp),
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Color(
+                                                        0xFF00C2A8
+                                                    )
+                                                )
+
                                             ) {
                                                 Text("Tiếp tục")
                                             }
@@ -1408,23 +1428,52 @@ fun ProductDetailScreen(
                                 if (confirmReportDialog) {
                                     AlertDialog(
                                         onDismissRequest = { confirmReportDialog = false },
-                                        title = { Text("Xác nhận tố cáo", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                                        title = {
+                                            Text(
+                                                "Xác nhận tố cáo",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 18.sp
+                                            )
+                                        },
                                         text = { Text("Bạn có chắc chắn muốn tố cáo đánh giá này?") },
                                         confirmButton = {
-                                            Button(onClick = {
-                                                selectedReviewId?.let { reviewId ->
-                                                    reviewViewModel.reportReview(reviewId, reportReason)
+                                            Button(
+                                                onClick = {
+                                                    //check bat dang nhap hoac dang ki moi cho su dung
+                                                    val token =
+                                                        contextToCheckLogin.getSharedPreferences(
+                                                            "MyPrefs",
+                                                            Context.MODE_PRIVATE
+                                                        )
+                                                            ?.getString("accessToken", "")
+                                                    val isLoggedIn = !token.isNullOrEmpty()
 
-                                                    // 🔄 Gọi lại API để lấy dữ liệu mới nhất
-                                                    reviewViewModel.fetchReviewReports()
+                                                    if (!isLoggedIn) {
+                                                        showLoginDialog = true
+                                                    } else {
+                                                        selectedReviewId?.let { reviewId ->
+                                                            reviewViewModel.reportReview(
+                                                                reviewId,
+                                                                reportReason
+                                                            )
 
-                                                    // Reset dialog
-                                                    confirmReportDialog = false
-                                                    showReportDialog = false
-                                                    reportReason = ""
-                                                    reportReasonError = null
-                                                }
-                                            }) {
+                                                            // 🔄 Gọi lại API để lấy dữ liệu mới nhất
+                                                            reviewViewModel.fetchReviewReports()
+
+                                                            // Reset dialog
+                                                            confirmReportDialog = false
+                                                            showReportDialog = false
+                                                            reportReason = ""
+                                                            reportReasonError = null
+                                                        }
+                                                    }
+                                                },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Color(
+                                                        0xFF00C2A8
+                                                    )
+                                                )
+                                            ) {
                                                 Text("Xác nhận")
                                             }
 

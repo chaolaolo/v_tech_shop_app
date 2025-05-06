@@ -64,12 +64,16 @@ class ReviewViewModel(application: Application, networkHelper: NetworkHelper) : 
     private val _reportReviewResult = MutableStateFlow<Result<BaseReportResponse>?>(null)
     val reportReviewResult: StateFlow<Result<BaseReportResponse>?> = _reportReviewResult
     fun fetchReviewReports() {
+        val clientId = sharedPreferences.getString("clientId", "") ?: ""
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val result = _repository.getReviewReports()
+                val result = _repository.getReviewReports() // không cần truyền gì cả
                 if (result.isSuccess) {
-                    _reviewReports.value = result.getOrNull() ?: emptyList()
+                    val allReports = result.getOrNull() ?: emptyList()
+                    // Lọc các review report có clientId trùng với người dùng đang đăng nhập
+                    val filteredReports = allReports.filter { it.account_id?._id == clientId }
+                    _reviewReports.value = filteredReports
                 } else {
                     Log.e("REVIEW_REPORTS", "Lỗi: ${result.exceptionOrNull()?.message}")
                 }
@@ -78,6 +82,7 @@ class ReviewViewModel(application: Application, networkHelper: NetworkHelper) : 
             }
         }
     }
+
 
     fun reportReview(reviewId: String, reason: String) {
         val token = sharedPreferences.getString("accessToken", "") ?: ""

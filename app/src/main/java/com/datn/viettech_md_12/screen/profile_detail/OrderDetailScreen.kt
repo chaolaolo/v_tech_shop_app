@@ -89,8 +89,10 @@ fun OrderDetailScreen(
 
     // Khởi tạo ReviewViewModel với factory
     val reviewViewModel: ReviewViewModel = viewModel(
-        factory = ReviewViewModelFactory(context,networkHelper)
+        factory = ReviewViewModelFactory(context, networkHelper)
     )
+    var showProductDialog by remember { mutableStateOf(false) }
+
     var showCancelDialog by remember { mutableStateOf(false) }
     var selectedReason by remember { mutableStateOf<String?>(null) }
     val cancelReasons = listOf(
@@ -270,6 +272,10 @@ fun OrderDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(12.dp)
+                                .clickable {
+                                    // Chuyển đến màn hình chi tiết sản phẩm khi nhấn vào row này
+                                    navController.navigate("product_detail/${product.productId}")
+                                },
                         ) {
                             AsyncImage(
                                 model = "$BASE_URL${product.image}",
@@ -307,7 +313,8 @@ fun OrderDetailScreen(
                         }
                         if (currentOrder.status?.lowercase() == "completed") {
                             // Kiểm tra xem sản phẩm đã được đánh giá chưa
-                            val hasReviewed = reviewViewModel.checkReviewExists(orderId, product.productId)
+                            val hasReviewed =
+                                reviewViewModel.checkReviewExists(orderId, product.productId)
 
                             // Nếu sản phẩm chưa được đánh giá, hiển thị nút "Thêm đánh giá"
                             if (!hasReviewed) {
@@ -398,15 +405,17 @@ fun OrderDetailScreen(
                     .padding(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                OutlinedButton(
-                    onClick = {  navController.navigate("review_screen")  },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 6.dp)
-                ) {
-                    Text("Quản Lý Đánh Giá")
+                if (currentOrder.status == "completed") {
+                    OutlinedButton(
+                        onClick = { navController.navigate("review_screen") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 6.dp)
+                    ) {
+                        Text("Quản Lý Đánh Giá")
+                    }
                 }
-                if(currentOrder.status =="pending"){
+                if (currentOrder.status == "pending") {
                     Button(
                         onClick = {
 //                            viewModel.cancelOrder(context, currentOrder._id)
@@ -468,7 +477,11 @@ fun OrderDetailScreen(
                                 if (selectedReason != null) {
                                     viewModel.cancelOrder(context, currentOrder._id)
                                     showCancelDialog = false
-                                    Toast.makeText(context, "Đã huỷ đơn hàng với lý do: $selectedReason", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Đã huỷ đơn hàng với lý do: $selectedReason",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     navController.popBackStack()
                                 }
                             }
