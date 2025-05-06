@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
+import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -33,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
@@ -469,7 +471,7 @@ fun OrderDetailScreen(
                                     viewModel.cancelOrder(context, currentOrder._id)
                                     showCancelDialog = false
                                     Toast.makeText(context, "Đã huỷ đơn hàng với lý do: $selectedReason", Toast.LENGTH_SHORT).show()
-                                    navController.popBackStack()
+//                                    navController.popBackStack()
                                 }
                             }
                         ) {

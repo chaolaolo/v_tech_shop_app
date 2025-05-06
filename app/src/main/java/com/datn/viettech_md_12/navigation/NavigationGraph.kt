@@ -50,6 +50,7 @@ import com.datn.viettech_md_12.screen.profile_detail.ChangePasswordScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderDetailScreen
 import com.datn.viettech_md_12.screen.profile_detail.OrderHistoryScreen
 import com.datn.viettech_md_12.screen.profile_detail.PaymentScreen
+import com.datn.viettech_md_12.screen.profile_detail.SearchScreenOrder
 import com.datn.viettech_md_12.screen.profile_detail.ShippingScreen
 import com.datn.viettech_md_12.screen.review.ReviewScreen
 import com.datn.viettech_md_12.viewmodel.NotificationViewModel
@@ -141,6 +142,9 @@ fun NavigationGraph(startDestination: String = "home") {
             composable("address_screen") { AddressScreen(navController) }
             composable("contact_us") { ContactUsUI(navController) }
             composable("post_screen") { PostScreen(navController) }
+            composable("search_order") {  if (productViewModel != null) {
+                SearchScreenOrder(navController, viewModel = productViewModel)
+            } }
             composable("notification") {
                 if (notificationViewModel != null) {
                     NotificationScreen(viewModel= notificationViewModel,navController)
